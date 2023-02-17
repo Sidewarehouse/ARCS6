@@ -1,3 +1,7 @@
+# gitでの共有を無視するファイル・ディレクトリ
+# Yokokura, Yuki 2023/02/17
+
+# C++上での基本的に不必要なファイル
 # Prerequisites
 *.d
 
@@ -16,17 +20,25 @@
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
-*.smod
-
 # Compiled Static libraries
 *.lai
 *.la
 *.a
-*.lib
+#*.lib ←コレは必要
 
 # Executables
 *.exe
 *.out
 *.app
+
+# ARCS6上での基本的に不必要なファイル
+DATA.csv
+EventLog.txt
+
+# gitで共有するrobot配下のディレクトリ
+/robot/*
+!/robot/general/
+!/robot/SA2RasPi/
+!/robot/sample/
+!/robot/ZFA01/
+

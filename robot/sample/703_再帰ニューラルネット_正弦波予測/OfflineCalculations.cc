@@ -1,0 +1,120 @@
+//! @file OfflineCalculations.cc
+//! @brief ARCS6 オフライン計算用メインコード
+//! @date 2021/08/30
+//! @author Yokokura, Yuki
+//!
+//! @par オフライン計算用のメインコード
+//! - 「make offline」でコンパイルすると，いつものARCS制御用のコードは走らずに，
+//!    このソースコードのみが走るようになる。
+//! - ARCSライブラリはもちろんそのままいつも通り使用可能。
+//! - 従って，オフラインで何か計算をしたいときに，このソースコードに記述すれば良い。
+//!
+// Copyright (C) 2011-2021 Yokokura, Yuki
+// This program is free software;
+// you can redistribute it and/or modify it under the terms of the FreeBSD License.
+// For details, see the License.txt file.
+
+// 基本のインクルードファイル
+#include <stdio.h>
+#include <cstdlib>
+#include <cassert>
+#include <array>
+#include <complex>
+
+// 追加のARCSライブラリをここに記述
+#include "Matrix.hh"
+#include "CsvManipulator.hh"
+#include "TimeSeriesDatasets.hh"
+//#include "RecurrentNeuralNet3.hh"
+#include "ActivationFunctions.hh"
+#include "RandomGenerator.hh"
+
+using namespace ARCS;
+
+//! @brief エントリポイント
+//! @return 終了ステータス
+int main(void){
+	printf("ARCS OFFLINE CALCULATION MODE\n");
+	printf("Recurrent Neural Network Test\n");
+	
+	// 正弦波データセットを読み込み
+	constexpr size_t N = 1;		// 入力データチャネル数
+	constexpr size_t K = 1;		// 訓練データチャネル数
+	constexpr size_t T = 100;	// 時系列データの長さ
+	constexpr size_t W = 10;	// 入力ウィンドウ幅
+	constexpr size_t M = 1;		// ミニバッチ数
+	TimeSeriesDatasets<N,K,T,W,M> SinData("SinSignal.csv", "SinSignal.csv");
+	SinData.DispInputAndTrainData(1);
+	//SinData.WriteInputPlot(-2, 2, "Input.png");
+	//SinData.WriteTrainPlot(-2, 2, "Train.png");
+	
+	// 再帰ニューラルネット
+	constexpr size_t Epch = 1000;	// エポック数
+	//constexpr size_t NL1  = 1;	// 内部層1のユニット数
+	//RecurrentNeuralNet3<N,NL1,K,T,W,M,Epch> RNN(SinData);
+	//RNN.Train();
+	
+	// 再帰ニューラルネットのサンプルコード(many-to-oneタイプ)
+	constexpr double epsilon = 0.01;
+	std::array<Matrix<1,1>, W + 2> x;
+	std::array<Matrix<1,5>, W + 2> h;
+	Matrix<1,5> bh, dLdbh, dLdh;
+	Matrix<1,5> Wxh, dLdWxh;
+	Matrix<5,5> Whh, dLdWhh;
+	Matrix<1,1> y;
+	Matrix<5,1> Why, dLdWhy;
+	Matrix<1,1> by, dLdby;
+	Matrix<1,1> r, dLdy;
+	Matrix<1,5> dLdh_fp;
+	
+	// 重みの初期化
+	RandomGenerator Rand(0,1);
+	Rand.GetGaussianRandomMatrix(Wxh);
+	Rand.GetGaussianRandomMatrix(Whh);
+	Rand.GetGaussianRandomMatrix(Why);
+	Wxh = Wxh/1000;
+	Whh = Whh/1000;
+	Why = Why/1000;
+	PrintMat(Wxh);
+	PrintMat(Whh);
+	PrintMat(Why);
+	
+	// エポック数分のループ
+	for(size_t k = 0; k < Epch; ++k){
+		if(k % 100 == 1) printf("Epoch = %zu\n", k);
+		
+		// 順伝播
+		for(size_t i = 1; i <= W; ++i){
+			x.at(i) = SinData.InputData.at(i);
+			h.at(i) = tanhe(Wxh*x.at(i) + Whh*h.at(i - 1) + bh);	// 入力層
+		}
+		y = Why*h.at(W) + by;		// 出力層
+		
+		// 逆伝播(出力層)
+		r = SinData.TrainData;
+		dLdy = y - r;
+		dLdWhy = dLdy*tp(h.at(W));
+		dLdby  = dLdy;
+		dLdh   = tp(Why)*dLdy;
+		if(k % 100 == 1) PrintMat(dLdy);
+		
+		// 逆伝播(入力層)
+		for(size_t i = W; 1 <= i; --i){
+			dLdh_fp = dLdh & (Matrix<1,5>::ones() - (h.at(i) & h.at(i)));
+			dLdbh  += dLdh_fp;
+			dLdWxh += dLdh_fp*tp(x.at(i));
+			dLdWhh += dLdh_fp*tp(h.at(i));
+			dLdh = Whh*dLdh_fp;
+		}
+		
+		// 重みとバイアスの更新
+		bh  += -epsilon*dLdbh;
+		Wxh += -epsilon*dLdWxh;
+		Whh += -epsilon*dLdWhh;
+		by  += -epsilon*dLdby;
+		Why += -epsilon*dLdWhy;
+	}
+		
+	return EXIT_SUCCESS;	// 正常終了
+}
+

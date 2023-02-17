@@ -1,0 +1,2 @@
+AddonTemplate.o: AddonTemplate.cc AddonTemplate.hh \
+ ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh

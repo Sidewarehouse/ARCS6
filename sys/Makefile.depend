@@ -1,0 +1,46 @@
+ARCSassert.o: ARCSassert.cc ARCSassert.hh ARCSeventlog.hh
+ARCS.o: ARCS.cc ARCScommon.hh ARCSscreen.hh ../src/ConstParams.hh \
+ ../lib/SFthread.hh ../lib/CPUSettings.hh ../lib/LinuxCommander.hh \
+ ARCSassert.hh ARCSeventlog.hh ../lib/FrameGraphics.hh \
+ ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh ../lib/FrameGraphics.hh \
+ ../lib/RingBuffer.hh ../lib/Matrix.hh \
+ ../src/../robot/UniDisc/addon/UniDisc.hh ../lib/Limiter.hh \
+ ../lib/RingBuffer.hh ARCSthread.hh ../src/ControlFunctions.hh \
+ ../src/ConstParams.hh ../src/InterfaceFunctions.hh ARCSprint.hh \
+ ARCScommon.hh ../lib/Matrix.hh ../lib/USV-PCIE7.hh ../src/DataMemory.hh \
+ ARCSeventlog.hh ARCSassert.hh ARCSprint.hh ../src/ScreenParams.hh \
+ ../src/GraphPlot.hh
+ARCScommon.o: ARCScommon.cc ARCScommon.hh ARCSeventlog.hh ARCSassert.hh
+ARCSeventlog.o: ARCSeventlog.cc ARCSeventlog.hh ARCScommon.hh \
+ ARCSscreen.hh ../src/ConstParams.hh ../lib/SFthread.hh \
+ ../lib/CPUSettings.hh ../lib/LinuxCommander.hh ARCSassert.hh \
+ ARCSeventlog.hh ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh \
+ ../lib/CuiPlot.hh ../lib/FrameGraphics.hh ../lib/RingBuffer.hh \
+ ../lib/Matrix.hh ../src/../robot/UniDisc/addon/UniDisc.hh \
+ ../lib/Limiter.hh ../lib/RingBuffer.hh
+ARCSprint.o: ARCSprint.cc ARCSprint.hh ARCScommon.hh ../lib/Matrix.hh \
+ ARCSassert.hh ARCSscreen.hh ../src/ConstParams.hh ../lib/SFthread.hh \
+ ../lib/CPUSettings.hh ../lib/LinuxCommander.hh ARCSeventlog.hh \
+ ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh \
+ ../lib/FrameGraphics.hh ../lib/RingBuffer.hh ../lib/Matrix.hh \
+ ../src/../robot/UniDisc/addon/UniDisc.hh ../lib/Limiter.hh \
+ ../lib/RingBuffer.hh
+ARCSscreen.o: ARCSscreen.cc ARCSscreen.hh ../src/ConstParams.hh \
+ ../lib/SFthread.hh ../lib/CPUSettings.hh ../lib/LinuxCommander.hh \
+ ARCSassert.hh ARCSeventlog.hh ../lib/FrameGraphics.hh \
+ ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh ../lib/FrameGraphics.hh \
+ ../lib/RingBuffer.hh ../lib/Matrix.hh \
+ ../src/../robot/UniDisc/addon/UniDisc.hh ../lib/Limiter.hh \
+ ../lib/RingBuffer.hh ARCScommon.hh ARCSeventlog.hh ARCSprint.hh \
+ ../lib/Matrix.hh ../src/ScreenParams.hh ../src/ConstParams.hh \
+ ../src/GraphPlot.hh
+ARCSthread.o: ARCSthread.cc ARCSthread.hh ../src/ControlFunctions.hh \
+ ../src/ConstParams.hh ../lib/SFthread.hh ../lib/CPUSettings.hh \
+ ../lib/LinuxCommander.hh ARCSassert.hh ARCSeventlog.hh \
+ ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh \
+ ../lib/FrameGraphics.hh ../lib/RingBuffer.hh ../lib/Matrix.hh \
+ ../src/../robot/UniDisc/addon/UniDisc.hh ../lib/Limiter.hh \
+ ../src/InterfaceFunctions.hh ARCSprint.hh ARCScommon.hh ../lib/Matrix.hh \
+ ../lib/USV-PCIE7.hh ../src/DataMemory.hh ARCScommon.hh ARCSeventlog.hh \
+ ../src/ConstParams.hh ARCSassert.hh ../src/ScreenParams.hh \
+ ../src/GraphPlot.hh
