@@ -1,5 +1,5 @@
 # gitでの共有を無視するファイル・ディレクトリ
-# Yokokura, Yuki 2023/02/17
+# Yokokura, Yuki 2023/02/21
 
 # C++上での基本的に不必要なファイル
 # Prerequisites
@@ -35,7 +35,8 @@
 DATA.csv
 EventLog.txt
 
-# gitで共有するrobot配下のディレクトリ
+# 公開リポジトリで共有するrobot配下のディレクトリ
+# 下記で列挙されているロボット以外は非公開
 /robot/*
 !/robot/general/
 !/robot/SA2RasPi/
