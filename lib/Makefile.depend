@@ -2,13 +2,15 @@ ActivationFunctions.o: ActivationFunctions.cc ActivationFunctions.hh \
  Matrix.hh ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
 AmpIncSquareWave.o: AmpIncSquareWave.cc AmpIncSquareWave.hh SquareWave.hh \
  Matrix.hh ../sys/ARCSassert.hh StairsWave.hh ../sys/ARCSeventlog.hh
+ArcTangent.o: ArcTangent.cc ArcTangent.hh ../sys/ARCSassert.hh \
+ ../sys/ARCSeventlog.hh
 ArcsControl.o: ArcsControl.cc ArcsControl.hh Matrix.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
 ArcsMatrix.o: ArcsMatrix.cc ArcsMatrix.hh ../sys/ARCSassert.hh
-ArcTangent.o: ArcTangent.cc ArcTangent.hh ../sys/ARCSassert.hh \
- ../sys/ARCSeventlog.hh
 BatchProcessor.o: BatchProcessor.cc BatchProcessor.hh Matrix.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
+CPUSettings.o: CPUSettings.cc CPUSettings.hh ../sys/ARCSassert.hh \
+ ../sys/ARCSeventlog.hh
 ChirpGenerator.o: ChirpGenerator.cc ChirpGenerator.hh
 ClassBase.o: ClassBase.cc ClassBase.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
@@ -16,8 +18,6 @@ ClassTemplate.o: ClassTemplate.cc ClassTemplate.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
 Controller-JXC.o: Controller-JXC.cc Matrix.hh ../sys/ARCSassert.hh \
  Controller-JXC.hh PCI-2826CV.hh
-CPUSettings.o: CPUSettings.cc CPUSettings.hh ../sys/ARCSassert.hh \
- ../sys/ARCSeventlog.hh
 CsvManipulator.o: CsvManipulator.cc CsvManipulator.hh Matrix.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
 CuiPlot.o: CuiPlot.cc CuiPlot.hh FrameGraphics.hh FrameFontSmall.hh \
@@ -29,12 +29,13 @@ CurrencyDatasets.o: CurrencyDatasets.cc CurrencyDatasets.hh Matrix.hh \
 DataStorage.o: DataStorage.cc DataStorage.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
 DeadBand.o: DeadBand.cc ../sys/ARCSassert.hh DeadBand.hh
-Differentiator2.o: Differentiator2.cc Differentiator2.hh
 Differentiator.o: Differentiator.cc Differentiator.hh
+Differentiator2.o: Differentiator2.cc Differentiator2.hh
 Discret.o: Discret.cc Discret.hh Matrix.hh ../sys/ARCSassert.hh
 DisturbanceObsrv.o: DisturbanceObsrv.cc DisturbanceObsrv.hh Matrix.hh \
  ../sys/ARCSassert.hh Discret.hh StateSpaceSystem.hh ArcsControl.hh \
  ../sys/ARCSeventlog.hh
+FRAgenerator.o: FRAgenerator.cc FRAgenerator.hh ../sys/ARCSeventlog.hh
 FeedforwardNeuralNet3.o: FeedforwardNeuralNet3.cc \
  FeedforwardNeuralNet3.hh Matrix.hh ../sys/ARCSassert.hh \
  NeuralNetParamDef.hh SingleLayerPerceptron.hh ActivationFunctions.hh \
@@ -43,24 +44,23 @@ FeedforwardNeuralNet3.o: FeedforwardNeuralNet3.cc \
  RingBuffer.hh
 FixedAverage.o: FixedAverage.cc FixedAverage.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
-FRAgenerator.o: FRAgenerator.cc FRAgenerator.hh ../sys/ARCSeventlog.hh
 FrameFontSmall.o: FrameFontSmall.cc FrameFontSmall.hh
 FrameGraphics.o: FrameGraphics.cc FrameGraphics.hh FrameFontSmall.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
 FunctionBase.o: FunctionBase.cc FunctionBase.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
-HighPassFilter2.o: HighPassFilter2.cc HighPassFilter2.hh
 HighPassFilter.o: HighPassFilter.cc HighPassFilter.hh
+HighPassFilter2.o: HighPassFilter2.cc HighPassFilter2.hh
 HighPassFilter_Tmp.o: HighPassFilter_Tmp.cc HighPassFilter_Tmp.hh \
  Matrix.hh ../sys/ARCSassert.hh Discret.hh ../sys/ARCSeventlog.hh
 HysteresisComparator.o: HysteresisComparator.cc HysteresisComparator.hh
-Integrator2.o: Integrator2.cc Integrator2.hh
-Integrator.o: Integrator.cc Integrator.hh ../sys/ARCSassert.hh \
- ../sys/ARCSeventlog.hh
-I-PDcontroller.o: I-PDcontroller.cc I-PDcontroller.hh Matrix.hh \
- ../sys/ARCSassert.hh Discret.hh ../sys/ARCSeventlog.hh
 I-P-I-Pcontroller.o: I-P-I-Pcontroller.cc I-P-I-Pcontroller.hh \
  Integrator.hh ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
+I-PDcontroller.o: I-PDcontroller.cc I-PDcontroller.hh Matrix.hh \
+ ../sys/ARCSassert.hh Discret.hh ../sys/ARCSeventlog.hh
+Integrator.o: Integrator.cc Integrator.hh ../sys/ARCSassert.hh \
+ ../sys/ARCSeventlog.hh
+Integrator2.o: Integrator2.cc Integrator2.hh
 IrisClassDatasets.o: IrisClassDatasets.cc IrisClassDatasets.hh Matrix.hh \
  ../sys/ARCSassert.hh Shuffle.hh RandomGenerator.hh \
  ../sys/ARCSeventlog.hh BatchProcessor.hh
@@ -70,13 +70,13 @@ IrisDatasets.o: IrisDatasets.cc IrisDatasets.hh Matrix.hh \
 Limiter.o: Limiter.cc Limiter.hh Matrix.hh ../sys/ARCSassert.hh
 LinuxCommander.o: LinuxCommander.cc LinuxCommander.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
-LoadsideDistObsrv.o: LoadsideDistObsrv.cc LoadsideDistObsrv.hh Matrix.hh \
- ../sys/ARCSassert.hh Discret.hh ../sys/ARCSeventlog.hh
 LoadVelocityObsrv.o: LoadVelocityObsrv.cc LoadVelocityObsrv.hh Matrix.hh \
  ../sys/ARCSassert.hh Discret.hh StateSpaceSystem.hh ArcsControl.hh \
  ../sys/ARCSeventlog.hh
-LowPassFilter2.o: LowPassFilter2.cc LowPassFilter2.hh
+LoadsideDistObsrv.o: LoadsideDistObsrv.cc LoadsideDistObsrv.hh Matrix.hh \
+ ../sys/ARCSassert.hh Discret.hh ../sys/ARCSeventlog.hh
 LowPassFilter.o: LowPassFilter.cc LowPassFilter.hh
+LowPassFilter2.o: LowPassFilter2.cc LowPassFilter2.hh
 Matrix.o: Matrix.cc Matrix.hh ../sys/ARCSassert.hh
 MotorFrameTransform.o: MotorFrameTransform.cc MotorFrameTransform.hh
 MotorSimulator.o: MotorSimulator.cc MotorSimulator.hh Matrix.hh \
@@ -92,6 +92,12 @@ MovingDifferentiator.o: MovingDifferentiator.cc MovingDifferentiator.hh \
 NotchFilter.o: NotchFilter.cc NotchFilter.hh
 Observer.o: Observer.cc Observer.hh Matrix.hh ../sys/ARCSassert.hh \
  StateSpaceSystem.hh Discret.hh ArcsControl.hh ../sys/ARCSeventlog.hh
+P-Dcontroller.o: P-Dcontroller.cc P-Dcontroller.hh \
+ MovingDifferentiator.hh RingBuffer.hh ../sys/ARCSassert.hh Matrix.hh \
+ ../sys/ARCSeventlog.hh
+P-Dcontrollers.o: P-Dcontrollers.cc P-Dcontrollers.hh Matrix.hh \
+ ../sys/ARCSassert.hh P-Dcontroller.hh MovingDifferentiator.hh \
+ RingBuffer.hh ../sys/ARCSeventlog.hh
 PCI-2826CV.o: PCI-2826CV.cc PCI-2826CV.hh ../sys/ARCSeventlog.hh
 PCI-3133.o: PCI-3133.cc PCI-3133.hh ../sys/ARCSeventlog.hh
 PCI-3180.o: PCI-3180.cc PCI-3180.hh ../sys/ARCSeventlog.hh
@@ -102,19 +108,14 @@ PCI-46610x.o: PCI-46610x.cc PCI-46610x.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
 PCI-6205C.o: PCI-6205C.cc PCI-6205C.hh ../sys/ARCSeventlog.hh
 PCIe-AC01.o: PCIe-AC01.cc PCIe-AC01.hh
-P-Dcontroller.o: P-Dcontroller.cc P-Dcontroller.hh \
- MovingDifferentiator.hh RingBuffer.hh ../sys/ARCSassert.hh Matrix.hh \
- ../sys/ARCSeventlog.hh
 PDcontroller.o: PDcontroller.cc PDcontroller.hh
-P-Dcontrollers.o: P-Dcontrollers.cc P-Dcontrollers.hh Matrix.hh \
- ../sys/ARCSassert.hh P-Dcontroller.hh MovingDifferentiator.hh \
- RingBuffer.hh ../sys/ARCSeventlog.hh
-PhaseLeadLag.o: PhaseLeadLag.cc PhaseLeadLag.hh
-PIcontroller.o: PIcontroller.cc PIcontroller.hh Integrator.hh \
- ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh Limiter.hh Matrix.hh
 PIDcontroller.o: PIDcontroller.cc PIDcontroller.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
+PIcontroller.o: PIcontroller.cc PIcontroller.hh Integrator.hh \
+ ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh Limiter.hh Matrix.hh
+PhaseLeadLag.o: PhaseLeadLag.cc PhaseLeadLag.hh
 PulseWave.o: PulseWave.cc PulseWave.hh Matrix.hh ../sys/ARCSassert.hh
+RPi2GPIO.o: RPi2GPIO.cc RPi2GPIO.hh
 RandomGenerator.o: RandomGenerator.cc RandomGenerator.hh Matrix.hh \
  ../sys/ARCSassert.hh
 RecurrentNeuralLayer.o: RecurrentNeuralLayer.cc RecurrentNeuralLayer.hh \
@@ -134,7 +135,6 @@ ResoLoopCutDistObsrvs.o: ResoLoopCutDistObsrvs.cc \
  ArcsControl.hh ../sys/ARCSeventlog.hh TwoInertiaParamDef.hh
 RingBuffer.o: RingBuffer.cc RingBuffer.hh ../sys/ARCSassert.hh Matrix.hh \
  ../sys/ARCSeventlog.hh
-RPi2GPIO.o: RPi2GPIO.cc RPi2GPIO.hh
 SA2-RasPi2.o: SA2-RasPi2.cc SA2-RasPi2.hh RPi2GPIO.hh Limiter.hh \
  Matrix.hh ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh \
  ../sys/ARCSprint.hh ../sys/ARCScommon.hh Matrix.hh
