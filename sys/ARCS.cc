@@ -29,10 +29,8 @@
 //! - 本プログラムは全体的に亘ってエラー処理・例外処理は行っていない。動かないときは動かない。
 //!   ただし，arcs_assert関数を徹底的に埋め込んで常に動作チェックすること。(開発者:=ユーザというコンセプト)
 //!
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+//! Copyright (C) 2011-2023 Yokokura, Yuki
+//! MIT License. For details, see the LICENSE file.
 
 #include <unistd.h>
 #include "ARCScommon.hh"

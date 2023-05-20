@@ -6,10 +6,8 @@
 //! @date 2023/05/20
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2021 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2023 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef GRAPHPLOT
 #define GRAPHPLOT
