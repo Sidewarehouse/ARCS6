@@ -699,6 +699,15 @@ int main(void){
 	constexpr auto kxy2 = minidx(k1);					// コンパイル時に要素番号を計算
 	printf("kxy2 = %ld, %ld\n", std::get<0>(kxy2), std::get<1>(kxy2));
 	
+	// 三角行列操作系の関数
+	printf("\n★★★★★★★ 三角行列操作系の関数\n");
+	ArcsMat<7,6> Fx7;
+	gettriup(Fx, Fx7);			// 上三角行列を切り出す (引数渡し版)
+	dispmat(Fx7);
+	dispmat(gettriup(Fx, 3));	// 上三角行列を切り出す (戻り値渡し版)
+	constexpr auto Fxtri = gettriup(Fx, 2);				// コンパイル時に上三角行列を切り出す 
+	dispmat(Fxtri);
+	
 	/*
 	// 行列演算補助系の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助系の関数のテスト\n");

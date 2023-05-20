@@ -94,17 +94,17 @@ class ArcsMat {
 			static_assert(M != 0);	// サイズゼロの行列は禁止
 			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
 			const R* ListVal = InitList.begin();		// 初期化リストの最初のポインタ位置
-			size_t Ni = 0;				// 行カウンタ
-			size_t Mi = 0;				// 列カウンタ
+			size_t Ni = 0;				// 横方向カウンタ
+			size_t Mi = 0;				// 縦方向カウンタ
 			for(size_t i = 0; i < InitList.size(); ++i){
 				// 初期化リストを順番に読み込んでいく
-				arcs_assert(Ni < N);	// 行カウンタが行の長さ以内かチェック
-				arcs_assert(Mi < M);	// 列カウンタが列の長さ以内かチェック
+				arcs_assert(Ni < N);	// 横方向カウンタが行の長さ以内かチェック
+				arcs_assert(Mi < M);	// 縦方向カウンタが列の高さ以内かチェック
 				Data[Ni][Mi] = (T)ListVal[i];	// キャストしてから行列の要素を埋める
-				Ni++;					// 行カウンタをインクリメント
-				if(Ni == N){			// 行カウンタが最後まで行き着いたら，
-					Ni = 0;				// 行カウンタを零に戻して，
-					Mi++;				// その代わりに，列カウンタをインクリメント
+				Ni++;					// 横方向カウンタをカウントアップ
+				if(Ni == N){			// 横方向カウンタが最後まで行き着いたら，
+					Ni = 0;				// 横方向カウンタを零に戻して，
+					Mi++;				// その代わりに，縦方向カウンタをカウントアップ
 				}
 			}
 		}
@@ -1652,7 +1652,35 @@ class ArcsMat {
 			const auto ji = minidx(U);
 			return U(std::get<0>(ji), std::get<1>(ji));
 		}
-		
+
+		//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		//! @param[in]	n	切り出す左端位置 n列目(デフォルト値 = 1)
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void gettriup(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t n = 1){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+
+			for(size_t j = 1; j <= M; ++j){
+				for(size_t i = j + n - 1; i <= N; ++i){
+					Y(j,i) = U(j,i);
+				}
+			}
+		}
+
+		//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @param[in]	n	切り出す左端位置 n列目(デフォルト値 = 1)
+		//! @return	出力行列
+		static constexpr ArcsMat<M,N,T> gettriup(const ArcsMat<M,N,T>& U, const size_t n = 1){
+			ArcsMat<M,N,T> Y;
+			gettriup(U, Y, n);
+			return Y;
+		}
+
 /*		
 		
 		
@@ -1724,19 +1752,6 @@ class ArcsMat {
 			return nonzeroele(diag(S));	// S行列の対角要素の非ゼロをカウントするとそれがランク
 		}
 		
-		//! @brief 行列のk番目より上の上三角部分を返す関数(下三角はゼロになる)
-		//! @param[in]	U	入力行列
-		//! @param[in]	k	k番目
-		//! @return	結果
-		constexpr friend ArcsMat gettriup(const ArcsMat& U, const size_t k){
-			ArcsMat Y;
-			for(size_t i = 0; i < M; ++i){
-				for(size_t j = i + k; j < N; ++j){
-					Y.Data[j][i] = U.Data[j][i];
-				}
-			}
-			return Y;
-		}
 		
 		//! @brief 行列の上三角部分を返す関数(下三角はゼロになる)
 		//! @param[in]	U	入力行列
@@ -3354,6 +3369,26 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr T min(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::min(U);
+	}
+
+	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	//! @param[in]	n	切り出す左端位置 n列目(デフォルト値 = 1)
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void gettriup(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t n = 1){
+		ArcsMat<M,N,T>::gettriup(U, Y, n);
+	}
+
+	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(戻り値渡し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[in]	n	切り出す左端位置 n列目(デフォルト値 = 1)
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> gettriup(const ArcsMat<M,N,T>& U, const size_t n = 1){
+		return ArcsMat<M,N,T>::gettriup(U, n);
 	}
 
 }
