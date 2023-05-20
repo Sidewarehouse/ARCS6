@@ -758,8 +758,8 @@ void ARCSscreen::DispBaseScreen(void){
 	wattrset(MainScreen, COLOR_PAIR(BLACK_CYAN));
 	for(int i=0;i<=HORIZONTAL_MAX;i++) mvwaddstr(MainScreen,  0,i," ");
 	mvwaddstr(MainScreen,  0,0,"ARCS6 - ADVANCED ROBOT CONTROL SYSTEM V6");
-	mvwprintw(MainScreen, 0,41,ConstParams::CTRLNAME.c_str());
-	mvwprintw(MainScreen, 0,HORIZONTAL_MAX-16,ConstParams::ARCS_REVISION.c_str());
+	mvwprintw(MainScreen, 0,41,"%s",ConstParams::CTRLNAME.c_str());
+	mvwprintw(MainScreen, 0,HORIZONTAL_MAX-16,"%s",ConstParams::ARCS_REVISION.c_str());
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLUE));
 	for(int i=0;i<=HORIZONTAL_MAX;i++) mvwaddstr(MainScreen,  1,i," ");
 	mvwaddstr(MainScreen,  1,0," REALTIME STATUS      |SAMPLING  ACTUAL |CONSUMPT|ACT. MAX|ACT. MIN| EVENT LOG");
@@ -930,9 +930,9 @@ void ARCSscreen::DispEventLog(void){
 	// リングバッファの中身を表示
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLACK));	// 文字色変更
 	for(unsigned int i = 0; i < EVLOG_NUM; ++i){
-		buff = EventLogLines.GetRelativeValueFromEnd(i).substr(0, EVLOG_WIDTH);	// 画面から溢れないように切り出す
-		mvwprintw(MainScreen, EVLOG_TOP + i, EVLOG_LEFT, EventLogSpace.c_str());// 空行を表示して履歴をクリア
-		mvwprintw(MainScreen, EVLOG_TOP + i, EVLOG_LEFT, buff.c_str());		// イベントログ表示
+		buff = EventLogLines.GetRelativeValueFromEnd(i).substr(0, EVLOG_WIDTH);			// 画面から溢れないように切り出す
+		mvwprintw(MainScreen, EVLOG_TOP + i, EVLOG_LEFT, "%s", EventLogSpace.c_str());	// 空行を表示して履歴をクリア
+		mvwprintw(MainScreen, EVLOG_TOP + i, EVLOG_LEFT, "%s", buff.c_str());			// イベントログ表示
 	}
 	wattrset(MainScreen, COLOR_PAIR(CYAN_BLACK));	// 文字色変更
 }
@@ -944,9 +944,9 @@ void ARCSscreen::DispDebugPrint(void){
 	// リングバッファの中身を表示
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLACK));	// 文字色変更
 	for(unsigned int i = 0; i < DBPRNT_NUM; ++i){
-		buff = DebugPrintLines.GetRelativeValueFromEnd(i).substr(0, DBPRNT_WIDTH);	// 画面から溢れないように切り出す
-		mvwprintw(MainScreen, DBPRNT_TOP + i, DBPRNT_LEFT, DebugPrintSpace.c_str());// 空行を表示して履歴をクリア
-		mvwprintw(MainScreen, DBPRNT_TOP + i, DBPRNT_LEFT, buff.c_str());	// デバッグプリント表示
+		buff = DebugPrintLines.GetRelativeValueFromEnd(i).substr(0, DBPRNT_WIDTH);			// 画面から溢れないように切り出す
+		mvwprintw(MainScreen, DBPRNT_TOP + i, DBPRNT_LEFT, "%s", DebugPrintSpace.c_str());	// 空行を表示して履歴をクリア
+		mvwprintw(MainScreen, DBPRNT_TOP + i, DBPRNT_LEFT, "%s", buff.c_str());				// デバッグプリント表示
 	}
 	wattrset(MainScreen, COLOR_PAIR(CYAN_BLACK));	// 文字色変更
 }
@@ -958,7 +958,7 @@ void ARCSscreen::DispDebugIndicator(void){
 	for(unsigned int i = 0; i < DBINDC_NUM; ++i){
 		if(i < 10) strbuf += " ";	// iが1桁のときはスペースを追加して右揃えにする
 		strbuf += std::to_string(i) + " : " + ARCScommon::Uint64ToString(DebugIndicator[i], "0x%016lX");
-		mvwprintw(MainScreen, DBINDC_TOP + i, DBINDC_LEFT, strbuf.c_str());
+		mvwprintw(MainScreen, DBINDC_TOP + i, DBINDC_LEFT, "%s", strbuf.c_str());
 		strbuf = "";
 	}
 	wattrset(MainScreen, COLOR_PAIR(CYAN_BLACK));	// 文字色変更
@@ -981,8 +981,8 @@ void ARCSscreen::DispOnlineSetVarCursor(void){
 	std::array<double, ConstParams::ONLINEVARS_MAX> OnlineSetVar;
 	ScrPara.GetOnlineSetVars(OnlineSetVar);								// オンライン設定変数を取得
 	for(unsigned int i = 0; i < ConstParams::ONLINEVARS_NUM; ++i){
-		mvwprintw(MainScreen, 24 + i, 22, "               ");			// 背景の表示
-		mvwprintw(MainScreen, 24 + i, 22, "% 14.4f", OnlineSetVar.at(i));// 変数値の表示
+		mvwprintw(MainScreen, 24 + i, 22, "               ");				// 背景の表示
+		mvwprintw(MainScreen, 24 + i, 22, "% 14.4f", OnlineSetVar.at(i));	// 変数値の表示
 	}
 	
 	// 変数設定状態が指令されているときのみ変数設定カーソルを表示
@@ -1204,9 +1204,9 @@ void ARCSscreen::ShowEmergencyWindow(void){
 	std::string linenum  = "LINE NUMBER : " + std::to_string(line);
 	
 	// メッセージ表示
-	mvwprintw(MainScreen, EMWIN_TOP+1, EMWIN_LEFT+2, message.c_str());
-	mvwprintw(MainScreen, EMWIN_TOP+2, EMWIN_LEFT+2, filename.c_str());
-	mvwprintw(MainScreen, EMWIN_TOP+3, EMWIN_LEFT+2, linenum.c_str());
+	mvwprintw(MainScreen, EMWIN_TOP+1, EMWIN_LEFT+2, "%s", message.c_str());
+	mvwprintw(MainScreen, EMWIN_TOP+2, EMWIN_LEFT+2, "%s", filename.c_str());
+	mvwprintw(MainScreen, EMWIN_TOP+3, EMWIN_LEFT+2, "%s", linenum.c_str());
 	
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLACK));// 色を白黒に元に戻す
 }
