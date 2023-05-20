@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2021/09/29
+//! @date 2023/05/20
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2021 Yokokura, Yuki
@@ -61,9 +61,9 @@ class GraphPlot {
 			}else{
 				if(VarsCount <= ConstParams::PLOT_VAR_NUM[PlotNumBuf]){
 					// 変数要素数が有効な範囲内なら
-					pthread_mutex_lock(&PlotVarsMutex);
+					//pthread_mutex_lock(&PlotVarsMutex); ←リアルタイム性悪化の原因！(一時的な対処)
 					VarsRingBuf.at(PlotNumBuf).at(VarsCount - 1).SetFirstValue((double)u1);	// 変数値リングバッファに詰める
-					pthread_mutex_unlock(&PlotVarsMutex);
+					//pthread_mutex_unlock(&PlotVarsMutex);
 				}
 			}
 			

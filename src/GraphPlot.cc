@@ -57,9 +57,9 @@ GraphPlot::~GraphPlot(){
 //! @brief 作業空間プロットに位置ベクトルを設定する関数（6軸配列版）
 //! @param[in]	AxPosition	1軸～6軸の作業空間位置ベクトル XYZ--- [m,m,m,0,0,0]^T
 void GraphPlot::SetWorkspace(const std::array<Matrix<1,6>, 6>& AxPosition){
-	pthread_mutex_lock(&WorkspaceMutex);
+	//pthread_mutex_lock(&WorkspaceMutex);	 ←リアルタイム性悪化の原因！(一時的な対処)
 	AxisPos = AxPosition;
-	pthread_mutex_unlock(&WorkspaceMutex);
+	//pthread_mutex_unlock(&WorkspaceMutex);
 }
 
 //! @brief 作業空間プロットに位置ベクトルを設定する関数（3軸個別版）
@@ -67,11 +67,11 @@ void GraphPlot::SetWorkspace(const std::array<Matrix<1,6>, 6>& AxPosition){
 //! @param[in]	Pos2	2軸の作業空間位置ベクトル XYZ--- [m,m,m]^T
 //! @param[in]	Pos3	3軸の作業空間位置ベクトル XYZ--- [m,m,m]^T
 void GraphPlot::SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, const Matrix<1,3>& Pos3){
-	pthread_mutex_lock(&WorkspaceMutex);
+	//pthread_mutex_lock(&WorkspaceMutex); ←リアルタイム性悪化の原因！(一時的な対処)
 	AxisPos.at(3).LoadShortVector(Pos1);
 	AxisPos.at(4).LoadShortVector(Pos2);
 	AxisPos.at(5).LoadShortVector(Pos3);
-	pthread_mutex_unlock(&WorkspaceMutex);
+	//pthread_mutex_unlock(&WorkspaceMutex);
 }
 
 //! @brief プロット平面の描画
@@ -139,9 +139,9 @@ void GraphPlot::DrawTimeSeriesPlot(void){
 		Plot.at(j)->LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
 		// 変数の分ごとの時系列データのプロット
 		for(size_t i = 0; i < ConstParams::PLOT_VAR_NUM.at(j); ++i){
-			pthread_mutex_lock(&PlotVarsMutex);
+			//pthread_mutex_lock(&PlotVarsMutex); ←リアルタイム性悪化の原因！(一時的な対処)
 			Plot.at(j)->TimeSeriesPlot(TimeRingBuf, VarsRingBuf.at(j).at(i), ConstParams::PLOT_TYPE.at(j).at(i), ConstParams::PLOT_VAR_COLORS.at(i));
-			pthread_mutex_unlock(&PlotVarsMutex);
+			//pthread_mutex_unlock(&PlotVarsMutex);
 		}
 		Plot.at(j)->Disp();					// プロット平面＋プロットの描画
 	}
@@ -188,7 +188,7 @@ void GraphPlot::DrawWorkSpacePlotPlane(void){
 void GraphPlot::DrawWorkSpacePlot(void){
 	// 作業空間XYプロットの描画
 	PlotXY.LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
-	pthread_mutex_lock(&WorkspaceMutex);
+	//pthread_mutex_lock(&WorkspaceMutex); ←リアルタイム性悪化の原因！(一時的な対処)
 	PlotXY.Plot(               0,                0, AxisPos.at(0)[1], AxisPos.at(0)[2], CuiPlotTypes::PLOT_BOLDLINE, FGcolors::CYAN);	// ベースから1軸までの線
 	PlotXY.Plot(AxisPos.at(0)[1], AxisPos.at(0)[2], AxisPos.at(1)[1], AxisPos.at(1)[2], CuiPlotTypes::PLOT_BOLDLINE, FGcolors::CYAN);	// 1軸から2軸までの線
 	PlotXY.Plot(AxisPos.at(1)[1], AxisPos.at(1)[2], AxisPos.at(2)[1], AxisPos.at(2)[2], CuiPlotTypes::PLOT_BOLDLINE, FGcolors::CYAN);	// 2軸から3軸までの線
@@ -204,12 +204,12 @@ void GraphPlot::DrawWorkSpacePlot(void){
 	PlotXY.DrawValue(ConstParams::PLOTXY_VAL_XPOS, ConstParams::PLOTXY_VAL_YPOS      , "X = % 7.1f mm", AxisPos.at(5)[1]*1e3);	// X位置数値表示
 	PlotXY.DrawValue(ConstParams::PLOTXY_VAL_XPOS, ConstParams::PLOTXY_VAL_YPOS - 0.1, "Y = % 7.1f mm", AxisPos.at(5)[2]*1e3);	// Y位置数値表示
 	PlotXY.DrawValue(ConstParams::PLOTXY_VAL_XPOS, ConstParams::PLOTXY_VAL_YPOS - 0.2, "Z = % 7.1f mm", AxisPos.at(5)[3]*1e3);	// Z位置数値表示
-	pthread_mutex_unlock(&WorkspaceMutex);
+	//pthread_mutex_unlock(&WorkspaceMutex);
 	PlotXY.Disp();	// プロット平面＋プロットの描画
 	
 	// 作業空間XZプロットの描画
 	PlotXZ.LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
-	pthread_mutex_lock(&WorkspaceMutex);
+	//pthread_mutex_lock(&WorkspaceMutex); ←リアルタイム性悪化の原因！(一時的な対処)
 	PlotXZ.Plot(               0,                0, AxisPos.at(0)[1], AxisPos.at(0)[3], CuiPlotTypes::PLOT_BOLDLINE, FGcolors::CYAN);	// ベースから1軸までの線
 	PlotXZ.Plot(AxisPos.at(0)[1], AxisPos.at(0)[3], AxisPos.at(1)[1], AxisPos.at(1)[3], CuiPlotTypes::PLOT_BOLDLINE, FGcolors::CYAN);	// 1軸から2軸までの線
 	PlotXZ.Plot(AxisPos.at(1)[1], AxisPos.at(1)[3], AxisPos.at(2)[1], AxisPos.at(2)[3], CuiPlotTypes::PLOT_BOLDLINE, FGcolors::CYAN);	// 2軸から3軸までの線
@@ -225,7 +225,7 @@ void GraphPlot::DrawWorkSpacePlot(void){
 	PlotXZ.DrawValue(ConstParams::PLOTXZ_VAL_XPOS, ConstParams::PLOTXZ_VAL_ZPOS      , "R = % 6.1f deg", AxisPos.at(5)[4]*180.0/M_PI);	// ロール角数値表示
 	PlotXZ.DrawValue(ConstParams::PLOTXZ_VAL_XPOS, ConstParams::PLOTXZ_VAL_ZPOS - 0.1, "P = % 6.1f deg", AxisPos.at(5)[5]*180.0/M_PI);	// ピッチ角数値表示
 	PlotXZ.DrawValue(ConstParams::PLOTXZ_VAL_XPOS, ConstParams::PLOTXZ_VAL_ZPOS - 0.2, "W = % 6.1f deg", AxisPos.at(5)[6]*180.0/M_PI);	// ヨー角数値表示
-	pthread_mutex_unlock(&WorkspaceMutex);
+	//pthread_mutex_unlock(&WorkspaceMutex);
 	PlotXZ.Disp();	// プロット平面＋プロットの描画
 }
 
