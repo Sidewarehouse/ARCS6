@@ -48,6 +48,13 @@ enum class NormType {
 	AM_EUCLID		//!< ユークリッドノルム
 };
 
+//! @brief 行列の状態の定義
+enum class MatStatus {
+	AM_NA,		//!< 状態定義該当なし
+	AM_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
+	AM_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
+};
+
 //! @brief ARCS-Matrix 行列演算クラス
 //! @tparam M	行列の高さ
 //! @tparam	N	行列の幅
@@ -55,12 +62,6 @@ enum class NormType {
 template <size_t M, size_t N, typename T = double>
 class ArcsMat {
 	public:
-		//! @brief LU分解の際の並べ替えが偶数回/奇数回発生したことを返すための定義
-		enum LUperm {
-			ODD,	//!< 奇数
-			EVEN	//!< 偶数
-		};
-		
 		//! @brief コンストラクタ
 		constexpr ArcsMat(void)
 			: Nindex(0), Mindex(0), Data({0})
@@ -1681,52 +1682,41 @@ class ArcsMat {
 			return Y;
 		}
 
+		//! @brief m行目を上端として左下の下三角部分のみを返す関数(上三角部分はゼロ)(引数渡し版)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		//! @param[in]	m	切り出す上端位置 m行目(デフォルト値 = 1)
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void gettrilo(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t m = 1){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = i + m - 1; j <= M; ++j){
+					Y(j,i) = U(j,i);
+				}
+			}
+		}
+
+		//! @brief m行目を上端として左下の下三角部分のみを返す関数(上三角部分はゼロ)(引数渡し版)
+		//! @param[in]	U	入力行列
+		//! @param[in]	m	切り出す上端位置 m行目(デフォルト値 = 1)
+		//! @return	出力行列
+		static constexpr ArcsMat<M,N,T> gettrilo(const ArcsMat<M,N,T>& U, const size_t m = 1){
+			ArcsMat<M,N,T> Y;
+			gettrilo(U, Y, m);
+			return Y;
+		}
+
 /*		
-		
-		
 		//! @brief 行列の全要素を加算して出力する関数
 		//! @param[in]	U	入力行列
 		//! @return	結果
 		constexpr friend double sumall(const ArcsMat& U){
 			const ArcsMat<1,1> y = sumrow(sumcolumn(U));
 			return y[1];
-		}
-		
-		//! @brief ベクトル要素の絶対値の最大値を返す関数
-		//! @param[in]	u	入力ベクトル
-		//! @return	結果
-		constexpr friend T absmax(const ArcsMat& u){
-			static_assert( (u.N == 1)||(u.M == 1), "Input is NOT vector." );	// ベクトルかチェック
-			size_t k = 0;
-			T y = 0;
-			if(u.M == 1){
-				// 行ベクトルの場合
-				for(size_t i = 1; i < u.N; ++i)if(fabs(u.Data[k][0]) < fabs(u.Data[i][0])) k = i;
-				y = u.Data[k][0];
-			}
-			if(u.N == 1){
-				// 列ベクトルの場合
-				for(size_t i = 1; i < u.M; ++i)if(fabs(u.Data[0][k]) < fabs(u.Data[0][i])) k = i;
-				y = u.Data[0][k];
-			}
-			return y;
-		}
-		
-		//! @brief ベクトル要素の絶対値の最大値の要素番号を返す関数
-		//! @param[in]	u	入力ベクトル
-		//! @return	結果
-		constexpr friend size_t absmaxidx(const ArcsMat& u){
-			static_assert( (u.N == 1)||(u.M == 1), "Input is NOT vector." );	// ベクトルかチェック
-			size_t k = 0;
-			if(u.M == 1){
-				// 行ベクトルの場合
-				for(size_t i = 1; i < u.N; ++i)if(fabs(u.Data[k][0]) < fabs(u.Data[i][0])) k = i;
-			}
-			if(u.N == 1){
-				// 列ベクトルの場合
-				for(size_t i = 1; i < u.M; ++i)if(fabs(u.Data[0][k]) < fabs(u.Data[0][i])) k = i;
-			}
-			return k + 1;
 		}
 		
 		//! @brief 行列の非ゼロ要素数を返す関数
@@ -1750,14 +1740,6 @@ class ArcsMat {
 			ArcsMat<N,N,T> U, S, V;
 			SVD(A, U, S, V);			// まず特異値分解して，
 			return nonzeroele(diag(S));	// S行列の対角要素の非ゼロをカウントするとそれがランク
-		}
-		
-		
-		//! @brief 行列の上三角部分を返す関数(下三角はゼロになる)
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat gettriup(const ArcsMat& U){
-			return gettriup(U, 0);
 		}
 		
 		//! @brief 行列の無限大ノルムを返す関数
@@ -3389,6 +3371,26 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> gettriup(const ArcsMat<M,N,T>& U, const size_t n = 1){
 		return ArcsMat<M,N,T>::gettriup(U, n);
+	}
+
+	//! @brief m行目を上端として左下の下三角部分のみを返す関数(上三角部分はゼロ)(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	//! @param[in]	m	切り出す上端位置 m行目(デフォルト値 = 1)
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void gettrilo(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t m = 1){
+		ArcsMat<M,N,T>::gettrilo(U, Y, m);
+	}
+
+	//! @brief m行目を上端として左下の下三角部分のみを返す関数(上三角部分はゼロ)(戻り値渡し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[in]	m	切り出す上端位置 m行目(デフォルト値 = 1)
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> gettrilo(const ArcsMat<M,N,T>& U, const size_t m = 1){
+		return ArcsMat<M,N,T>::gettrilo(U, m);
 	}
 
 }

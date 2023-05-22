@@ -702,12 +702,18 @@ int main(void){
 	// 三角行列操作系の関数
 	printf("\n★★★★★★★ 三角行列操作系の関数\n");
 	ArcsMat<7,6> Fx7;
-	gettriup(Fx, Fx7);			// 上三角行列を切り出す (引数渡し版)
-	dispmat(Fx7);
-	dispmat(gettriup(Fx, 3));	// 上三角行列を切り出す (戻り値渡し版)
+	gettriup(Fx, Fx7);						// 上三角行列を切り出す (引数渡し版)
+	dispmatfmt(Fx7, "%3.0f");
+	dispmatfmt(gettriup(Fx, 3), "%3.0f");	// 上三角行列を切り出す (戻り値渡し版)
 	constexpr auto Fxtri = gettriup(Fx, 2);				// コンパイル時に上三角行列を切り出す 
-	dispmat(Fxtri);
-	
+	dispmatfmt(Fxtri, "%3.0f");
+	Fx7.FillAllZero();
+	gettrilo(Fx, Fx7);						// 下三角行列を切り出す (引数渡し版)
+	dispmatfmt(Fx7, "%3.0f");
+	dispmatfmt(gettrilo(Fx, 3), "%3.0f");	// 下三角行列を切り出す (戻り値渡し版)
+	constexpr auto Fxtri2 = gettrilo(Fx, 2);			// コンパイル時に下三角行列を切り出す 
+	dispmatfmt(Fxtri2, "%3.0f");
+
 	/*
 	// 行列演算補助系の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助系の関数のテスト\n");
