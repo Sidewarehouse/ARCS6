@@ -44,15 +44,15 @@ namespace ARCS {	// ARCS名前空間
 
 //! @brief ノルム計算方法の定義
 enum class NormType {
-	AM_INFINITY,	//!< 無限大ノルム
-	AM_EUCLID		//!< ユークリッドノルム
+	AMT_INFINITY,	//!< 無限大ノルム
+	AMT_EUCLID		//!< ユークリッドノルム
 };
 
 //! @brief 行列の状態の定義
 enum class MatStatus {
-	AM_NA,		//!< 状態定義該当なし
-	AM_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
-	AM_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
+	AMT_NA,		//!< 状態定義該当なし
+	AMT_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
+	AMT_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
 };
 
 //! @brief ARCS-Matrix 行列演算クラス
@@ -1700,7 +1700,7 @@ class ArcsMat {
 			}
 		}
 
-		//! @brief m行目を上端として左下の下三角部分のみを返す関数(上三角部分はゼロ)(引数渡し版)
+		//! @brief m行目を上端として左下の下三角部分のみを返す関数(上三角部分はゼロ)(戻り値渡し版)
 		//! @param[in]	U	入力行列
 		//! @param[in]	m	切り出す上端位置 m行目(デフォルト値 = 1)
 		//! @return	出力行列
@@ -1708,6 +1708,110 @@ class ArcsMat {
 			ArcsMat<M,N,T> Y;
 			gettrilo(U, Y, m);
 			return Y;
+		}
+
+		//! @brief LU分解の結果と置換行列を返す関数(引数渡し版)
+		//! @tparam	ML, NL, TL, MU, NU, TU, MP, NP, TP	L,U,P行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	L	下三角行列
+		//! @param[out]	U	上三角行列
+		//! @param[out]	P	置換行列
+		template<size_t ML, size_t NL, typename TL = double, size_t MU, size_t NU, typename TU = double, size_t MP, size_t NP, typename TP = double>
+		static constexpr void LUP(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MU,NU,TU>& U, ArcsMat<MP,NP,TP>& P){
+			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(ML == NL, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MU == NU, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MP == NP, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(M == ML, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == NL, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(M == MU, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == NU, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(M == MP, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == NP, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, TL>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(std::is_convertible_v<T, TU>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(std::is_convertible_v<T, TP>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			
+			// 中間変数
+			ArcsMat<M,N,T> X = A;		// 行列操作用にコピー
+			size_t perm_count = 0;		// 入れ替えカウンタ
+			T max_buff = 0;				// 最大値バッファ
+			P = ArcsMat<M,N,T>::eye();	// 置換行列の準備
+
+			// 列ごとに処理を実施
+			size_t k = 0;
+			for(size_t i = 1; i <= N; ++i){
+				// i列目の中での最大値を探す
+				k = i;									// 対角要素の縦位置で初期化
+				max_buff = std::abs(X(i,i));			// 対角要素の値で初期化
+				for(size_t j = i + 1; j <= M; ++j){
+					if(max_buff < std::abs( X(j,i) )){	// スキャン中における最大値か判定
+						k = j;							// 最大値の候補の縦位置
+						max_buff = std::abs( X(j,i) );	// 最大値の候補であればその値を記憶
+					}
+				}
+
+				// 対角要素が最大値でなければ、対角要素が最大となるように行丸ごと入れ替え
+				if(k != i){
+					swaprow(X, i, k);	// 対角要素の行と最大値の行を入れ替え
+					swaprow(P, i, k);	// 置換行列も同じ様に入れ替え
+					perm_count++;		// 入れ替えカウンタ
+				}
+
+				// LU分解のコア部分
+				if( std::abs( X(i,i) ) < EPSILON ){
+					// 対角要素が零なら，i列目においてはLU分解は完了
+				}else{
+					for(size_t j = i + 1; j <= M; ++j){
+						X(j,i) /= X(i,i);					// 対角要素で除算
+						for(size_t l = i + 1; l <= N; ++l){
+							X(j,l) -= X(j,i)*X(i,l);
+						}
+					}
+				}
+			}
+			
+			// 下三角行列と上三角行列に分離する
+			gettrilo(X, L);	// 下三角のみを抽出
+			gettriup(X, U);	// 上三角のみを抽出
+			for(size_t j = 1; j <= M; ++j) L(j,j) = 1;	// 下三角行列の対角要素はすべて1
+			
+			// 入れ替え回数の判定と判定結果の保持
+			if(perm_count % 2 == 0){
+				P.Status = MatStatus::AMT_LU_EVEN;	// 偶数のとき
+			}else{
+				P.Status = MatStatus::AMT_LU_ODD;	// 奇数のとき
+			}
+		}
+
+		//! @brief LU分解の結果と置換行列を返す関数(タプル返し版)
+		//! @param[in]	A	入力行列
+		//! @return	(L, U, P)	(下三角行列, 上三角行列, 置換行列)のタプル
+		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>, ArcsMat<M,N,T>> LUP(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,N,T> L, U, P;
+			LUP(A, L, U, P);
+			return {L, U, P};
+		}
+		
+		//! @brief LU分解の結果のみ返す関数(引数渡し版)
+		//! @tparam	ML, NL, TL, MU, NU, TU, MP, NP, TP	L,U,P行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	L	下三角行列
+		//! @param[out]	U	上三角行列
+		template<size_t ML, size_t NL, typename TL = double, size_t MU, size_t NU, typename TU = double>
+		static constexpr void LU(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MU,NU,TU>& U){
+			ArcsMat<M,N,T> P;
+			LUP(A, L, U, P);
+			L = tp(P)*L;
+		}
+
+		//! @brief LU分解の結果のみ返す関数(タプル返し版)
+		//! @param[in]	A	入力行列
+		//! @return	(L, U)	(下三角行列, 上三角行列)のタプル
+		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LU(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,N,T> L, U;
+			LU(A, L, U);
+			return {L, U};
 		}
 
 /*		
@@ -2588,14 +2692,15 @@ class ArcsMat {
 */		
 	private:
 		// 基本定数
-		static constexpr double epsilon = 1e-12;		//!< 零とみなす閾値(実数版)
-		static constexpr std::complex<double> epscomp = std::complex(1e-12, 1e-12);	//!< 零とみなす閾値(複素数版)
+		static constexpr double EPSILON = 1e-12;		//!< 零とみなす閾値(実数版)
+		static constexpr std::complex<double> EPSLCOMP = std::complex(1e-12, 1e-12);	//!< 零とみなす閾値(複素数版)
 		static constexpr size_t ITERATION_MAX = 10000;	//!< 反復計算の最大値
 		
-		// 内部処理用カウンタ
+		// 内部処理用
 		size_t Nindex;	//!< 横方向カウンタ
 		size_t Mindex;	//!< 縦方向カウンタ
-		
+		MatStatus Status = MatStatus::AMT_NA;	// 行列の状態
+
 		// 行列データの実体
 		// ArcsMatは行列の縦方向にメモリアドレスが連続しているので、縦ベクトル優先。
 		std::array<std::array<T, M>, N> Data;//!< データ格納用変数 配列要素の順番は Data[N列(横方向)][M行(縦方向)]
@@ -3391,6 +3496,50 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> gettrilo(const ArcsMat<M,N,T>& U, const size_t m = 1){
 		return ArcsMat<M,N,T>::gettrilo(U, m);
+	}
+
+	//! @brief LU分解の結果と置換行列を返す関数(引数渡し版)
+	//! @tparam	M, N, T, ML, NL, TL, MU, NU, TU, MP, NP, TP	入出力行列,L,U,P行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	L	下三角行列
+	//! @param[out]	U	上三角行列
+	//! @param[out]	P	置換行列
+	template<
+		size_t M, size_t N, typename T = double, size_t ML, size_t NL, typename TL = double,
+		size_t MU, size_t NU, typename TU = double, size_t MP, size_t NP, typename TP = double
+	>
+	constexpr void LUP(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MU,NU,TU>& U, ArcsMat<MP,NP,TP>& P){
+		ArcsMat<M,N,T>::LUP(A, L, U, P);
+	}
+
+	//! @brief LU分解の結果と置換行列を返す関数(タプル返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	(L, U, P)	(下三角行列, 上三角行列, 置換行列)のタプル
+	template<size_t M, size_t N, typename T = double>
+	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>, ArcsMat<M,N,T>> LUP(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::LUP(A);
+	}
+	
+	//! @brief LU分解の結果のみ返す関数(引数渡し版)
+	//! @tparam	M, N, T, ML, NL, TL, MU, NU, TU	入出力行列,L,U行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	L	下三角行列
+	//! @param[out]	U	上三角行列
+	template<
+		size_t M, size_t N, typename T = double,
+		size_t ML, size_t NL, typename TL = double, size_t MU, size_t NU, typename TU = double
+	>
+	constexpr void LU(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MU,NU,TU>& U){
+		ArcsMat<M,N,T>::LU(A, L, U);
+	}
+
+	//! @brief LU分解の結果のみ返す関数(タプル返し版)
+	//! @param[in]	A	入力行列
+	//! @return	(L, U)	(下三角行列, 上三角行列)のタプル
+	template<size_t M, size_t N, typename T = double>
+	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LU(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::LU(A);
 	}
 
 }

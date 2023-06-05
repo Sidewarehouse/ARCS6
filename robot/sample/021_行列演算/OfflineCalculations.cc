@@ -714,6 +714,40 @@ int main(void){
 	constexpr auto Fxtri2 = gettrilo(Fx, 2);			// コンパイル時に下三角行列を切り出す 
 	dispmatfmt(Fxtri2, "%3.0f");
 
+	// LU分解系の関数
+	printf("\n★★★★★★★ LU分解系の関数\n");
+	ArcsMat<3,3> L, U, P;
+	A.Set(
+		10, -7,  0,
+		-3,  2,  6,
+		 5, -1,  5
+	);
+	dispmatfmt(A, "%3.0f");
+	LUP(A, L, U, P);				// LU分解の結果と置換行列を計算 (引数渡し版)
+	dispmatfmt(L, "%6.2f");
+	dispmatfmt(U, "%6.2f");
+	dispmatfmt(P, "%3.0f");
+	dispmatfmt(tp(P)*L*U, "%3.0f");	// もとに戻るかチェック
+	std::tie(L, U, P) = LUP(A);		// LU分解の結果と置換行列を計算 (タプル返し版)
+	dispmatfmt(L, "%6.2f");
+	dispmatfmt(U, "%6.2f");
+	dispmatfmt(P, "%3.0f");
+	LU(A, L, U);					// LU分解の結果のみを計算 (引数渡し版)
+	dispmatfmt(L, "%6.2f");
+	dispmatfmt(U, "%6.2f");
+	dispmatfmt(L*U, "%3.0f");		// もとに戻るかチェック
+	std::tie(L, U) = LU(A);			// LU分解の結果のみを計算 (タプル返し版)
+	dispmatfmt(L, "%6.2f");
+	dispmatfmt(U, "%6.2f");
+	dispmatfmt(L*U, "%3.0f");		// もとに戻るかチェック
+	constexpr auto LxUx = LU(Ax);						// コンパイル時にLU分解を計算
+	constexpr auto Lx = std::get<0>(LxUx);				// コンパイル時に計算した下三角を抽出
+	constexpr auto Ux = std::get<1>(LxUx);				// コンパイル時に計算した上三角を抽出
+	dispmatfmt(Ax, "%3.0f");
+	dispmatfmt(Lx, "%6.2f");
+	dispmatfmt(Ux, "%6.2f");
+	dispmatfmt(Lx*Ux, "%3.0f");		// もとに戻るかチェック
+
 	/*
 	// 行列演算補助系の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助系の関数のテスト\n");
@@ -734,16 +768,6 @@ int main(void){
 	printf("\n★★★★★★★ ノルム演算系のテスト\n");
 	printf("infnorm(A) = %f\n", infnorm(A));
 	printf("euclidnorm(v) = %f\n", euclidnorm(v));
-	
-	// LU分解のテスト
-	printf("\n★★★★★★★ LU分解のテスト\n");
-	Matrix<1,3,int> vv;			// 並べ替え記憶列ベクトル
-	Matrix<3,3> L, U;
-	LU(A,L,U,vv);				// LU分解
-	PrintMat(L);
-	PrintMat(U);
-	PrintMat(L*U);					// 元の行列に戻るか確認。私達、入れ替わってる！
-	PrintMat(reorderrow(L*U, vv));	// なので行の順番を元に戻す。入力行列と一緒！
 	
 	// Cholesky分解(LDL^T版)のテスト
 	printf("\n★★★★★★★ Cholesky分解(LDL^T版)のテスト\n");
