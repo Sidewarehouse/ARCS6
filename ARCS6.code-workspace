@@ -68,7 +68,10 @@
 			"complex": "cpp",
 			"concepts": "cpp",
 			"chrono": "cpp",
-			"ratio": "cpp"
+			"ratio": "cpp",
+			"bit": "cpp",
+			"compare": "cpp",
+			"numbers": "cpp"
 		}
 	},
 }

@@ -699,6 +699,17 @@ int main(void){
 	constexpr auto kxy2 = minidx(k1);					// コンパイル時に要素番号を計算
 	printf("kxy2 = %ld, %ld\n", std::get<0>(kxy2), std::get<1>(kxy2));
 	
+	// 要素ごとの数学の関数
+	printf("\n★★★★★★★ 要素ごとの数学の関数\n");
+	dispmat(Ax);
+	printf("sum(A) = %f\n", sum(Ax));	// 行列要素の総和
+	ArcsMat<3,3> Y;
+	exp(Ax, Y);							// 行列要素の指数関数 (引数渡し版)
+	Y = exp(Ax);						// 行列要素の指数関数 (戻り値渡し版)
+	dispmatfmt(Y, "%8.3f");
+	constexpr auto Yx1 = exp(Ax);						// コンパイル時に行列要素の指数関数を計算
+	dispmatfmt(Yx1, "%8.3f");
+
 	// 三角行列操作系の関数
 	printf("\n★★★★★★★ 三角行列操作系の関数\n");
 	ArcsMat<7,6> Fx7;

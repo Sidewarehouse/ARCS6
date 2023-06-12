@@ -1654,6 +1654,93 @@ class ArcsMat {
 			return U(std::get<0>(ji), std::get<1>(ji));
 		}
 
+		//! @brief 行列要素の総和を返す関数(戻り値渡し版のみ)
+		//! @param[in]	U	入力行列
+		//! @return	結果
+		static constexpr T sum(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,1,T> y = ArcsMat<1,N,T>::sumrow( ArcsMat<M,N,T>::sumcolumn(U) );
+			return y[1];
+		}
+
+		//! @brief 行列要素の指数関数を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void exp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::exp( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の指数関数を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> exp(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			exp(U, Y);
+			return Y;
+		}
+
+		/*
+		//! @brief 行列要素の自然対数を返す関数
+		//! @param[in]	U	入力行列
+		//! @return	結果
+		constexpr friend ArcsMat loge(const ArcsMat& U){
+			ArcsMat Y;
+			for(size_t i = 0; i < U.N; ++i){
+				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::log(U.Data[i][j]);
+			}
+			return Y;
+		}
+		
+		//! @brief 行列要素の絶対値を返す関数
+		//! @param[in]	U	入力行列
+		//! @return	結果
+		constexpr friend ArcsMat abse(const ArcsMat& U){
+			ArcsMat Y;
+			for(size_t i = 0; i < U.N; ++i){
+				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::abs(U.Data[i][j]);
+			}
+			return Y;
+		}
+		
+		//! @brief 行列要素の平方根を返す関数
+		//! @param[in]	U	入力行列
+		//! @return	結果
+		constexpr friend ArcsMat sqrte(const ArcsMat& U){
+			ArcsMat Y;
+			for(size_t i = 0; i < U.N; ++i){
+				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::sqrt(U.Data[i][j]);
+			}
+			return Y;
+		}
+		
+		//! @brief 行列要素の平方根を参照で返す関数
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	結果
+		constexpr friend void sqrte(const ArcsMat& U, ArcsMat& Y){
+			for(size_t i = 0; i < U.N; ++i){
+				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::sqrt(U.Data[i][j]);
+			}
+		}
+		
+		//! @brief 行列要素のtanhを返す関数
+		//! @param[in]	U	入力行列
+		//! @return	結果
+		constexpr friend ArcsMat tanhe(const ArcsMat& U){
+			ArcsMat Y;
+			for(size_t i = 0; i < U.N; ++i){
+				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::tanh(U.Data[i][j]);
+			}
+			return Y;
+		}
+*/
+
 		//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
@@ -1815,13 +1902,6 @@ class ArcsMat {
 		}
 
 /*		
-		//! @brief 行列の全要素を加算して出力する関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend double sumall(const ArcsMat& U){
-			const ArcsMat<1,1> y = sumrow(sumcolumn(U));
-			return y[1];
-		}
 		
 		//! @brief 行列の非ゼロ要素数を返す関数
 		//! @param[in]	U	入力行列
@@ -1881,71 +1961,6 @@ class ArcsMat {
 				}
 			}
 			return std::sqrt(ret[1]);
-		}
-		
-		//! @brief LU分解
-		//! @param[in]	A	入力行列
-		//! @param[out]	L	下三角行列
-		//! @param[out]	U	上三角行列
-		//! @param[out]	v	並べ替え記憶列ベクトル(int型)
-		//! @return	並べ替え回数が奇数か偶数かを返す
-		constexpr friend enum LUperm LU(const ArcsMat& A, ArcsMat& L, ArcsMat& U, ArcsMat<1,M,int>& v){
-			static_assert(A.N == A.M, "ArcsMat Size Error");	// 正方行列かチェック
-			ArcsMat X = A;
-			size_t perm_count = 0;
-			double max_buff = 0;
-			ArcsMat::LUperm ret = ArcsMat::EVEN;
-			
-			// 並べ替え記憶列ベクトルの準備
-			for(size_t i = 0; i < X.N; ++i) v.Data[0][i] = i + 1;	// 並べ替え記憶列ベクトルに1から昇順の番号を書き込む
-			
-			size_t k = 0;
-			for(size_t j = 0; j < X.N-1; ++j){
-				// j列目の中での行要素の最大値を探す
-				k = j;	// 対角要素番号で初期化
-				max_buff = std::abs(X.Data[j][j]);	// 対角要素で初期化
-				for(size_t i = j + 1; i < X.M; ++i){
-					if(max_buff < std::abs(X.Data[j][i])){
-						k = i;
-						max_buff = std::abs(X.Data[j][i]);
-					}
-				}
-				// 行入れ替えが必要なときは，
-				if(k != j){
-					swaprow(v,j+1,k+1);				// 並べ替え記憶列ベクトルのj行目とk行目を並べ替え
-					swaprow(X,j+1,k+1);				// j行目とk行目を並べ替え
-					perm_count++;
-				}
-				if( fabs(X.Data[j][j]) < X.epsilon )continue;
-				{
-					// 対角要素が零なら，j列目においてはLU分解が終わっているので，以下の処理はスキップ
-					// ここからLU分解
-					for(size_t i = j + 1; i < X.M; ++i){
-						X.Data[j][i] /= X.Data[j][j];	// 対角要素で除算
-						for(size_t l = j + 1; l < X.N; ++l){
-							X.Data[l][i] -= X.Data[j][i]*X.Data[l][j];
-						}
-					}
-				}
-			}
-			// 下三角行列と上三角行列に分離する
-			for(size_t j = 0; j < X.N; ++j){
-				for(size_t i = j; i < X.M; ++i){
-					if(i == j){
-						L.Data[j][i] = 1;				// 下三角行列の対角要素はすべて1
-					}else{
-						L.Data[j][i] = X.Data[j][i];	// 下三角のみコピー
-					}
-				}
-				for(size_t i = 0; i <= j; ++i) U.Data[j][i] = X.Data[j][i];		// 上三角のみコピー
-			}
-			// 並べ替え回数の判定
-			if(perm_count % 2 == 0){
-				ret = ArcsMat::EVEN;	// 奇数のとき
-			}else{
-				ret = ArcsMat::ODD;	// 偶数のとき
-			}
-			return ret;
 		}
 		
 		//! @brief 修正コレスキー分解(LDL^T版)
@@ -2408,69 +2423,7 @@ class ArcsMat {
 			return h/3.0*( ArcsMat<U.N,U.N,T>::eye() + 4.0*S1 + 2.0*S2 + expm(U*T,P) );	// 最終的な定積分結果を返す
 		}
 		
-		//! @brief 行列要素の指数関数を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat expe(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::exp(U.Data[i][j]);
-			}
-			return Y;
-		}
 		
-		//! @brief 行列要素の自然対数を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat loge(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::log(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief 行列要素の絶対値を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat abse(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::abs(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief 行列要素の平方根を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat sqrte(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::sqrt(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief 行列要素の平方根を参照で返す関数
-		//! @param[in]	U	入力行列
-		//! @param[out]	Y	結果
-		constexpr friend void sqrte(const ArcsMat& U, ArcsMat& Y){
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::sqrt(U.Data[i][j]);
-			}
-		}
-		
-		//! @brief 行列要素のtanhを返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat tanhe(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::tanh(U.Data[i][j]);
-			}
-			return Y;
-		}
 		
 		//! @brief 複素数行列要素の実数部を返す関数
 		//! @param[in]	U	入力行列
@@ -3456,6 +3409,33 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr T min(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::min(U);
+	}
+
+	//! @brief 行列要素の総和を返す関数(戻り値渡し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	結果
+	template<size_t M, size_t N, typename T = double>
+	constexpr T sum(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::sum(U);
+	}
+
+	//! @brief 行列要素の指数関数を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void exp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::exp(U, Y);
+	}
+
+	//! @brief 行列要素の指数関数を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> exp(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::exp(U);
 	}
 
 	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
