@@ -171,7 +171,7 @@ class ArcsMat {
 			return Data[0][m - 1];
 		}
 		
-		//! @brief 行列括弧演算子(行列の(m,n)要素の値を返す。サイズチェック無し版は行わない)
+		//! @brief 行列括弧演算子(行列の(m,n)要素の値を返す。サイズチェック無し版)
 		//! @param[in]	m	m行目(縦方向の位置)
 		//! @param[in]	n	n列目(横方向の位置)
 		//! @return	要素の値
@@ -1682,22 +1682,59 @@ class ArcsMat {
 		//! @return	Y	出力行列
 		static constexpr ArcsMat<M,N,T> exp(const ArcsMat<M,N,T>& U){
 			ArcsMat<M,N,T> Y;
-			exp(U, Y);
+			ArcsMat<M,N,T>::exp(U, Y);
+			return Y;
+		}
+
+		//! @brief 行列要素の対数関数(底e版)を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void log(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::log( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の対数関数(底e版)を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> log(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::log(U, Y);
+			return Y;
+		}
+
+		//! @brief 行列要素の対数関数(底10版)を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void log10(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::log10( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の対数関数(底10版)を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> log10(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::log10(U, Y);
 			return Y;
 		}
 
 		/*
-		//! @brief 行列要素の自然対数を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat loge(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::log(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
 		//! @brief 行列要素の絶対値を返す関数
 		//! @param[in]	U	入力行列
 		//! @return	結果
@@ -3436,6 +3473,42 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> exp(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::exp(U);
+	}
+
+	//! @brief 行列要素の対数関数(底e版)を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void log(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::log(U, Y);
+	}
+
+	//! @brief 行列要素の対数関数(底e版)を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> log(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::log(U);
+	}
+
+	//! @brief 行列要素の対数関数(底10版)を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void log10(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::log10(U, Y);
+	}
+
+	//! @brief 行列要素の対数関数(底10版)を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> log10(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::log10(U);
 	}
 
 	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)

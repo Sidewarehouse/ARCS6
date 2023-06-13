@@ -699,16 +699,29 @@ int main(void){
 	constexpr auto kxy2 = minidx(k1);					// コンパイル時に要素番号を計算
 	printf("kxy2 = %ld, %ld\n", std::get<0>(kxy2), std::get<1>(kxy2));
 	
-	// 要素ごとの数学の関数
-	printf("\n★★★★★★★ 要素ごとの数学の関数\n");
-	dispmat(Ax);
-	printf("sum(A) = %f\n", sum(Ax));	// 行列要素の総和
-	ArcsMat<3,3> Y;
-	exp(Ax, Y);							// 行列要素の指数関数 (引数渡し版)
-	Y = exp(Ax);						// 行列要素の指数関数 (戻り値渡し版)
-	dispmatfmt(Y, "%8.3f");
-	constexpr auto Yx1 = exp(Ax);						// コンパイル時に行列要素の指数関数を計算
+	// 要素ごとの数学関数
+	printf("\n★★★★★★★ 要素ごとの数学関数\n");
+	constexpr ArcsMat<3,4> Ax1 = {
+		       1.0,        2.0,        3.0,      4.0,
+		    M_PI_4,     M_PI_2, 3.0*M_PI_4,	    M_PI,
+		5.0*M_PI_4, 3.0*M_PI_2, 7.0*M_PI_4, 2.0*M_PI 
+	};
+	dispmatfmt(Ax1, "%8.3f");
+	printf("sum(Ax1) = %f\n", sum(Ax1));	// 行列要素の総和 (戻り値渡し版のみ)
+	ArcsMat<3,4> Y1;
+	exp(Ax1, Y1);							// 行列要素の指数関数 (引数渡し版)
+	dispmatfmt(exp(Ax1), "%8.3f");			// 行列要素の指数関数 (戻り値渡し版)
+	constexpr auto Yx1 = exp(Ax1);						// コンパイル時に行列要素の指数関数を計算
 	dispmatfmt(Yx1, "%8.3f");
+	ArcsMat<3,4> Y2;
+	log(Y1, Y2);							// 行列要素の対数関数(底e版) (引数渡し版)
+	dispmatfmt(log(Y1), "%8.3f");			// 行列要素の対数関数(底e版) (戻り値渡し版)
+	constexpr auto Yx2 = log(Yx1);						// コンパイル時に行列要素の対数関数(底e版)を計算
+	dispmatfmt(Yx2, "%8.3f");
+	log10(Ax1, Y1);							// 行列要素の対数関数(底10版) (引数渡し版)
+	dispmatfmt(log10(Ax1), "%8.3f");		// 行列要素の対数関数(底10版) (戻り値渡し版)
+	constexpr auto Yx3 = log10(Ax1);					// コンパイル時に行列要素の対数関数(底e版)を計算
+	dispmatfmt(Yx3, "%8.3f");
 
 	// 三角行列操作系の関数
 	printf("\n★★★★★★★ 三角行列操作系の関数\n");
