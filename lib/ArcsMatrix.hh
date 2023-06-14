@@ -1734,6 +1734,102 @@ class ArcsMat {
 			return Y;
 		}
 
+		//! @brief 行列要素の正弦関数を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void sin(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::sin( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の正弦関数を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> sin(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::sin(U, Y);
+			return Y;
+		}
+
+		//! @brief 行列要素の余弦関数を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void cos(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::cos( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の余弦を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> cos(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::cos(U, Y);
+			return Y;
+		}
+
+		//! @brief 行列要素の正接関数を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void tan(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::tan( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の正接関数を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> tan(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::tan(U, Y);
+			return Y;
+		}
+
+		//! @brief 行列要素の平方根を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	小行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void sqrt(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::sqrt( U(j,i) );
+			}
+		}
+
+		//! @brief 行列要素の平方根を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> sqrt(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::sqrt(U, Y);
+			return Y;
+		}
+
 		/*
 		//! @brief 行列要素の絶対値を返す関数
 		//! @param[in]	U	入力行列
@@ -1745,27 +1841,6 @@ class ArcsMat {
 			}
 			return Y;
 		}
-		
-		//! @brief 行列要素の平方根を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat sqrte(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::sqrt(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief 行列要素の平方根を参照で返す関数
-		//! @param[in]	U	入力行列
-		//! @param[out]	Y	結果
-		constexpr friend void sqrte(const ArcsMat& U, ArcsMat& Y){
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::sqrt(U.Data[i][j]);
-			}
-		}
-		
 		//! @brief 行列要素のtanhを返す関数
 		//! @param[in]	U	入力行列
 		//! @return	結果
@@ -3509,6 +3584,78 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> log10(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::log10(U);
+	}
+
+	//! @brief 行列要素の正弦関数を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void sin(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::sin(U, Y);
+	}
+
+	//! @brief 行列要素の正弦関数を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> sin(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::sin(U);
+	}
+
+	//! @brief 行列要素の余弦関数を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void cos(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::cos(U, Y);
+	}
+
+	//! @brief 行列要素の余弦関数を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> cos(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::cos(U);
+	}
+
+	//! @brief 行列要素の正接関数を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void tan(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::tan(U, Y);
+	}
+
+	//! @brief 行列要素の正接関数を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> tan(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::tan(U);
+	}
+
+	//! @brief 行列要素の平方根を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void sqrt(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::sqrt(U, Y);
+	}
+
+	//! @brief 行列要素の平方根を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> sqrt(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::sqrt(U);
 	}
 
 	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)

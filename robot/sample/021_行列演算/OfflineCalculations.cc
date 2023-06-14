@@ -722,6 +722,22 @@ int main(void){
 	dispmatfmt(log10(Ax1), "%8.3f");		// 行列要素の対数関数(底10版) (戻り値渡し版)
 	constexpr auto Yx3 = log10(Ax1);					// コンパイル時に行列要素の対数関数(底e版)を計算
 	dispmatfmt(Yx3, "%8.3f");
+	sin(Ax1, Y1);							// 行列要素の正弦関数 (引数渡し版)
+	dispmatfmt(sin(Ax1), "%8.3f");			// 行列要素の正弦関数 (戻り値渡し版)
+	constexpr auto Yx4 = sin(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	dispmatfmt(Yx4, "%8.3f");
+	cos(Ax1, Y1);							// 行列要素の余弦関数 (引数渡し版)
+	dispmatfmt(cos(Ax1), "%8.3f");			// 行列要素の余弦関数 (戻り値渡し版)
+	constexpr auto Yx5 = cos(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	dispmatfmt(Yx5, "%8.3f");
+	tan(Ax1, Y1);							// 行列要素の正接関数 (引数渡し版)
+	dispmatfmt(tan(Ax1), "% 12.3e");		// 行列要素の正接関数 (戻り値渡し版)
+	constexpr auto Yx6 = tan(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	dispmatfmt(Yx6, "% 12.3e");
+	sqrt(Ax1, Y1);							// 行列要素の平方根 (引数渡し版)
+	dispmatfmt(sqrt(Ax1), "%8.3f");			// 行列要素の平方根 (戻り値渡し版)
+	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	dispmatfmt(Yx7, "%8.3f");
 
 	// 三角行列操作系の関数
 	printf("\n★★★★★★★ 三角行列操作系の関数\n");
