@@ -360,8 +360,8 @@ int main(void){
 	//tp(A, Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
 	//A = tp(Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
 	
-	// 列操作系の関数
-	printf("\n★★★★★★★ 列操作系の関数\n");
+	// 列操作関連の関数
+	printf("\n★★★★★★★ 列操作関連の関数\n");
 	ArcsMat<3,1> vd;
 	getcolumn(D, vd, 2);			// 行列Dの2列目を縦ベクトルとして抽出 (引数渡し版)
 	dispmat(vd);
@@ -416,8 +416,8 @@ int main(void){
 	constexpr auto ex5 = sumcolumn(Ex5);				// コンパイル時に総和を計算する
 	dispmat(ex5);
 	
-	// 行操作系の関数
-	printf("\n★★★★★★★ 行操作系の関数\n");
+	// 行操作関連の関数
+	printf("\n★★★★★★★ 行操作関連の関数\n");
 	ArcsMat<1,2> wd;
 	getrow(D, wd, 2);				// 行列Dの2行目を横ベクトルとして抽出 (引数渡し版)
 	dispmat(wd);
@@ -477,8 +477,8 @@ int main(void){
 	constexpr auto etx5 = sumrow(Etx5);					// コンパイル時に総和を計算する
 	dispmat(etx5);
 	
-	// 小行列操作系の関数
-	printf("\n★★★★★★★ 小行列操作系の関数\n");
+	// 小行列操作関連の関数
+	printf("\n★★★★★★★ 小行列操作関連の関数\n");
 	constexpr ArcsMat<7,6> Fx = {
 		10, 20, 30, 40, 50, 60,
 		70, 80, 90, 10, 11, 12,
@@ -543,8 +543,8 @@ int main(void){
 	constexpr auto Fx6 = setsubmatrix(F23x, 3, 3, Fx4);	// コンパイル時に小行列を書き込む
 	dispmat(Fx6);
 	
-	// シフト系の関数
-	printf("\n★★★★★★★ シフト系の関数\n");
+	// シフト関連の関数
+	printf("\n★★★★★★★ シフト関連の関数\n");
 	F = Fx;
 	auto G = ones<7,6>();
 	dispmat(F);
@@ -586,8 +586,8 @@ int main(void){
 	constexpr auto Gx4 = shiftright(Fx, 4);				// コンパイル時に右にシフト
 	dispmat(Gx4);
 	
-	// 連結系の関数
-	printf("\n★★★★★★★ 連結系の関数\n");
+	// 連結関連の関数
+	printf("\n★★★★★★★ 連結関連の関数\n");
 	constexpr ArcsMat<2,3> Hx1 = {
 		10, 11, 22,
 		33, 44, 55
@@ -629,8 +629,8 @@ int main(void){
 	constexpr auto Hx64 = concat4(Hx1, Hx3, Hx2, Hx4);	// コンパイル時に連結
 	dispmat(Hx64);
 	
-	// 対角要素操作系の関数
-	printf("\n★★★★★★★ 対角要素操作系の関数\n");
+	// 対角要素操作関連の関数
+	printf("\n★★★★★★★ 対角要素操作関連の関数\n");
 	constexpr ArcsMat<3,1> jx1 = {1, 3, 5};
 	dispmat(jx1);
 	ArcsMat<3,3> Jy1;
@@ -666,8 +666,8 @@ int main(void){
 	constexpr double mdJx2 = multdiag(Jx2);				// コンパイル時に対角の総積を計算
 	printf("mdJx2 = %f\n", mdJx2);
 	
-	// 最大・最小値探索系の関数
-	printf("\n★★★★★★★ 最大・最小値探索系の関数\n");
+	// 最大・最小値探索関連の関数
+	printf("\n★★★★★★★ 最大・最小値探索関連の関数\n");
 	constexpr ArcsMat<7,1> k1 = {
 		 2,
 		 5,
@@ -720,27 +720,57 @@ int main(void){
 	dispmatfmt(Yx2, "%8.3f");
 	log10(Ax1, Y1);							// 行列要素の対数関数(底10版) (引数渡し版)
 	dispmatfmt(log10(Ax1), "%8.3f");		// 行列要素の対数関数(底10版) (戻り値渡し版)
-	constexpr auto Yx3 = log10(Ax1);					// コンパイル時に行列要素の対数関数(底e版)を計算
+	constexpr auto Yx3 = log10(Ax1);					// コンパイル時に行列要素の対数関数(底10版)を計算
 	dispmatfmt(Yx3, "%8.3f");
 	sin(Ax1, Y1);							// 行列要素の正弦関数 (引数渡し版)
 	dispmatfmt(sin(Ax1), "%8.3f");			// 行列要素の正弦関数 (戻り値渡し版)
-	constexpr auto Yx4 = sin(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	constexpr auto Yx4 = sin(Ax1);						// コンパイル時に行列要素の正弦関数を計算
 	dispmatfmt(Yx4, "%8.3f");
 	cos(Ax1, Y1);							// 行列要素の余弦関数 (引数渡し版)
 	dispmatfmt(cos(Ax1), "%8.3f");			// 行列要素の余弦関数 (戻り値渡し版)
-	constexpr auto Yx5 = cos(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	constexpr auto Yx5 = cos(Ax1);						// コンパイル時に行列要素の余弦関数を計算
 	dispmatfmt(Yx5, "%8.3f");
 	tan(Ax1, Y1);							// 行列要素の正接関数 (引数渡し版)
 	dispmatfmt(tan(Ax1), "% 12.3e");		// 行列要素の正接関数 (戻り値渡し版)
-	constexpr auto Yx6 = tan(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	constexpr auto Yx6 = tan(Ax1);						// コンパイル時に行列要素の正接関数を計算
 	dispmatfmt(Yx6, "% 12.3e");
 	sqrt(Ax1, Y1);							// 行列要素の平方根 (引数渡し版)
 	dispmatfmt(sqrt(Ax1), "%8.3f");			// 行列要素の平方根 (戻り値渡し版)
-	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の指数関数を計算
+	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の平方根を計算
 	dispmatfmt(Yx7, "%8.3f");
+	abs(Yx5, Y1);							// 行列要素の絶対値 (引数渡し版)
+	dispmatfmt(abs(Yx5), "% 12.3f");		// 行列要素の絶対値 (戻り値渡し版)
+	constexpr auto Yx8 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
+	dispmatfmt(Yx8, "% 12.3f");
 
-	// 三角行列操作系の関数
-	printf("\n★★★★★★★ 三角行列操作系の関数\n");
+	// 複素数関連の関数
+	printf("\n★★★★★★★ 複素数関連の関数\n");
+	constexpr ArcsMat<3,5,std::complex<double>> Acmpx1 = {
+		-2, -1,  0,  1,  2,
+		-4, -3,  0,  3,  4,
+		-1, -2, -1, -2, -1
+	};
+	dispmat(Acmpx1);
+	ArcsMat<3,5,std::complex<double>> Y9;
+	sqrt(Acmpx1, Y9);						// 負の行列要素の平方根 (引数渡し版)
+	dispmatfmt(sqrt(Acmpx1), "%6.3f");		// 負の行列要素の平方根 (戻り値渡し版)
+	//constexpr auto Yx9 = sqrt(Acmpx1);				// コンパイル時に行列要素の平方根を計算 驚異の非対応エラー
+	//dispmatfmt(Yx9, "%8.3f");
+	constexpr ArcsMat<2,3,std::complex<double>> Acmpx2 = {
+		std::complex( 1.0, 1.0), std::complex( 3.0, 4.0), std::complex( 3.0,-4.0),
+		std::complex(-1.0, 1.0), std::complex(-3.0, 4.0), std::complex(-3.0,-4.0)
+	};
+	dispmat(Acmpx2);
+	dispmat(abs(Acmpx2));
+
+	// ノルム関連の関数
+	printf("\n★★★★★★★ ノルム関連の関数\n");
+	printf("norm<∞>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
+	constexpr double normAx1 = norm<NormType::AMT_INFINITY>(Ax1);				// コンパイル時に無限大ノルムを計算
+	printf("norm<∞>(Ax1) = %f\n", normAx1);
+/*
+	// 三角行列操作関連の関数
+	printf("\n★★★★★★★ 三角行列操作関連の関数\n");
 	ArcsMat<7,6> Fx7;
 	gettriup(Fx, Fx7);						// 上三角行列を切り出す (引数渡し版)
 	dispmatfmt(Fx7, "%3.0f");
@@ -754,8 +784,8 @@ int main(void){
 	constexpr auto Fxtri2 = gettrilo(Fx, 2);			// コンパイル時に下三角行列を切り出す 
 	dispmatfmt(Fxtri2, "%3.0f");
 
-	// LU分解系の関数
-	printf("\n★★★★★★★ LU分解系の関数\n");
+	// LU分解関連の関数
+	printf("\n★★★★★★★ LU分解関連の関数\n");
 	ArcsMat<3,3> L, U, P;
 	A.Set(
 		10, -7,  0,
@@ -787,25 +817,15 @@ int main(void){
 	dispmatfmt(Lx, "%6.2f");
 	dispmatfmt(Ux, "%6.2f");
 	dispmatfmt(Lx*Ux, "%3.0f");		// もとに戻るかチェック
-
+*/
 	/*
-	// 行列演算補助系の関数のテスト
-	printf("\n★★★★★★★ 行列演算補助系の関数のテスト\n");
+	// 行列演算補助関連の関数のテスト
+	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");
 	printf("nonzeroele(I) = %ld\n", nonzeroele(I));
 	printf("rank(I) = %ld\n", rank(I));
 	
-	// 要素ごとの数学関数のテスト
-	printf("\n★★★★★★★ 要素ごとの数学関数のテスト\n");
-	PrintMat( expe( Matrix<3,3>::eye())         );
-	PrintMat( loge( Matrix<3,3>::eye()*2.71828) );
-	PrintMat( abse(-Matrix<3,3>::eye())         );
-	PrintMat( sqrte(Matrix<3,3>::eye()*2.0)     );
-	
-	PrintMat(gettriup(A));
-	PrintMat(gettriup(A, 1));
-	
-	// ノルム演算系のテスト
-	printf("\n★★★★★★★ ノルム演算系のテスト\n");
+	// ノルム演算関連のテスト
+	printf("\n★★★★★★★ ノルム演算関連のテスト\n");
 	printf("infnorm(A) = %f\n", infnorm(A));
 	printf("euclidnorm(v) = %f\n", euclidnorm(v));
 	
