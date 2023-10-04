@@ -735,9 +735,9 @@ int main(void){
 	constexpr auto Yx6 = tan(Ax1);						// コンパイル時に行列要素の正接関数を計算
 	dispmatfmt(Yx6, "% 12.3e");
 	sqrt(Ax1, Y1);							// 行列要素の平方根 (引数渡し版)
-	dispmatfmt(sqrt(Ax1), "%8.3f");			// 行列要素の平方根 (戻り値渡し版)
+	dispmatfmt(sqrt(Ax1), "% 8.3f");		// 行列要素の平方根 (戻り値渡し版)
 	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の平方根を計算
-	dispmatfmt(Yx7, "%8.3f");
+	dispmatfmt(Yx7, "% 8.3f");
 	abs(Yx5, Y1);							// 行列要素の絶対値 (引数渡し版)
 	dispmatfmt(abs(Yx5), "% 12.3f");		// 行列要素の絶対値 (戻り値渡し版)
 	constexpr auto Yx8 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
@@ -753,7 +753,7 @@ int main(void){
 	dispmat(Acmpx1);
 	ArcsMat<3,5,std::complex<double>> Y9;
 	sqrt(Acmpx1, Y9);						// 負の行列要素の平方根 (引数渡し版)
-	dispmatfmt(sqrt(Acmpx1), "%6.3f");		// 負の行列要素の平方根 (戻り値渡し版)
+	dispmatfmt(sqrt(Acmpx1), "% 6.3f");		// 負の行列要素の平方根 (戻り値渡し版)
 	//constexpr auto Yx9 = sqrt(Acmpx1);				// コンパイル時に行列要素の平方根を計算 驚異の非対応エラー
 	//dispmatfmt(Yx9, "%8.3f");
 	constexpr ArcsMat<2,3,std::complex<double>> Acmpx2 = {
@@ -761,7 +761,11 @@ int main(void){
 		std::complex(-1.0, 1.0), std::complex(-3.0, 4.0), std::complex(-3.0,-4.0)
 	};
 	dispmat(Acmpx2);
-	dispmat(abs(Acmpx2));
+	ArcsMat<2,3,double> Y10;
+	abs(Acmpx2, Y10);						// 複素数行列要素の絶対値 (引数渡し版)
+	dispmatfmt(abs(Acmpx1), "% 6.3f");		// 複素数行列要素の絶対値 (戻り値渡し版)
+	arg(Acmpx2, Y10);						// 複素数行列要素の偏角 (引数渡し版)
+	dispmatfmt(arg(Acmpx2), "% 6.3f");		// 複素数行列要素の偏角 (戻り値渡し版)
 
 	// ノルム関連の関数
 	printf("\n★★★★★★★ ノルム関連の関数\n");
