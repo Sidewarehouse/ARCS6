@@ -763,14 +763,21 @@ int main(void){
 	dispmat(Acmpx2);
 	ArcsMat<2,3,double> Y10;
 	abs(Acmpx2, Y10);						// 複素数行列要素の絶対値 (引数渡し版)
-	dispmatfmt(abs(Acmpx1), "% 6.3f");		// 複素数行列要素の絶対値 (戻り値渡し版)
-	arg(Acmpx2, Y10);						// 複素数行列要素の偏角 (引数渡し版)
-	dispmatfmt(arg(Acmpx2), "% 6.3f");		// 複素数行列要素の偏角 (戻り値渡し版)
+	dispmat(abs(Acmpx1));					// 複素数行列要素の絶対値 (戻り値渡し版)
+	arg(Acmpx2, Y10);								// 複素数行列要素の偏角 (引数渡し版)   [rad]
+	dispmatfmt(arg(Acmpx2)*180.0/M_PI, "% 6.1f");	// 複素数行列要素の偏角 (戻り値渡し版) [deg]
+	real(Acmpx2, Y10);						// 複素数行列要素の実数部 (引数渡し版)
+	dispmat(real(Acmpx2));					// 複素数行列要素の実数部 (戻り値渡し版)
+	imag(Acmpx2, Y10);						// 複素数行列要素の実数部 (引数渡し版)
+	dispmat(imag(Acmpx2));					// 複素数行列要素の実数部 (戻り値渡し版)
+	ArcsMat<2,3,std::complex<double>> Y11;
+	conj(Acmpx2, Y11);						// 複素数行列要素の複素共役 (引数渡し版)
+	dispmat(conj(Acmpx2));					// 複素数行列要素の複素共役 (戻り値渡し版)
 
 	// ノルム関連の関数
 	printf("\n★★★★★★★ ノルム関連の関数\n");
 	printf("norm<∞>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
-	constexpr double normAx1 = norm<NormType::AMT_INFINITY>(Ax1);				// コンパイル時に無限大ノルムを計算
+	constexpr double normAx1 = norm<NormType::AMT_INFINITY>(Ax1);		// コンパイル時に無限大ノルムを計算
 	printf("norm<∞>(Ax1) = %f\n", normAx1);
 /*
 	// 三角行列操作関連の関数
