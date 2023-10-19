@@ -4,7 +4,7 @@
 //! ARCS用のイベントログクラス
 //! 注意：リアルタイム空間ではこのライブラリが提供する関数は可能な限り使用しないこと。ジッタに影響するので。デバッグ時なら使用OK。
 //!
-//! @date 2020/04/10
+//! @date 2023/10/19
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2023 Yokokura, Yuki
@@ -28,7 +28,7 @@ ARCSeventlog::ARCSeventlog(void){
 	EventLogFile << "ARCS EVENT LOG FILE" << std::endl;
 	EventLogFile << "DATE: " << ARCScommon::GetNowTime();
 	EventLogFile << "CTRLNAME: " << ConstParams::CTRLNAME << std::endl;
-	EventLogFile << "ARCS_REVISION: " << ConstParams::ARCS_REVISION << std::endl;
+	EventLogFile << "ARCS_REVISION: " << ARCScommon::ARCS_REVISION << std::endl;
 	EventLogFile << std::endl;
 	EventLogFile << "CPU:TIME: FILE:LINE: MESSAGE" << std::endl;
 	PassedLog();

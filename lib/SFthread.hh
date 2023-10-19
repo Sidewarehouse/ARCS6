@@ -3,13 +3,11 @@
 //!
 //! pthreadのSCHED_FIFOで実時間スレッドを生成＆管理＆破棄する。実際に計測された制御周期や計算消費時間も提供する。
 //!
-//! @date 2021/07/08
+//! @date 2023/10/19
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2021 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2023 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef SFTHREADING
 #define SFTHREADING
@@ -20,6 +18,7 @@
 #include <unistd.h>
 #include <pthread.h>
 #include <functional>
+#include <cfenv>
 #include <cmath>
 #include <string>
 #include <fstream>
@@ -303,9 +302,13 @@ class SFthread {
 				clock_gettime(CLOCK_MONOTONIC, &StartTime);							// 開始時刻の取得
 				Time = timespec_sub(StartTime, InitTime);							// 実際の時刻を計算
 				ActPeriodicTime = timespec_sub(StartTime, StartTimePrev);			// 実際の周期時間を計算(timespec構造体は単純に減算できないことに注意)
+
+				std::feclearexcept(FE_ALL_EXCEPT);									// 浮動小数点例外フラグをクリア
 				ClockOverride = !FuncObj(GetTime(), GetSmplTime(), GetCompTime());	// 制御用関数の実行(関数オブジェクトにより、ここで実際の制御関数が呼ばれる)
+				arcs_assert(std::fetestexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW) == false);	// 浮動小数点例外チェック(ゼロ割、NaN、桁溢れ検出)
 				StartTimePrev = StartTime;											// 次回用に今回の開始時刻を格納
 				NextTime = timespec_add(StartTime, PeriodTime);						// 開始時刻に制御周期を加算して次の時刻を計算
+				
 				if constexpr(SFA == SFalgorithm::INSERT_ZEROSLEEP){
 					clock_nanosleep(CLOCK_MONOTONIC, 0, &PreventStuck, nullptr);	// 「BUG: soft lockup - CPU#0 Stuck for 67s!」を回避するためのスリープ
 				}

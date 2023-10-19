@@ -1,12 +1,10 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2020/04/09
+//! @date 2023/10/19
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2023 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
 #include <unistd.h>
@@ -58,6 +56,8 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 		Screen.GetOnlineSetVar();			// オンライン設定変数の読み込み
 		
 		// ここに制御アルゴリズムを記述する
+		CurrentRef[0] = log(-1);	// ←浮動小数点例外検出チェック用
+		//CurrentRef[1] = 1.0/0.0;
 		
 		Interface.SetCurrent(CurrentRef);	// [A] 電流指令の出力
 		Screen.SetVarIndicator(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
