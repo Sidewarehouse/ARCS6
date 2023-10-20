@@ -777,17 +777,33 @@ int main(void){
 	Htp(Acmpx2, Y12);						// エルミート転置 (引数渡し版)
 	dispmat(Htp(Acmpx2));					// エルミート転置 (戻り値渡し版)
 
-	// ノルム関連の関数
-	printf("\n★★★★★★★ ノルム関連の関数\n");
+	// ノルム関連の関数(行列版)
+	printf("\n★★★★★★★ ノルム関連の関数(行列版)\n");
 	dispmatfmt(Ax1, "% 6.3f");
-	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
-	constexpr double inormAx1 = norm<NormType::AMT_INFINITY>(Ax1);		// コンパイル時に無限大ノルムを計算
-	printf("norm<inf>(Ax1) = %f\n", inormAx1);
 	printf("norm<euc>(Ax1) = %f\n", norm<NormType::AMT_EUCLID>(Ax1));	// ユークリッドノルムを計算する (戻り値渡し版のみ)
 	constexpr double enormAx1 = norm<NormType::AMT_EUCLID>(Ax1);		// コンパイル時にユークリッドノルムを計算
 	printf("norm<euc>(Ax1) = %f\n", enormAx1);
-	printf("Re{norm<euc>(Acmpx2)} = %f\n", real(norm<NormType::AMT_EUCLID>(Acmpx2)));	// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
-	printf("Im{norm<euc>(Acmpx2)} = %f\n", imag(norm<NormType::AMT_EUCLID>(Acmpx2)));	// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(Ax1) = %f\n", norm<NormType::AMT_MANHATTAN>(Ax1));// 絶対値ノルムを計算する (戻り値渡し版のみ)
+	constexpr double mnormAx1 = norm<NormType::AMT_MANHATTAN>(Ax1);		// コンパイル時に絶対値ノルムを計算
+	printf("norm<man>(Ax1) = %f\n", mnormAx1);
+	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormAx1 = norm<NormType::AMT_INFINITY>(Ax1);		// コンパイル時に無限大ノルムを計算
+	printf("norm<inf>(Ax1) = %f\n", inormAx1);
+	printf("norm<euc>(Acmpx2) = %f\n", norm<NormType::AMT_EUCLID>(Acmpx2));		// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(Acmpx2) = %f\n", norm<NormType::AMT_MANHATTAN>(Acmpx2));	// 複素数絶対値ノルムを計算する (戻り値渡し版のみ)
+	
+	// ノルム関連の関数(ベクトル版)
+	printf("\n★★★★★★★ ノルム関連の関数(ベクトル版)\n");
+	dispmatfmt(k1, "% 6.3f");
+	printf("norm<euc>(k1) = %f\n", norm<NormType::AMT_EUCLID>(k1));		// ユークリッドノルムを計算する (戻り値渡し版のみ)
+	constexpr double enormk1 = norm<NormType::AMT_EUCLID>(k1);			// コンパイル時にユークリッドノルムを計算
+	printf("norm<euc>(k1) = %f\n", enormk1);
+	printf("norm<man>(k1) = %f\n", norm<NormType::AMT_MANHATTAN>(k1));	// 絶対値ノルムを計算する (戻り値渡し版のみ)
+	constexpr double mnormk1 = norm<NormType::AMT_MANHATTAN>(k1);		// コンパイル時に絶対値ノルムを計算
+	printf("norm<man>(k1) = %f\n", mnormk1);
+	printf("norm<inf>(k1) = %f\n", norm<NormType::AMT_INFINITY>(k1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormk1 = norm<NormType::AMT_INFINITY>(k1);		// コンパイル時に無限大ノルムを計算
+	printf("norm<inf>(k1) = %f\n", inormk1);
 	
 /*
 	// 三角行列操作関連の関数

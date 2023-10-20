@@ -75,6 +75,37 @@ C = 3 + A
 C = 3 - A
 C = 2*A
 
+disp '★ ノルム関連の関数(行列版)'
+Ax1 = [
+	     1.0,      2.0,      3.0,    4.0 ;
+	    pi/4,     pi/2, 3.0*pi/4,     pi ; 
+	5.0*pi/4, 3.0*pi/2, 7.0*pi/4, 2.0*pi 
+]
+norm(Ax1)
+norm(Ax1, 1)
+norm(Ax1, Inf)
+Acmpx2 = [
+  1 + 1j,  3 + 4j,  3 - 4j ;
+ -1 + 1j, -3 + 4j, -3 - 4j
+]
+norm(Acmpx2)
+norm(Acmpx2, 1)
+norm(Acmpx2, Inf)
+
+disp '★ ノルム関連の関数(ベクトル版)'
+k1 = [
+  2.000 ;
+  5.000 ;
+ -9.000 ;
+  4.000 ;
+  7.000 ;
+ -1.000 ;
+  6.000
+];
+norm(k1)
+norm(k1, 1)
+norm(k1, Inf)
+
 
 %{
 % QR分解

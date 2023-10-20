@@ -71,7 +71,8 @@
 			"ratio": "cpp",
 			"bit": "cpp",
 			"compare": "cpp",
-			"numbers": "cpp"
+			"numbers": "cpp",
+			"cfenv": "cpp"
 		}
 	},
 }

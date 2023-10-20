@@ -44,8 +44,9 @@ namespace ARCS {	// ARCS名前空間
 
 //! @brief ノルム計算方法の定義
 enum class NormType {
-	AMT_INFINITY,	//!< 無限大ノルム
-	AMT_EUCLID		//!< ユークリッドノルム
+	AMT_EUCLID,		//!< ユークリッドノルム(2-ノルム)
+	AMT_MANHATTAN,	//!< 絶対値ノルム(1-ノルム)
+	AMT_INFINITY	//!< 無限大ノルム(最大値ノルム)
 };
 
 //! @brief 行列の状態の定義
@@ -1856,12 +1857,12 @@ class ArcsMat {
 		//! @param[in]	U	入力行列
 		//! @return	Y	出力行列
 		template<typename R = double>
-		static constexpr ArcsMat<M,N,T> abs(const ArcsMat<M,N,R>& U){
-			ArcsMat<M,N,T> Y;
+		static constexpr ArcsMat<M,N,R> abs(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,R> Y;
 			ArcsMat<M,N,T>::abs(U, Y);
 			return Y;
 		}
-
+		
 		//! @brief 複素数行列要素の偏角を計算する関数(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
@@ -1952,39 +1953,39 @@ class ArcsMat {
 		//! @tparam	NRM	ノルムのタイプ
 		//! @param[in]	U	入力行列
 		//! @return	結果
-		template<NormType NRM>
-		static constexpr T norm(const ArcsMat<M,N,T>& U){
+		template<NormType NRM = NormType::AMT_EUCLID, typename R = double>
+		static constexpr T norm(const ArcsMat<M,N,R>& U){
 			ArcsMat<1,1,T> ret;
-			if constexpr(NRM == NormType::AMT_INFINITY){
-				// 無限大ノルムが指定されたとき
-				ret[1] = ArcsMat<M,1,T>::max( ArcsMat<M,N,T>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
-			}
 			if constexpr(NRM == NormType::AMT_EUCLID){
-				// ユークリッドノルムが指定されたとき
-				if constexpr(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>){
-					// 複素数型の場合
-					if constexpr(N == 1){
-						// 縦ベクトルの場合
-						ret = sqrt(Htp(U)*U);
-					}else if constexpr(M == 1){
-						// 横ベクトルの場合
-						ret = sqrt(U*Htp(U));
-					}else{
-						// 行列の場合
-						ret[1] = std::sqrt(ArcsMat<M,N,T>::sum(U & U));
-					}
+				// ユークリッドノルム(2-ノルム)が指定されたとき
+				if constexpr(M == 1 || N == 1){
+					// ベクトル版
+					ArcsMat<M,N,T> v = ArcsMat<M,N,R>::abs(U);
+					ret[1] = std::sqrt( ArcsMat<M,N,T>::sum( v & v ) );
 				}else{
-					// 実数型の場合
-					if constexpr(N == 1){
-						// 縦ベクトルの場合
-						ret = sqrt(tp(U)*U);
-					}else if constexpr(M == 1){
-						// 横ベクトルの場合
-						ret = sqrt(U*tp(U));
-					}else{
-						// 行列の場合
-						ret[1] = std::sqrt(ArcsMat<M,N,T>::sum(U & U));
-					}
+					// 行列版
+					ret[1] = 0;	// svdが実装されるまで保留
+				}
+			}
+			if constexpr(NRM == NormType::AMT_MANHATTAN){
+				// 絶対値ノルム(1-ノルム)が指定されたとき
+				if constexpr(M == 1 || N == 1){
+					// ベクトル版
+					ret[1] = ArcsMat<M,N,T>::sum( ArcsMat<M,N,R>::abs(U) );
+				}else{
+					// 行列版
+					//ArcsMat<M,N,R> a = ArcsMat<M,N,R>::abs(U);
+					//ret[1] = ArcsMat<1,N,T>::max( ArcsMat<M,N,T>::sumcolumn( ArcsMat<M,N,R>::abs(U) ) );
+				}
+			}
+			if constexpr(NRM == NormType::AMT_INFINITY){
+				// 無限大ノルム(最大値ノルム)が指定されたとき
+				if constexpr(M == 1 || N == 1){
+					// ベクトル版
+					ret[1] = ArcsMat<M,N,T>::max( ArcsMat<M,N,R>::abs(U) );
+				}else{
+					// 行列版
+					ret[1] = ArcsMat<M,1,T>::max( ArcsMat<M,N,T>::sumrow( ArcsMat<M,N,R>::abs(U) ) );
 				}
 			}
 			return ret[1];
@@ -3820,6 +3821,15 @@ namespace ArcsMatrix {
 	template<NormType NRM, size_t M, size_t N, typename T = double>
 	constexpr T norm(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::template norm<NRM>(U);
+	}
+	
+	//! @brief 行列のノルムを返す関数(戻り値渡し版のみ)
+	//! @tparam	NRM, M, N, T	ノルムのタイプ, 入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	結果
+	template<NormType NRM, size_t M, size_t N, typename T = double>
+	constexpr T norm(const ArcsMat<M,N,std::complex<T>>& U){
+		return ArcsMat<M,N,T>::template norm<NRM, std::complex<T>>(U);
 	}
 	
 	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
