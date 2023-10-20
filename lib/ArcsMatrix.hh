@@ -1918,6 +1918,35 @@ class ArcsMat {
 				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::conj( U(j,i) );
 			}
 		}
+		
+		//! @brief 複素数行列要素の複素共役を取得する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	出力行列
+		static constexpr ArcsMat<M,N,T> conj(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> ret;
+			ArcsMat<M,N,T>::conj(U, ret);
+			return ret;
+		}
+		
+		//! @brief エルミート転置行列を返す関数 (引数渡し版)
+		//! @tparam	P, Q, R	出力の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = std::complex<double>>
+		static constexpr void Htp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(std::is_same_v<T, R>, "ArcsMat: Type Error (Need same type)");
+			ArcsMat<M,N,T>::tp(ArcsMat<M,N,T>::conj(U), Y);	// 複素共役して転置
+		}
+		
+		//! @brief エルミート転置行列を返す関数 (戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	出力行列
+		static constexpr ArcsMat<N,M,T> Htp(const ArcsMat<M,N,T>& U){
+			ArcsMat<N,M,T> ret;
+			ArcsMat<M,N,T>::Htp(U, ret);
+			return ret;
+		}
 
 		//! @brief 行列のノルムを返す関数(戻り値渡し版のみ)
 		//! @tparam	NRM	ノルムのタイプ
@@ -1925,40 +1954,40 @@ class ArcsMat {
 		//! @return	結果
 		template<NormType NRM>
 		static constexpr T norm(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,1,T> ret;
 			if constexpr(NRM == NormType::AMT_INFINITY){
 				// 無限大ノルムが指定されたとき
-				return ArcsMat<M,1,T>::max( ArcsMat<M,N,T>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
+				ret[1] = ArcsMat<M,1,T>::max( ArcsMat<M,N,T>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
 			}
 			if constexpr(NRM == NormType::AMT_EUCLID){
 				// ユークリッドノルムが指定されたとき
-				ArcsMat<1,1,T> ret;
 				if constexpr(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>){
 					// 複素数型の場合
 					if constexpr(N == 1){
 						// 縦ベクトルの場合
-						//ret = Htp(U)*U;
+						ret = sqrt(Htp(U)*U);
 					}else if constexpr(M == 1){
 						// 横ベクトルの場合
-						//ret = U*Htp(U);
+						ret = sqrt(U*Htp(U));
 					}else{
 						// 行列の場合
-						ret = ArcsMat<M,N,T>::sum(U & U);
+						ret[1] = std::sqrt(ArcsMat<M,N,T>::sum(U & U));
 					}
 				}else{
 					// 実数型の場合
 					if constexpr(N == 1){
 						// 縦ベクトルの場合
-						ret = tp(U)*U;
+						ret = sqrt(tp(U)*U);
 					}else if constexpr(M == 1){
 						// 横ベクトルの場合
-						ret = U*tp(U);
+						ret = sqrt(U*tp(U));
 					}else{
 						// 行列の場合
-						ret = ArcsMat<M,N,T>::sum(U & U);
+						ret[1] = std::sqrt(ArcsMat<M,N,T>::sum(U & U));
 					}
 				}
-				return std::sqrt(ret[1]);
 			}
+			return ret[1];
 		}
 
 		//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
@@ -2122,7 +2151,6 @@ class ArcsMat {
 		}
 
 /*		
-		
 		//! @brief 行列の非ゼロ要素数を返す関数
 		//! @param[in]	U	入力行列
 		//! @return 結果
@@ -2144,12 +2172,6 @@ class ArcsMat {
 			ArcsMat<N,N,T> U, S, V;
 			SVD(A, U, S, V);			// まず特異値分解して，
 			return nonzeroele(diag(S));	// S行列の対角要素の非ゼロをカウントするとそれがランク
-		}
-		
-		//! @brief ベクトルのユークリッドノルムを返す関数
-		//! @param[in]	v	入力ベクトル
-		//! @return	結果
-		constexpr friend T euclidnorm(const ArcsMat<N,M,T>& v){
 		}
 		
 		//! @brief 修正コレスキー分解(LDL^T版)
@@ -2612,20 +2634,6 @@ class ArcsMat {
 			return h/3.0*( ArcsMat<U.N,U.N,T>::eye() + 4.0*S1 + 2.0*S2 + expm(U*T,P) );	// 最終的な定積分結果を返す
 		}
 		
-		
-		
-		//! @brief 複素数行列要素の実数部を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<N,M,double> reale(const ArcsMat& U){
-			static_assert(std::is_same_v<T, std::complex<double>>, "ArcsMat Type Error");	// 複素数型のみ対応
-			ArcsMat<N,M,double> Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = U.Data[i][j].real();
-			}
-			return Y;
-		}
-		
 		//! @brief 複素数行列要素の実数部に値をセットする関数
 		//! @param[in]	U	入力行列
 		//! @return	結果
@@ -2635,62 +2643,6 @@ class ArcsMat {
 			for(size_t i = 0; i < N; ++i){
 				for(size_t j = 0; j < M; ++j) Data[i][j] = std::complex(U.Data[i][j], 0.0);
 			}
-		}
-		
-		//! @brief 複素数行列要素の虚数部を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<N,M,double> image(const ArcsMat& U){
-			static_assert(std::is_same_v<T, std::complex<double>>, "ArcsMat Type Error");	// 複素数型のみ対応
-			ArcsMat<N,M,double> Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = U.Data[i][j].imag();
-			}
-			return Y;
-		}
-		
-		//! @brief 複素数行列要素の大きさを返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<N,M,double> mage(const ArcsMat& U){
-			static_assert(std::is_same_v<T, std::complex<double>>, "ArcsMat Type Error");	// 複素数型のみ対応
-			ArcsMat<N,M,double> Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::abs(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief 複素数行列要素の偏角を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<N,M,double> arge(const ArcsMat& U){
-			static_assert(std::is_same_v<T, std::complex<double>>, "ArcsMat Type Error");	// 複素数型のみ対応
-			ArcsMat<N,M,double> Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::arg(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief 複素数行列要素の共役を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<N,M,std::complex<double>> conje(const ArcsMat& U){
-			static_assert(std::is_same_v<T, std::complex<double>>, "ArcsMat Type Error");	// 複素数型のみ対応
-			ArcsMat<N,M,std::complex<double>> Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::conj(U.Data[i][j]);
-			}
-			return Y;
-		}
-		
-		//! @brief エルミート転置行列を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<M,N,std::complex<double>> Htp(const ArcsMat<N,M,T>& U){
-			static_assert(std::is_same_v<T, std::complex<double>>, "ArcsMat Type Error");	// 複素数型のみ対応
-			return conje(tp(U));	// 転置して複素共役
 		}
 		
 		//! @brief 固有値を返す関数
@@ -3840,9 +3792,25 @@ namespace ArcsMatrix {
 	//! @return	Y	出力行列
 	template<size_t M, size_t N, typename T = std::complex<double>>
 	constexpr ArcsMat<M,N,T> conj(const ArcsMat<M,N,T>& U){
-		ArcsMat<M,N,T> Y;
-		ArcsMat<M,N,T>::conj(U, Y);	// 入力は複素数、出力も複素数
-		return Y;
+		return ArcsMat<M,N,T>::conj(U);
+	}
+		
+	//! @brief エルミート転置行列を返す関数 (引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = std::complex<double>, size_t P, size_t Q, typename R = std::complex<double>>
+	constexpr void Htp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::Htp(U, Y);
+	}
+	
+	//! @brief エルミート転置行列を返す関数 (戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = std::complex<double>>
+	constexpr ArcsMat<N,M,T> Htp(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::Htp(U);
 	}
 
 	//! @brief 行列のノルムを返す関数(戻り値渡し版のみ)

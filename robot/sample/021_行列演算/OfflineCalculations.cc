@@ -754,7 +754,7 @@ int main(void){
 	ArcsMat<3,5,std::complex<double>> Y9;
 	sqrt(Acmpx1, Y9);						// 負の行列要素の平方根 (引数渡し版)
 	dispmatfmt(sqrt(Acmpx1), "% 6.3f");		// 負の行列要素の平方根 (戻り値渡し版)
-	//constexpr auto Yx9 = sqrt(Acmpx1);				// コンパイル時に行列要素の平方根を計算 驚異の非対応エラー
+	//constexpr auto Yx9 = sqrt(Acmpx1);			// コンパイル時に行列要素の平方根を計算 驚異の非対応エラー!!
 	//dispmatfmt(Yx9, "%8.3f");
 	constexpr ArcsMat<2,3,std::complex<double>> Acmpx2 = {
 		std::complex( 1.0, 1.0), std::complex( 3.0, 4.0), std::complex( 3.0,-4.0),
@@ -773,12 +773,22 @@ int main(void){
 	ArcsMat<2,3,std::complex<double>> Y11;
 	conj(Acmpx2, Y11);						// 複素数行列要素の複素共役 (引数渡し版)
 	dispmat(conj(Acmpx2));					// 複素数行列要素の複素共役 (戻り値渡し版)
+	ArcsMat<3,2,std::complex<double>> Y12;
+	Htp(Acmpx2, Y12);						// エルミート転置 (引数渡し版)
+	dispmat(Htp(Acmpx2));					// エルミート転置 (戻り値渡し版)
 
 	// ノルム関連の関数
 	printf("\n★★★★★★★ ノルム関連の関数\n");
-	printf("norm<∞>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
-	constexpr double normAx1 = norm<NormType::AMT_INFINITY>(Ax1);		// コンパイル時に無限大ノルムを計算
-	printf("norm<∞>(Ax1) = %f\n", normAx1);
+	dispmatfmt(Ax1, "% 6.3f");
+	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormAx1 = norm<NormType::AMT_INFINITY>(Ax1);		// コンパイル時に無限大ノルムを計算
+	printf("norm<inf>(Ax1) = %f\n", inormAx1);
+	printf("norm<euc>(Ax1) = %f\n", norm<NormType::AMT_EUCLID>(Ax1));	// ユークリッドノルムを計算する (戻り値渡し版のみ)
+	constexpr double enormAx1 = norm<NormType::AMT_EUCLID>(Ax1);		// コンパイル時にユークリッドノルムを計算
+	printf("norm<euc>(Ax1) = %f\n", enormAx1);
+	printf("Re{norm<euc>(Acmpx2)} = %f\n", real(norm<NormType::AMT_EUCLID>(Acmpx2)));	// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
+	printf("Im{norm<euc>(Acmpx2)} = %f\n", imag(norm<NormType::AMT_EUCLID>(Acmpx2)));	// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
+	
 /*
 	// 三角行列操作関連の関数
 	printf("\n★★★★★★★ 三角行列操作関連の関数\n");
