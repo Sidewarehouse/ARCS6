@@ -791,6 +791,7 @@ int main(void){
 	printf("norm<inf>(Ax1) = %f\n", inormAx1);
 	printf("norm<euc>(Acmpx2) = %f\n", norm<NormType::AMT_EUCLID>(Acmpx2));		// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
 	printf("norm<man>(Acmpx2) = %f\n", norm<NormType::AMT_MANHATTAN>(Acmpx2));	// 複素数絶対値ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<inf>(Acmpx2) = %f\n", norm<NormType::AMT_INFINITY>(Acmpx2));	// 複素数無限大ノルムを計算する (戻り値渡し版のみ)
 	
 	// ノルム関連の関数(ベクトル版)
 	printf("\n★★★★★★★ ノルム関連の関数(ベクトル版)\n");
@@ -803,8 +804,13 @@ int main(void){
 	printf("norm<man>(k1) = %f\n", mnormk1);
 	printf("norm<inf>(k1) = %f\n", norm<NormType::AMT_INFINITY>(k1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
 	constexpr double inormk1 = norm<NormType::AMT_INFINITY>(k1);		// コンパイル時に無限大ノルムを計算
-	printf("norm<inf>(k1) = %f\n", inormk1);
-	
+	printf("norm<inf>(k1) = %f\n\n", inormk1);
+	auto k1cmpx = sqrt(static_cast<ArcsMat<7,1,std::complex<double>>>(-k1));
+	dispmatfmt(k1cmpx, "% 6.3f");
+	printf("norm<euc>(k1cmpx) = %f\n", norm<NormType::AMT_EUCLID>(k1cmpx));		// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(k1cmpx) = %f\n", norm<NormType::AMT_MANHATTAN>(k1cmpx));	// 複素数絶対値ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<inf>(k1cmpx) = %f\n", norm<NormType::AMT_INFINITY>(k1cmpx));	// 複素数無限大ノルムを計算する (戻り値渡し版のみ)
+
 /*
 	// 三角行列操作関連の関数
 	printf("\n★★★★★★★ 三角行列操作関連の関数\n");

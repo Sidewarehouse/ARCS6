@@ -114,20 +114,33 @@ class ArcsMat {
 		constexpr ArcsMat(const ArcsMat<M,N,T>& right)
 			: Nindex(0), Mindex(0), Data(right.GetData())
 		{
-			
+			// メンバを取り込む以外の処理は無し
 		}
 		
-		//! @brief コピーコンストラクタ(サイズと型が違う行列の場合, エラー検出用の定義)
+		//! @brief コピーコンストラクタ(サイズもしくは型が違う行列の場合の定義)
 		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
 		//! @param[in]	right	右辺値
 		template<size_t P, size_t Q, typename R = double>
 		constexpr ArcsMat(const ArcsMat<P,Q,R>& right)
-			: Nindex(0), Mindex(0), Data(right.GetData())
+			: Nindex(0), Mindex(0), Data()
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
+
+			// 型の種類によってキャスト処理を変更
+			if constexpr(std::is_convertible_v<T, R>){
+				// キャスト可能の場合は普通にキャスト
+				Data = static_cast<T>(right.GetData());
+			}else if constexpr(std::is_convertible_v<T, std::complex<double>> || std::is_convertible_v<T, std::complex<float>>){
+				// 「浮動小数点型 → 複素数型」のキャスト処理
+				const std::array<std::array<R, M>, N>& RightData = right.ReadOnlyRef();
+				for(size_t i = 0; i < N; ++i){
+					for(size_t j = 0; j < M; ++j) Data[i][j].real(RightData[i][j]);
+				}
+			}else{
+				// キャスト不能の場合の処理
+				arcs_assert(false);	// 変換不能、もしここに来たら問答無用でAssertion Failed
+			}
 		}
 		
 	
@@ -136,7 +149,7 @@ class ArcsMat {
 		constexpr ArcsMat(ArcsMat<M,N,T>&& right)
 			: Nindex(0), Mindex(0), Data(right.GetData())
 		{
-			
+			// メンバを取り込む以外の処理は無し
 		}
 		
 		//! @brief ムーブコンストラクタ(サイズと型が違う行列の場合, エラー検出用の定義)
@@ -688,6 +701,12 @@ class ArcsMat {
 		//! @brief std:arrayの2次元配列データをそのまま返す関数
 		//! @return	2次元配列データ
 		constexpr std::array<std::array<T, M>, N> GetData(void) const{
+			return Data;
+		}
+
+		//! @brief std:arrayの2次元配列データの読み込み専用の参照を返す関数
+		//! @return	2次元配列データの参照
+		constexpr const std::array<std::array<T, M>, N>& ReadOnlyRef(void) const{
 			return Data;
 		}
 		
@@ -1954,14 +1973,14 @@ class ArcsMat {
 		//! @param[in]	U	入力行列
 		//! @return	結果
 		template<NormType NRM = NormType::AMT_EUCLID, typename R = double>
-		static constexpr T norm(const ArcsMat<M,N,R>& U){
-			ArcsMat<1,1,T> ret;
+		static constexpr R norm(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,1,R> ret;
 			if constexpr(NRM == NormType::AMT_EUCLID){
 				// ユークリッドノルム(2-ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
-					ArcsMat<M,N,T> v = ArcsMat<M,N,R>::abs(U);
-					ret[1] = std::sqrt( ArcsMat<M,N,T>::sum( v & v ) );
+					ArcsMat<M,N,R> v = ArcsMat<M,N,T>::abs(U);
+					ret[1] = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
 				}else{
 					// 行列版
 					ret[1] = 0;	// svdが実装されるまで保留
@@ -1971,21 +1990,20 @@ class ArcsMat {
 				// 絶対値ノルム(1-ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
-					ret[1] = ArcsMat<M,N,T>::sum( ArcsMat<M,N,R>::abs(U) );
+					ret[1] = ArcsMat<M,N,R>::sum( ArcsMat<M,N,T>::abs(U) );
 				}else{
 					// 行列版
-					//ArcsMat<M,N,R> a = ArcsMat<M,N,R>::abs(U);
-					//ret[1] = ArcsMat<1,N,T>::max( ArcsMat<M,N,T>::sumcolumn( ArcsMat<M,N,R>::abs(U) ) );
+					ret[1] = ArcsMat<1,N,R>::max( ArcsMat<M,N,R>::sumcolumn( ArcsMat<M,N,T>::abs(U) ) );
 				}
 			}
 			if constexpr(NRM == NormType::AMT_INFINITY){
 				// 無限大ノルム(最大値ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
-					ret[1] = ArcsMat<M,N,T>::max( ArcsMat<M,N,R>::abs(U) );
+					ret[1] = ArcsMat<M,N,R>::max( ArcsMat<M,N,T>::abs(U) );
 				}else{
 					// 行列版
-					ret[1] = ArcsMat<M,1,T>::max( ArcsMat<M,N,T>::sumrow( ArcsMat<M,N,R>::abs(U) ) );
+					ret[1] = ArcsMat<M,1,R>::max( ArcsMat<M,N,R>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
 				}
 			}
 			return ret[1];
@@ -3823,13 +3841,13 @@ namespace ArcsMatrix {
 		return ArcsMat<M,N,T>::template norm<NRM>(U);
 	}
 	
-	//! @brief 行列のノルムを返す関数(戻り値渡し版のみ)
+	//! @brief 行列のノルムを返す関数(戻り値渡し版のみ, 複素数版特殊化)
 	//! @tparam	NRM, M, N, T	ノルムのタイプ, 入力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
 	//! @return	結果
 	template<NormType NRM, size_t M, size_t N, typename T = double>
 	constexpr T norm(const ArcsMat<M,N,std::complex<T>>& U){
-		return ArcsMat<M,N,T>::template norm<NRM, std::complex<T>>(U);
+		return ArcsMat<M,N,std::complex<T>>::template norm<NRM, T>(U);
 	}
 	
 	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
