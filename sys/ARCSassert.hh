@@ -1,7 +1,7 @@
 //! @file ARCSassert.hh
 //! @brief ARCS用ASSERTクラス
-//! @date 2020/04/29
-//! @author Yuki YOKOKURA
+//! @date 2023/10/23
+//! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2023 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
