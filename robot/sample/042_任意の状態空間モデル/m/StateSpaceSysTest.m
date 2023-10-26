@@ -1,5 +1,5 @@
 % StateSpaceSystemクラスのテスト用スクリプト
-% 2022/02/20 Yokokura, Yuki
+% 2023/10/26 Yokokura, Yuki
 clc;
 clear;
 
@@ -32,29 +32,64 @@ clear CsvData;
 tlen = length(t);
 
 % 真値の計算
-Ts = t(tlen)/(tlen-1);
+Ts = t(tlen)/(tlen - 1);
 ti = 0:Ts:t(tlen);
-yi = lsim(System1, u, ti);
+ui = SquareWave(0.5, pi, ti, 1);
+yi = lsim(System1, ui, ti);
 
 % グラフ描画
 figure(1);
 clf;
 set(gcf,'PaperPositionMode','manual');
 set(gcf,'color',[1 1 1]);
-h=stairs(t, u, 'k:');
-	set(h,'linewidth',2);
-hold on;
-h=stairs(t, y, 'r');
-	set(h,'linewidth',3);
-h=stairs(t, yi, 'k');
-	set(h,'linewidth',1);
-hold off;
-xlabel('Time [s]','FontSize',12);
-ylabel('Input and Output [-]','FontSize',12);
-set(gca,'FontSize',12);
-grid on;
-%axis([0 10 -inf inf]);
-legend('Input','Output','Ideal','Location','SouthEast','Orientation','Vertical');
+subplot(2,1,1);
+	h=stairs(t, u, 'k:');
+		set(h,'linewidth',4);
+	hold on;
+	h=stairs(t, y, 'r');
+		set(h,'linewidth',3);
+	h=stairs(ti, ui, 'g:');
+		set(h,'linewidth',2);
+	h=stairs(ti, yi, 'k');
+		set(h,'linewidth',1);
+	hold off;
+	xlabel('Time [s]','FontSize',12);
+	ylabel('Input and Output [-]','FontSize',12);
+	set(gca,'FontSize',12);
+	grid on;
+	%axis([0 10 -inf inf]);
+	legend('ARCS Input','ARCS Output','MATLAB Input','MATLAB Output','Location','SouthEast','Orientation','Vertical');
+subplot(2,1,2);
+	h=stairs(t, ti, 'k');
+		set(h,'linewidth',1);
+	xlabel('Ideal Time [s]','FontSize',12);
+	ylabel('Actual Time [s]','FontSize',12);
+	grid on;
+
 
 % EPSファイル生成(ローカルで実行のこと)
 % print(gcf,'-depsc2','-tiff',strcat(FileName,'.eps'));
+
+% 方形波生成関数
+function y = SquareWave(freq, phase, time, starttime)
+	tlen = length(time);
+	r(1:tlen) = 0;
+	y(1:tlen) = 0;
+	
+	% 開始時間だけシフトされた正弦波を生成
+	for i = 1:tlen
+		if time(i) < starttime
+			r(i) = 0;			% 開始時刻より前のときはゼロ出力
+		else
+			r(i) = sin(2*pi*freq*(time(i) - starttime) + phase);	% 開始時刻以降は方形波出力
+			% 方形波に変換
+			if 0 <= r(i)
+				y(i) =  1;
+			else
+				y(i) = -1;
+			end
+		end
+	end
+end
+
+

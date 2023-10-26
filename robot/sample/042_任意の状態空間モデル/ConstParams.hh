@@ -1,13 +1,11 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2020/05/20
+//! @date 2023/10/26
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2023 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef CONSTPARAMS
 #define CONSTPARAMS
@@ -65,9 +63,9 @@ namespace ARCS {	// ARCS名前空間
 			//! @brief 制御周期の設定
 			static constexpr std::array<unsigned long, THREAD_MAX> SAMPLING_TIME = {
 			//   s  m  u  n	制御周期は Ts[0] ≦ Ts[1] ≦ … ≦ Ts[THREAD_MAX] になるようにすること
-				     100000,	// [ns] 制御用周期実行関数1 (スレッド1) 制御周期
-				    1000000,	// [ns] 制御用周期実行関数2 (スレッド2) 制御周期
-				    1000000,	// [ns] 制御用周期実行関数3 (スレッド3) 制御周期
+				   10000000,	// [ns] 制御用周期実行関数1 (スレッド1) 制御周期
+				   10000000,	// [ns] 制御用周期実行関数2 (スレッド2) 制御周期
+				   10000000,	// [ns] 制御用周期実行関数3 (スレッド3) 制御周期
 			};
 			
 			//! @brief 使用CPUコアの設定

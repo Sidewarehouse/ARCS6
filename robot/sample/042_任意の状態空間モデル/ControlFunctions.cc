@@ -1,12 +1,10 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2022/02/20
+//! @date 2023/10/26
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2022 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2023 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
 #include <unistd.h>

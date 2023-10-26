@@ -72,7 +72,8 @@
 			"bit": "cpp",
 			"compare": "cpp",
 			"numbers": "cpp",
-			"cfenv": "cpp"
+			"cfenv": "cpp",
+			"cassert": "cpp"
 		}
 	},
 }
