@@ -1,12 +1,10 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2020/04/03
+//! @date 2023/10/26
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2023 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
 #include <unistd.h>
@@ -45,19 +43,19 @@ namespace {
 bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 	// 制御用定数設定
 	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[0]*1e-9;	// [s]		制御周期
-	constexpr double Kt = 0.49;		// [Nm/A]	トルク定数
-	constexpr double Jm = 1.10e-4;	// [kgm^2] モータ側慣性
-	constexpr double Dm = 3.76e-4;	// [Nm s/rad]モータ側粘性
-	constexpr double Jl = 0.133;	// [kgm^2]	負荷側慣性
-	constexpr double Dl = 0.1;		// [Nm s/rad]負荷側粘性
-	constexpr double Ks = 1.08e4;  	// [Nm/rad]	2慣性間の剛性
-	constexpr double Rg = 50;		// [-]		減速比
-	constexpr TwoInertiaParamDef PlantParams = {Kt, Jm, Dm, Jl, Dl, Ks, Rg};	// 2慣性系パラメータ構造体
+	constexpr double Jl = 0.1;		// [kgm^2]		負荷側慣性
+	constexpr double Dl = 1e-12;	// [Nm/(rad/s)]	負荷側粘性
+	constexpr double Ds = 1; 	 	// [Nm/(rad/s)]	ねじれ粘性
+	constexpr double Ks = 10000;  	// [Nm/rad]		ねじれ剛性
+	constexpr double Jm = 1e-5;		// [kgm^2]		モータ側慣性
+	constexpr double Dm = 1e-4;		// [Nm/(rad/s)]	モータ側粘性
+	constexpr double Rg = 100;		// [-]			減速比
+	constexpr double Kt = 0.1;		// [Nm/A]		トルク定数
+	constexpr TwoInertiaParams PlantParams = {Jl, Dl, Ds, Ks, Jm, Dm, Rg, Kt};	// 2慣性系パラメータ構造体
 	
 	// 制御用変数宣言
-	static double iq, wl, ths, wm;	// 電流，負荷側速度，ねじれ角，モータ側速度
-	static TwoInertiaSimulator Plant(PlantParams, Ts);		// 2慣性共振系シミュレータ
-	static TwoInertiaStateObsrv SOB(PlantParams, 300, Ts);	// 状態オブザーバ
+	static double iq, tdis, wl, ths, wm, taus;			// 電流，外乱, 負荷側速度，ねじれ角，モータ側速度，ねじれトルク
+	static TwoInertiaSimulator Plant(PlantParams, Ts);	// 2慣性共振系シミュレータ
 	
 	if(CmdFlag == CTRL_INIT){
 		// 初期化モード (ここは制御開始時/再開時に1度だけ呼び出される(非リアルタイム空間なので重い処理もOK))
@@ -72,17 +70,24 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 		Interface.GetPosition(PositionRes);	// [rad] 位置応答の取得
 		Screen.GetOnlineSetVar();			// オンライン設定変数の読み込み
 		
-		iq = SquareWave(1, 0, t);							// [A] q軸電流の方形波
-		std::tie(wl, ths, wm) = Plant.GetResponses(iq, 0);	// [rad/s,rad] 2慣性系シミュレータ
+		PositionRes[0] = Plant.GetMotorPosition();		// [rad] 2慣性系シミュレータからモータ位置を取得
+		std::tie(wl, ths, wm) = Plant.GetResponses();	// [rad/s,rad,rad/s] 2慣性系シミュレータから負荷側速度、ねじれ角、モータ側速度を取得
+		taus = Plant.GetTorsionTorque();				// [Nm]  2慣性系シミュレータからねじれトルクを取得
 		
-		Interface.SetTorque(CurrentRef);	// [Nm] トルク指令の出力
-		Screen.SetVarIndicator(wl, ths, wm, 0, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
+		iq   = 0.5*SquareWave(0.1, 0, t, 0.5);			// [A]  q軸電流の方形波生成
+		tdis =   2*SquareWave(0.2, 0, t, 2.0);			// [Nm] 負荷側外乱トルクの方形波生成
+		
+		Plant.SetCurrentAndLoadTorque(iq, tdis);		// [A,Nm] 2慣性系シミュレータへの入力と状態更新
+		CurrentRef[0] = iq;
+		
+		Interface.SetTorque(CurrentRef);	// [A] 電流指令の出力
+		Screen.SetVarIndicator(wl, ths, wm, taus, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
 		Graph.SetTime(Tact, t);				// [s] グラフ描画用の周期と時刻のセット
 		Graph.SetVars(0, iq, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット0 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(1, wl, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(2, ths, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(3, wm, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット3 (グラフ番号, 変数0, ..., 変数7)
-		Memory.SetData(Tact, t, iq, wl, ths, wm, 0, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
+		Memory.SetData(Tact, t, iq, tdis, wl, ths, wm, taus, 0, 0, 0);	// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		// リアルタイム制御ここまで
 	}
 	if(CmdFlag == CTRL_EXIT){
