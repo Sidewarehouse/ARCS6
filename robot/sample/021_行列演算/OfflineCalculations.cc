@@ -15,7 +15,7 @@
 // For details, see the License.txt file.
 
 // 基本のインクルードファイル
-#include <stdio.h>
+#include <cstdio>
 #include <cstdlib>
 #include <cassert>
 #include <array>
@@ -38,20 +38,25 @@ int main(void){
 	
 	// 行列宣言と値のセット
 	printf("★★★★★★★ 行列宣言と値のセット\n");
-	ArcsMat<3,3> A = {		// 宣言と同時に値をセットする場合
+	ArcsMat<3,3> A = {			// 宣言と同時に値をセットする場合
 		1,  1,  1,
 		2,  3, -2,
 		3, -1,  1
 	};
-	ArcsMat<3,3> B;			// 宣言したあとに、
-	B.Set(					// 値をセットする場合
+	ArcsMat<3,3> B;				// 宣言したあとに、
+	B.Set(						// 値をセットする場合
 		5,  1, -3,
 		3, -1,  7,
 		4,  2, -5
 	);
-	auto C = A;				// 宣言と同時に既にある行列を代入する場合
-	ArcsMat<2,3> Pi(M_PI);	// 宣言と同時に設定値で全て埋める場合
-	
+	auto C = A;					// 宣言と同時に既にある行列を代入する場合
+	ArcsMat<2,3> Pi(M_PI);		// 宣言と同時に設定値で全て埋める場合
+	ArcsMat<2,2,int> Aint = {	// int型の行列を定義する場合
+		 1, 3,
+		-5, 7
+	};
+	//ArcsMat<2,2,std::string> Astr;	// 数値型以外だとエラー！ (アンコメントするとAssertion Failed)
+
 	// 行列の表示
 	printf("\n★★★★★★★ 行列の表示\n");
 	dispsize(A);				// 行列Aのサイズを表示
@@ -59,8 +64,9 @@ int main(void){
 	dispmat(B);					// 行列Bを表示
 	dispmatfmt(C, "% 6.4f");	// 表示の書式指定をして表示する場合
 	dispmatfmt(Pi, "% 16.15f");	// 行列Piを書式指定して表示
+	dispmat(Aint);				// 整数行列Aintを表示
 	A.DispAddress();			// 行列Aのメモリアドレスを表示
-	
+
 	// 行列のサイズの取得
 	printf("H = %zu, W = %zu\n", A.GetHeight(), A.GetWidth());
 	
@@ -210,6 +216,9 @@ int main(void){
 	C *= 2;					// 行列スカラー乗算代入
 	printf("C *= 2\n");
 	dispmat(C);
+	C /= 2;					// 行列スカラー除算代入
+	printf("C /= 2\n");
+	dispmat(C);
 	C = A^0;				// 正方行列の0のべき乗
 	printf("C = A^0\n");
 	dispmat(C);
@@ -249,6 +258,7 @@ int main(void){
 	//alpha = alpha^2;	// ←正方行列エラー！
 	//C = A & Alpha;	// ←サイズエラー！
 	//C = A % Alpha;	// ←サイズエラー！
+	//C = A/B;			// ←この演算子の使い方は使用禁止！
 	//C = 1/A;			// ←この演算子の使い方は使用禁止！
 	
 	// すべての要素を埋める
@@ -346,19 +356,6 @@ int main(void){
 	constexpr auto rx = ramp<5,1>();	// コンパイル時に単調増加ベクトルを生成
 	dispmat(r);
 	dispmat(rx);
-	
-	// 転置行列
-	printf("\n★★★★★★★ 転置行列\n");
-	ArcsMat<2,3> Dt;
-	dispmat(D);
-	tp(D, Dt);		// Dの転置 (引数渡し版)
-	dispmat(Dt);
-	dispmat(tp(D));	// Dの転置 (戻り値渡し版)
-	dispmat(Ax);
-	constexpr auto Atx = tp(Ax);		// コンパイル時に転置行列を生成
-	dispmat(Atx);
-	//tp(A, Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
-	//A = tp(Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
 	
 	// 列操作関連の関数
 	printf("\n★★★★★★★ 列操作関連の関数\n");
@@ -553,6 +550,7 @@ int main(void){
 	shiftup(G, G, 3);		// 行列Gを3行分上にシフト (引数渡し版)
 	dispmat(G);
 	dispmat(shiftup(F));	// 行列Fを1行分上にシフトして出力 (戻り値渡し版)
+	dispmat(shiftup(F, 0));	// 行列Fを0行分上にシフトして出力 (戻り値渡し版)
 	dispmat(shiftup(F, 4));	// 行列Fを4行分上にシフトして出力 (戻り値渡し版)
 	constexpr auto Gx1 = shiftup(Fx, 4);				// コンパイル時に上にシフト
 	dispmat(Gx1);
@@ -774,8 +772,34 @@ int main(void){
 	conj(Acmpx2, Y11);						// 複素数行列要素の複素共役 (引数渡し版)
 	dispmat(conj(Acmpx2));					// 複素数行列要素の複素共役 (戻り値渡し版)
 	ArcsMat<3,2,std::complex<double>> Y12;
-	Htp(Acmpx2, Y12);						// エルミート転置 (引数渡し版)
-	dispmat(Htp(Acmpx2));					// エルミート転置 (戻り値渡し版)
+	Y9.FillAll(39);							// 複素数行列の実数部に値を埋める
+	dispmat(Y9);
+	using namespace std::literals::complex_literals;	// 虚数単位リテラル「i」の使用
+	Y9.FillAll( 3.9 + 2.4i );				// 複素数行列に値を埋める
+	dispmat(Y9);
+	ArcsMat<2,3,std::complex<double>> Acmp1 = Pi;		//「実数行列 → 複素数行列」のコピーコンストラクタ
+	dispmat(Acmp1);
+	
+	// 転置行列関連
+	printf("\n★★★★★★★ 転置行列関連\n");
+	ArcsMat<2,3> Dt;
+	dispmat(D);
+	tp(D, Dt);							// Dの転置 (引数渡し版)
+	dispmat(tp(D));						// Dの転置 (戻り値渡し版)
+	constexpr auto Atx = tp(Ax);		// コンパイル時に転置行列を生成
+	dispmat(Ax);
+	dispmat(Atx);
+	//tp(A, Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
+	//A = tp(Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
+	Htp(Acmpx2, Y12);					// エルミート転置 (引数渡し版)
+	dispmat(Htp(Acmpx2));				// エルミート転置 (戻り値渡し版)
+	dispmat(~D);						// 実数行列の転置 (演算子版)
+	dispmat(~Acmpx2);					// 複素数行列のエルミート転置 (演算子版)
+	constexpr auto jxjtx = jx1*~jx1;	// コンパイル時に転置して乗算 (演算子版)
+	constexpr auto jxtjx = (~jx1)*jx1;	// コンパイル時に転置して乗算 (演算子版)
+	dispmat(jx1);
+	dispmatfmt(jxjtx, "% 3.0f");
+	dispmatfmt(jxtjx, "% 3.0f");
 
 	// ノルム関連の関数(行列版)
 	printf("\n★★★★★★★ ノルム関連の関数(行列版)\n");
@@ -811,7 +835,6 @@ int main(void){
 	printf("norm<man>(k1cmpx) = %f\n", norm<NormType::AMT_MANHATTAN>(k1cmpx));	// 複素数絶対値ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<inf>(k1cmpx) = %f\n", norm<NormType::AMT_INFINITY>(k1cmpx));	// 複素数無限大ノルムを計算する (戻り値渡し版のみ)
 
-/*
 	// 三角行列操作関連の関数
 	printf("\n★★★★★★★ 三角行列操作関連の関数\n");
 	ArcsMat<7,6> Fx7;
@@ -840,7 +863,7 @@ int main(void){
 	dispmatfmt(L, "%6.2f");
 	dispmatfmt(U, "%6.2f");
 	dispmatfmt(P, "%3.0f");
-	dispmatfmt(tp(P)*L*U, "%3.0f");	// もとに戻るかチェック
+	dispmatfmt(~P*L*U, "%3.0f");	// もとに戻るかチェック
 	std::tie(L, U, P) = LUP(A);		// LU分解の結果と置換行列を計算 (タプル返し版)
 	dispmatfmt(L, "%6.2f");
 	dispmatfmt(U, "%6.2f");
@@ -860,7 +883,54 @@ int main(void){
 	dispmatfmt(Lx, "%6.2f");
 	dispmatfmt(Ux, "%6.2f");
 	dispmatfmt(Lx*Ux, "%3.0f");		// もとに戻るかチェック
-*/
+	ArcsMat<3,3,std::complex<double>> Acomp1 = {
+		4.0 + 6.0i,  1.0 - 3.0i,  5.0 + 2.0i,
+		8.0 - 5.0i, -7.0 - 6.0i,  7.0 - 1.0i,
+		9.0 + 9.0i, -7.0 - 5.0i, -5.0 - 3.0i
+	};
+	dispmatfmt(Acomp1, "%5.2f");
+
+	// QR分解関連の関数
+	printf("\n★★★★★★★ QR分解関連の関数\n");
+	ArcsMat<3,3> Aqr1 = {
+		2, -2, 18,
+		2,  1,  0,
+		1,  2,  0
+	};
+	ArcsMat<3,3> Qqr1, Rqr1;
+	QR(Aqr1, Qqr1, Rqr1);				// QR分解を計算 (引数渡し版)
+	dispmatfmt(Aqr1, "% 3.0f");
+	dispmatfmt(Qqr1, "% 6.2f");
+	dispmatfmt(Rqr1, "% 6.2f");
+	dispmatfmt(Qqr1*~Qqr1, "% 6.2f");	// Qが直交行列かチェック
+	dispmatfmt(Qqr1*Rqr1, "% 6.2f");	// 元に戻るかチェック
+	constexpr ArcsMat<3,4> Aqr2 = {
+		12, -51,   4, 39,
+		 6, 167, -68, 22,
+		-4,  24, -41, 11
+	};
+	auto [Qqr2, Rqr2] = QR(Aqr2);		// QR分解を計算 (タプル返し版)
+	dispmatfmt(Aqr2, "% 5.0f");
+	dispmatfmt(Qqr2, "% 7.2f");
+	dispmatfmt(Rqr2, "% 7.2f");
+	dispmatfmt(Qqr2*~Qqr2, "% 7.2f");	// Qが直交行列かチェック
+	dispmatfmt(Qqr2*Rqr2, "% 7.2f");	// 元に戻るかチェック
+	constexpr auto QRx2 = QR(~Aqr2);					// コンパイル時にQR分解を計算
+	constexpr auto Qx2 = std::get<0>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
+	constexpr auto Rx2 = std::get<1>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
+	dispmatfmt(~Aqr2, "% 5.0f");
+	dispmatfmt(Qx2, "% 7.3f");
+	dispmatfmt(Rx2, "% 8.3f");
+	dispmatfmt(Qx2*~Qx2, "% 7.3f");		// Qが直交行列かチェック
+	dispmatfmt(Qx2*Rx2, "% 8.3f");		// 元に戻るかチェック
+	auto [Qqr3, Rqr3] = QR(Acomp1);		// 複素数QR分解を計算 (タプル返し版)
+	dispmatfmt(Acomp1, "% 2.0f");
+	dispmatfmt(Qqr3, "% 7.3f");
+	dispmatfmt(Rqr3, "% 7.3f");
+	dispmatfmt(Qqr3*~Qqr3, "% 3.1f");	// Qが直交行列かチェック
+	dispmatfmt(Qqr3*Rqr3, "% 3.1f");	// 元に戻るかチェック
+	
+
 	/*
 	// 行列演算補助関連の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");
@@ -893,20 +963,6 @@ int main(void){
 	PrintMat(Lch);
 	PrintMat(Lch*tp(Lch));
 	
-	// QR分解のテスト1
-	printf("\n★★★★★★★ QR分解(実数版)のテスト1\n");
-	Matrix<3,3> Aqr = {
-		2, -2, 18,
-		2,  1,  0,
-		1,  2,  0
-	};
-	Matrix<3,3> Qqr, Rqr;
-	QR(Aqr, Qqr, Rqr);
-	PrintMat(Aqr);
-	PrintMatrix(Qqr, "% 8.3f");
-	PrintMatrix(Rqr, "% 8.3f");
-	PrintMatrix(Qqr*tp(Qqr), "% 7.3f");	// Qが直交行列かチェック
-	PrintMat(Qqr*Rqr);					// 元に戻るかチェック
 	
 	// QR分解のテスト2
 	printf("\n★★★★★★★ QR分解(実数版)のテスト2\n");

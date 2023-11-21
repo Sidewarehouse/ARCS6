@@ -36,25 +36,49 @@
 #endif
 
 // 表示用マクロ
-#define dispsize(a)  (dispsize_macro((a),#a))		//!< 行列サイズ表示マクロ
-#define dispmatfmt(a,b) (dispmatfmt_macro((a),b,#a))//!< 行列要素表示マクロ(フォーマット指定あり版)
-#define dispmat(a) (dispmat_macro((a),#a))			//!< 行列要素表示マクロ(フォーマット指定なし版)
+#define dispsize(a)  (ArcsMatrix::dispsize_macro((a),#a))		//!< 行列サイズ表示マクロ
+#define dispmatfmt(a,b) (ArcsMatrix::dispmatfmt_macro((a),b,#a))//!< 行列要素表示マクロ(フォーマット指定あり版)
+#define dispmat(a) (ArcsMatrix::dispmat_macro((a),#a))			//!< 行列要素表示マクロ(フォーマット指定なし版)
 
-namespace ARCS {	// ARCS名前空間
+// ARCS名前空間
+namespace ARCS {
 
-//! @brief ノルム計算方法の定義
-enum class NormType {
-	AMT_EUCLID,		//!< ユークリッドノルム(2-ノルム)
-	AMT_MANHATTAN,	//!< 絶対値ノルム(1-ノルム)
-	AMT_INFINITY	//!< 無限大ノルム(最大値ノルム)
-};
+// ArcsMatrix設定定義
+namespace ArcsMatrix {
+	//! @brief ノルム計算方法の定義
+	enum class NormType {
+		AMT_EUCLID,		//!< ユークリッドノルム(2-ノルム)
+		AMT_MANHATTAN,	//!< 絶対値ノルム(1-ノルム)
+		AMT_INFINITY	//!< 無限大ノルム(最大値ノルム)
+	};
 
-//! @brief 行列の状態の定義
-enum class MatStatus {
-	AMT_NA,		//!< 状態定義該当なし
-	AMT_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
-	AMT_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
-};
+	//! @brief 行列の状態の定義
+	enum class MatStatus {
+		AMT_NA,		//!< 状態定義該当なし
+		AMT_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
+		AMT_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
+	};
+}
+
+// ArcsMatrixメタ関数定義
+namespace ArcsMatrix {
+	// 整数・実数型チェック用メタ関数
+	template<typename TT> struct IsIntFloatV {
+		static constexpr bool value = std::is_integral<TT>::value | std::is_floating_point<TT>::value;
+	};
+	template<typename TT> inline constexpr bool IsIntFloat = IsIntFloatV<TT>::value;
+
+	// 複素数型チェック用メタ関数
+	template<typename TT> struct IsComplexV : std::false_type {};
+	template<> struct IsComplexV<std::complex<double>> : std::true_type {};
+	template<> struct IsComplexV<std::complex<float>> : std::true_type {};
+	template<> struct IsComplexV<std::complex<long>> : std::true_type {};
+	template<> struct IsComplexV<std::complex<int>> : std::true_type {};
+	template<typename TT> inline constexpr bool IsComplex = IsComplexV<TT>::value;
+	
+	// 対応可能型チェック用メタ関数
+	template<typename TT> inline constexpr bool IsApplicable = IsIntFloatV<TT>::value | IsComplexV<TT>::value;
+}
 
 //! @brief ARCS-Matrix 行列演算クラス
 //! @tparam M	行列の高さ
@@ -67,8 +91,10 @@ class ArcsMat {
 		constexpr ArcsMat(void)
 			: Nindex(0), Mindex(0), Data({0})
 		{
-			static_assert(N != 0);	// サイズゼロの行列は禁止
-			static_assert(M != 0);	// サイズゼロの行列は禁止
+			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
+			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+
 			FillAll(0);				// すべての要素を零で初期化
 		}
 		
@@ -79,9 +105,12 @@ class ArcsMat {
 		constexpr explicit ArcsMat(const R InitValue)
 			: Nindex(0), Mindex(0), Data({0})
 		{
-			static_assert(N != 0);	// サイズゼロの行列は禁止
-			static_assert(M != 0);	// サイズゼロの行列は禁止
-			FillAll(static_cast<T>(InitValue));		// すべての要素を指定した値で初期化
+			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
+			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			FillAll(static_cast<T>(InitValue));			// すべての要素を指定した値で初期化
 		}
 		
 		//! @brief コンストラクタ(初期化リスト版)
@@ -91,8 +120,11 @@ class ArcsMat {
 		constexpr ArcsMat(const std::initializer_list<R> InitList)
 			: Nindex(0), Mindex(0), Data({0})
 		{
-			static_assert(N != 0);	// サイズゼロの行列は禁止
-			static_assert(M != 0);	// サイズゼロの行列は禁止
+			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
+			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+
 			const R* ListVal = InitList.begin();		// 初期化リストの最初のポインタ位置
 			size_t Ni = 0;				// 横方向カウンタ
 			size_t Mi = 0;				// 縦方向カウンタ
@@ -114,6 +146,7 @@ class ArcsMat {
 		constexpr ArcsMat(const ArcsMat<M,N,T>& right)
 			: Nindex(0), Mindex(0), Data(right.GetData())
 		{
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			// メンバを取り込む以外の処理は無し
 		}
 		
@@ -126,24 +159,27 @@ class ArcsMat {
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 
 			// 型の種類によってキャスト処理を変更
-			if constexpr(std::is_convertible_v<T, R>){
-				// キャスト可能の場合は普通にキャスト
+			if constexpr(ArcsMatrix::IsIntFloat<R> && ArcsMatrix::IsIntFloat<T>){
+				// 「整数・浮動小数点型 → 整数・浮動小数点型」のキャスト処理
 				Data = static_cast<T>(right.GetData());
-			}else if constexpr(std::is_convertible_v<T, std::complex<double>> || std::is_convertible_v<T, std::complex<float>>){
-				// 「浮動小数点型 → 複素数型」のキャスト処理
+			}else if constexpr(ArcsMatrix::IsIntFloat<R> && ArcsMatrix::IsComplex<T>){
+				// 「整数・浮動小数点型 → 複素数型」のキャスト処理
 				const std::array<std::array<R, M>, N>& RightData = right.ReadOnlyRef();
 				for(size_t i = 0; i < N; ++i){
 					for(size_t j = 0; j < M; ++j) Data[i][j].real(RightData[i][j]);
 				}
+			}else if constexpr(ArcsMatrix::IsComplex<R> && ArcsMatrix::IsComplex<T>){
+				// 「複素数型 → 複素数型」のキャスト処理
+				Data = static_cast<T>(right.GetData());
 			}else{
 				// キャスト不能の場合の処理
 				arcs_assert(false);	// 変換不能、もしここに来たら問答無用でAssertion Failed
 			}
 		}
 		
-	
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	right	右辺値
 		constexpr ArcsMat(ArcsMat<M,N,T>&& right)
@@ -161,7 +197,7 @@ class ArcsMat {
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
 		}
 		
@@ -229,8 +265,9 @@ class ArcsMat {
 		//! @param[in] right 演算子の右側
 		//! @return 結果
 		constexpr ArcsMat<M,N,T>& operator=(const ArcsMat<M,N,T>& right){
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) this->Data[i][j] = right.Data[i][j];
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) (*this)(j,i) = right(j,i);
+				// 上記は次とほぼ同等→ this->Data[i][j] = right.Data[i][j];
 			}
 			return (*this);
 		}
@@ -243,7 +280,7 @@ class ArcsMat {
 		constexpr ArcsMat<M,N,T>& operator=(const ArcsMat<P,Q,R>& right){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
 			return (*this);
 		}
@@ -252,8 +289,9 @@ class ArcsMat {
 		//! @return 結果
 		constexpr ArcsMat<M,N,T> operator+(void) const{
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j];
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i);
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j];
 			}
 			return ret;
 		}
@@ -262,8 +300,9 @@ class ArcsMat {
 		//! @return 結果
 		constexpr ArcsMat<M,N,T> operator-(void) const{
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = -Data[i][j];
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = -(*this)(j,i);
+				// 上記は次とほぼ同等→ ret.Data[i][j] = -Data[i][j];
 			}
 			return ret;
 		}
@@ -276,9 +315,11 @@ class ArcsMat {
 		constexpr ArcsMat<M,N,T> operator+(const ArcsMat<P,Q,R>& right) const{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j] + static_cast<T>(right.Data[i][j]);
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i) + static_cast<T>( right(j,i) );
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j] + static_cast<T>(right.Data[i][j]);
 			}
 			return ret;
 		}
@@ -289,15 +330,16 @@ class ArcsMat {
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T> operator+(const R& right) const{
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j] + right;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i) + static_cast<T>(right);
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j] + right;
 			}
 			return ret;
 		}
 		
-		//! @brief 行列減算演算子(行列＝行列ー行列の場合)
+		//! @brief 行列減算演算子(行列＝行列－行列の場合)
 		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
 		//! @param[in] right 演算子の右側
 		//! @return 結果
@@ -305,10 +347,11 @@ class ArcsMat {
 		constexpr ArcsMat<M,N,T> operator-(const ArcsMat<P,Q,R>& right) const{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j] - right.Data[i][j];
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i) - static_cast<T>( right(j,i) );
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j] - right.Data[i][j];
 			}
 			return ret;
 		}
@@ -319,10 +362,11 @@ class ArcsMat {
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T> operator-(const R& right) const{
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j] - right;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i) - static_cast<T>(right);
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j] - right;
 			}
 			return ret;
 		}
@@ -334,11 +378,12 @@ class ArcsMat {
 		template<size_t P, size_t Q, typename R = double>
 		constexpr ArcsMat<M,Q,T> operator*(const ArcsMat<P,Q,R>& right) const{
 			static_assert(N == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,Q,T> ret;
-			for(size_t k = 0; k < Q; ++k){
-				for(size_t i = 0; i < N; ++i){
-					for(size_t j = 0; j < M; ++j) ret.Data[k][j] += Data[i][j]*right.Data[k][i];
+			for(size_t k = 1; k <= Q; ++k){
+				for(size_t i = 1; i <= N; ++i){
+					for(size_t j = 1; j <= M; ++j) ret(j,k) += (*this)(j,i)*static_cast<T>( right(i,k) );
+					// 上記は次とほぼ同等→ ret.Data[k][j] += Data[i][j]*right.Data[k][i];
 				}
 			}
 			return ret;
@@ -350,106 +395,76 @@ class ArcsMat {
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T> operator*(const R& right) const{
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j]*right;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i)*static_cast<T>(right);
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j]*right;
 			}
 			return ret;
 		}
 		
-		//! @brief 行列スカラー除算演算子(行列＝行列／スカラーの場合)
+		//! @brief 行列除算演算子(行列＝行列／行列の場合)
+		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
+		//! @param[in] right 演算子の右側
+		//! @return 結果
+		template<size_t P, size_t Q, typename R = double>
+		constexpr void operator/(const ArcsMat<P,Q,R>& right) const{
+			arcs_assert(false);		// この演算子は使用禁止
+		}
+
+		//! @brief 行列除算演算子(行列＝行列／スカラーの場合)
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in] right 演算子の右側
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T> operator/(const R& right) const{
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j]/right;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i)/static_cast<T>(right);
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j]/right;
 			}
 			return ret;
 		}
-		
-		//! @brief 行列加算代入演算子(行列＝行列＋行列の場合)
-		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
-		//! @param[in] right 演算子の右側
-		//! @return 結果
-		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat<M,N,T>& operator+=(const ArcsMat<P,Q,R>& right){
-			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) this->Data[i][j] += right.Data[i][j];
-			}
-			return (*this);
-		}
-		
-		//! @brief 行列加算代入演算子(行列＝行列＋スカラーの場合)
+
+		//! @brief 行列加算代入演算子(行列＝行列＋行列、行列＝行列＋スカラーの場合)
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in] right 演算子の右側
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T>& operator+=(const R& right){
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) this->Data[i][j] += right;
-			}
+			(*this) = (*this) + right;	// 既に定義済みの加算演算子を利用
 			return (*this);
 		}
 		
-		//! @brief 行列減算代入演算子(行列＝行列－行列の場合)
-		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
-		//! @param[in] right 演算子の右側
-		//! @return 結果
-		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat<M,N,T>& operator-=(const ArcsMat<P,Q,R>& right){
-			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t j = 0; j < M; ++j){
-				for(size_t i = 0; i < N; ++i) this->Data[i][j] -= right.Data[i][j];
-			}
-			return (*this);
-		}
-		
-		//! @brief 行列減算代入演算子(行列＝行列－スカラーの場合)
+		//! @brief 行列減算代入演算子(行列＝行列－行列、行列＝行列－スカラーの場合)
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in] right 演算子の右側
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T>& operator-=(const R& right){
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) this->Data[i][j] -= right;
-			}
+			(*this) = (*this) - right;	// 既に定義済みの減算演算子を利用
 			return (*this);
 		}
 		
-		//! @brief 行列乗算代入演算子(行列＝行列＊行列の場合)
-		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
-		//! @param[in] right 演算子の右側
-		//! @return 結果
-		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat<M,N,T>& operator*=(const ArcsMat<P,Q,R>& right){
-			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
-			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			(*this) = (*this)*right;
-			return (*this);
-		}
-		
-		//! @brief 行列乗算代入演算子(行列＝行列＊スカラーの場合)
+		//! @brief 行列乗算代入演算子(行列＝行列＊行列、行列＝行列＊スカラーの場合)
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in] right 演算子の右側
 		//! @return 結果
 		template<typename R>
 		constexpr ArcsMat<M,N,T>& operator*=(const R& right){
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			(*this) = (*this)*right;
+			(*this) = (*this)*right;	// 既に定義済みの乗算演算子を利用
+			return (*this);
+		}
+		
+		//! @brief 行列除算代入演算子(行列＝行列／スカラーの場合)
+		//! @tparam	R	演算子右側の要素の型
+		//! @param[in] right 演算子の右側
+		//! @return 結果
+		template<typename R>
+		constexpr ArcsMat<M,N,T>& operator/=(const R& right){
+			(*this) = (*this)/right;	// 既に定義済みの除算演算子を利用
 			return (*this);
 		}
 		
@@ -457,8 +472,8 @@ class ArcsMat {
 		//! @param[in] right 演算子の右側
 		//! @return 結果
 		constexpr ArcsMat<M,N,T> operator^(const size_t& right) const{
-			static_assert(M == N, "ArcsMat: Size Error");					// 正方行列チェック
-			ArcsMat<M,N,T> ret = ArcsMat<M,N,T>::eye();
+			static_assert(M == N, "ArcsMat: Size Error");		// 正方行列チェック
+			ArcsMat<M,N,T> ret = ArcsMat<M,N,T>::eye();			// ゼロ乗は単位行列
 			for(size_t k = 1; k <= right; ++k) ret *= (*this);
 			return ret;
 		}
@@ -471,10 +486,11 @@ class ArcsMat {
 		constexpr ArcsMat<M,N,T> operator&(const ArcsMat<P,Q,R>& right) const{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j]*right.Data[i][j];
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i)*static_cast<T>( right(j,i) );
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j]*right.Data[i][j];
 			}
 			return ret;
 		}
@@ -487,10 +503,11 @@ class ArcsMat {
 		constexpr ArcsMat<M,N,T> operator%(const ArcsMat<P,Q,R>& right) const{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = Data[i][j]/right.Data[i][j];
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) ret(j,i) = (*this)(j,i)/static_cast<T>( right(j,i) );
+				// 上記は次とほぼ同等→ ret.Data[i][j] = Data[i][j]/right.Data[i][j];
 			}
 			return ret;
 		}
@@ -499,42 +516,28 @@ class ArcsMat {
 		//! @param[in] left		左側のスカラー値
 		//! @param[in] right	右側の行列
 		constexpr friend ArcsMat<M,N,T> operator+(const T& left, const ArcsMat<M,N,T>& right){
-			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = left + right.Data[i][j];
-			}
-			return ret;
+			return right + left;	// 既に定義済みの加算演算子を利用
 		}
 		
 		//! @brief 行列減算演算子 (スカラー－行列の場合)
 		//! @param[in] left		左側のスカラー値
 		//! @param[in] right	右側の行列
 		constexpr friend ArcsMat<M,N,T> operator-(const T& left, const ArcsMat<M,N,T>& right){
-			ArcsMat<M,N,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = left - right.Data[i][j];
-			}
-			return ret;
+			return -right + left;	// 既に定義済みの単項マイナスと加算演算子を利用
 		}
 		
 		//! @brief 行列乗算演算子 (スカラー＊行列の場合)
 		//! @param[in] left		左側のスカラー値
 		//! @param[in] right	右側の行列
 		constexpr friend ArcsMat<M,N,T> operator*(const T& left, const ArcsMat<M,N,T>& right){
-			ArcsMat<N,M,T> ret;
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) ret.Data[i][j] = right.Data[i][j]*left;
-			}
-			return ret;
+			return right*left;		// 既に定義済みの乗算演算子を利用
 		}
 		
-		//! @brief 行列乗算演算子 (スカラー／行列の場合)
+		//! @brief 行列除算演算子 (スカラー／行列の場合)
 		//! @param[in] left		左側のスカラー値
 		//! @param[in] right	右側の行列
-		constexpr friend ArcsMat<M,N,T> operator/(const T& left, const ArcsMat<M,N,T>& right){
-			arcs_assert(false);		// この演算子の使い方は使用禁止
-			ArcsMat<N,M,T> ret;
-			return ret;
+		constexpr friend void operator/(const T& left, const ArcsMat<M,N,T>& right){
+			arcs_assert(false);		// この演算子は使用禁止
 		}
 		
 		//! @brief 行列要素の各メモリアドレスを表示する関数
@@ -558,7 +561,7 @@ class ArcsMat {
 				printf("[ ");
 				for(size_t i = 0; i < N; ++i){
 					// データ型によって表示方法を変える
-					if constexpr(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>){
+					if constexpr(ArcsMatrix::IsComplex<T>){
 						// 複素数型の場合
 						// 実数部の表示
 						printf(format.c_str(), Data[i][j].real());
@@ -599,10 +602,10 @@ class ArcsMat {
 		//! @param[in]	u2	要素2以降の値
 		template<typename T1, typename... T2>				// 可変長引数テンプレート
 		constexpr void Set(const T1& u1, const T2&... u2){	// 再帰で順番に可変長引数を読み込んでいく
-			static_assert(std::is_convertible_v<T, T1>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<T1>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(Mindex < M);		// 縦方向カウンタが高さ以内かチェック
 			arcs_assert(Nindex < N);		// 横方向カウンタが幅以内かチェック
-			Data[Nindex][Mindex] = (T)u1;	// キャストしてから行列の要素を埋める
+			Data[Nindex][Mindex] = static_cast<T>(u1);	// キャストしてから行列の要素を埋める
 			Nindex++;			// 横方向カウンタをインクリメント
 			if(Nindex == N){	// 横方向カウンタが最後まで行き着いたら，
 				Nindex = 0;		// 横方向カウンタを零に戻して，
@@ -622,10 +625,10 @@ class ArcsMat {
 		//! @param[in]	u2	要素2以降の値
 		template<typename T1, typename... T2>	// 可変長引数テンプレート
 		constexpr void Get(T1& u1, T2&... u2){	// 再帰で順番に可変長引数を読み込んでいく
-			static_assert(std::is_convertible_v<T, T1>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<T1>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(Mindex < M);		// 縦方向カウンタが高さ以内かチェック
 			arcs_assert(Nindex < N);		// 横方向カウンタが幅以内かチェック
-			u1 = (T1)Data[Nindex][Mindex];	// 行列の要素からキャストして読み込み
+			u1 = static_cast<T1>(Data[Nindex][Mindex]);	// 行列の要素からキャストして読み込み
 			Nindex++;			// 横方向カウンタをインクリメント
 			if(Nindex == N){	// 横方向カウンタが最後まで行き着いたら，
 				Nindex = 0;		// 横方向カウンタを零に戻して，
@@ -644,8 +647,25 @@ class ArcsMat {
 		//! @param[in] u 埋める値
 		template<typename R>
 		constexpr void FillAll(const R& u){
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) Data[i][j] = static_cast<T>(u);
+				for(size_t j = 0; j < M; ++j){
+					// 型の種類によって値埋め処理を変更
+					if constexpr(ArcsMatrix::IsIntFloat<R> && ArcsMatrix::IsIntFloat<T>){
+						// 「整数・浮動小数点型 → 整数・浮動小数点型」の値埋め処理
+						Data[i][j] = static_cast<T>(u);
+					}else if constexpr(ArcsMatrix::IsIntFloat<R> && ArcsMatrix::IsComplex<T>){
+						// 「整数・浮動小数点型 → 複素数型」の値埋め処理
+						Data[i][j].real(u);
+						Data[i][j].imag(0);
+					}else if constexpr(ArcsMatrix::IsComplex<R> && ArcsMatrix::IsComplex<T>){
+						// 「複素数型 → 複素数型」の値埋め処理
+						Data[i][j] = static_cast<T>(u);
+					}else{
+						// 値埋め不能の場合の処理
+						arcs_assert(false);	// 変換不能、もしここに来たら問答無用でAssertion Failed
+					}
+				}
 			}
 		}
 		
@@ -661,7 +681,7 @@ class ArcsMat {
 		constexpr void LoadArray(const std::array<R, P>& Array){
 			static_assert(N == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			for(size_t j = 0; j < M; ++j) Data[0][j] = Array[j];
 		}
 		
@@ -672,7 +692,7 @@ class ArcsMat {
 		constexpr void StoreArray(std::array<R, P>& Array) const{
 			static_assert(N == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			for(size_t j = 0; j < M; ++j) Array[j] = Data[0][j];
 		}
 		
@@ -683,7 +703,7 @@ class ArcsMat {
 		constexpr void LoadArray(const std::array<std::array<R, P>, Q>& Array){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			Data = Array;
 		}
 		
@@ -694,7 +714,7 @@ class ArcsMat {
 		constexpr void StoreArray(std::array<std::array<R, P>, Q>& Array) const{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			Array = Data;
 		}
 		
@@ -719,7 +739,7 @@ class ArcsMat {
 		constexpr void GetVerticalVec(ArcsMat<P,Q,R>& v, const size_t m, const size_t n) const{
 			static_assert(Q == 1, "ArcsMat: Vector Error");			// 縦ベクトルチェック
 			static_assert(P <= M, "ArcsMat: Vector Size Error");	// ベクトルサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(0 < m && P + m - 1 <= M);	// はみ出しチェック
 			arcs_assert(0 < n && n <= N);			// サイズチェック
 			for(size_t j = 1; j <= P; ++j) v(j,1) = (*this)(m + j - 1, n);
@@ -746,7 +766,7 @@ class ArcsMat {
 		constexpr void GetHorizontalVec(ArcsMat<P,Q,R>& w, const size_t m, const size_t n) const{
 			static_assert(P == 1, "ArcsMat: Vector Error");			// 横ベクトルチェック
 			static_assert(Q <= N, "ArcsMat: Vector Size Error");	// ベクトルサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(0 < m && m <= M);			// サイズチェック
 			arcs_assert(0 < n && Q + n - 1 <= N);	// はみ出しチェック
 			for(size_t i = 1; i <= Q; ++i) w(1,i) = (*this)(m, n + i - 1);
@@ -773,7 +793,7 @@ class ArcsMat {
 		constexpr void SetVerticalVec(const ArcsMat<P,Q,R>& v, const size_t m, const size_t n){
 			static_assert(Q == 1, "ArcsMat: Vector Error");			// 縦ベクトルチェック
 			static_assert(P <= M, "ArcsMat: Vector Size Error");	// ベクトルサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(0 < m && P + m - 1 <= M);	// はみ出しチェック
 			arcs_assert(0 < n && n <= N);			// サイズチェック
 			for(size_t j = 1; j <= P; ++j) (*this)(m + j - 1, n) = v(j,1);
@@ -788,7 +808,7 @@ class ArcsMat {
 		constexpr void SetHorizontalVec(const ArcsMat<P,Q,R>& w, size_t m, size_t n){
 			static_assert(P == 1, "ArcsMat: Vector Error");		// 横ベクトルチェック
 			static_assert(Q <= N, "ArcsMat: Vector Size Error");	// ベクトルサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(0 < m && m <= M);			// サイズチェック
 			arcs_assert(0 < n && Q + n - 1 <= N);	// はみ出しチェック
 			for(size_t i = 1; i <= Q; ++i) (*this)(m, n + i - 1) = w(1,i);
@@ -814,12 +834,12 @@ class ArcsMat {
 		static constexpr ArcsMat<M,N,T> eye(void){
 			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
 			ArcsMat<M,N,T> ret;
-			if constexpr(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>){
+			if constexpr(ArcsMatrix::IsComplex<T>){
 				// 複素数型の場合
 				for(size_t i = 1; i <= N; ++i) ret(i,i) = std::complex(1.0, 0.0);	// 対角成分を 1 + j0 で埋める
 			}else{
 				// それ以外の場合
-				for(size_t i = 1; i <= N; ++i) ret(i,i) = (T)1;	// 対角成分を 1 で埋める
+				for(size_t i = 1; i <= N; ++i) ret(i,i) = static_cast<T>(1);		// 対角成分を 1 で埋める
 			}
 			return ret;
 		}
@@ -830,29 +850,6 @@ class ArcsMat {
 			static_assert(N == 1, "ArcsMat: Vector Error");// 行列のサイズチェック
 			ArcsMat<M,N,T> ret;
 			for(size_t j = 1; j <= M; ++j) ret[j] = j;		// 単調増加を書き込む
-			return ret;
-		}
-		
-		//! @brief 転置行列を返す関数 (引数渡し版)
-		//! @tparam	P, Q, R	出力の高さ, 幅, 要素の型
-		//! @param[in]	U	入力行列
-		//! @param[out]	Y	出力行列
-		template<size_t P, size_t Q, typename R = double>
-		static constexpr void tp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
-			static_assert(M == Q, "ArcsMat: Transpose Size Error");	// 転置サイズチェック
-			static_assert(N == P, "ArcsMat: Transpose Size Error");	// 転置サイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(i,j) = U(j,i);
-			}
-		}
-		
-		//! @brief 転置行列を返す関数 (戻り値渡し版)
-		//! @param[in]	U	入力行列
-		//! @return	Y	出力行列
-		static constexpr ArcsMat<N,M,T> tp(const ArcsMat<M,N,T>& U){
-			ArcsMat<N,M,T> ret;
-			ArcsMat<M,N,T>::tp(U, ret);
 			return ret;
 		}
 		
@@ -931,7 +928,7 @@ class ArcsMat {
 		//! @param[in]	m2	終了行
 		template<typename R = double>
 		static constexpr void fillcolumn(ArcsMat<M,N,T>& UY, const R a, const size_t n, const size_t m1, const size_t m2){
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(0 < n && n <= N);	// 列が幅以内かチェック
 			arcs_assert(0 < m1 && m1 <= M);	// 行が高さ以内かチェック
 			arcs_assert(0 < m2 && m2 <= M);	// 行が高さ以内かチェック
@@ -963,10 +960,10 @@ class ArcsMat {
 		static constexpr ArcsMat<M,N,T> ordercolumn(const ArcsMat<M,N,T>& U, const ArcsMat<P,Q,R>& u){
 			static_assert(P == 1, "ArcsMat: Vector Error");	// 横ベクトルチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<size_t, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(std::is_integral_v<R>, "ArcsMat: Input u should be integer type.");	// 整数型チェック
 			ArcsMat<M,N,T> Y;
 			for(size_t i = 1; i <= N; ++i){
-				setcolumn(Y,  getcolumn(U, (size_t)u(1,i)), i);
+				setcolumn(Y,  getcolumn(U, static_cast<size_t>( u(1,i) )), i);
 			}
 			return Y;
 		}
@@ -979,10 +976,10 @@ class ArcsMat {
 		static constexpr void ordercolumn_and_vec(ArcsMat<M,N,T>& UY, ArcsMat<P,Q,R>& uy){
 			static_assert(P == 1, "ArcsMat: Vector Error");	// 横ベクトルチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<size_t, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(std::is_integral_v<R>, "ArcsMat: Input u should be integer type.");	// 整数型チェック
 			for(size_t i = 1; i <= N; ++i){
 				swapcolumn(UY, i, uy(1,i));
-				ArcsMat<P,Q,R>::swapcolumn(uy, i, uy(1,i));
+				ArcsMat<P,Q,R>::swapcolumn(uy, i, static_cast<size_t>( uy(1,i) ));
 			}
 		}
 		
@@ -990,14 +987,14 @@ class ArcsMat {
 		//! @tparam	P, Q, R	出力ベクトルの高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
 		//! @param[out]	y	出力ベクトル
-		template<size_t P, size_t Q, typename R = size_t>
+		template<size_t P, size_t Q, typename R = double>
 		static constexpr void sumcolumn(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y){
 			static_assert(P == 1, "ArcsMat: Vector Error");	// 横ベクトルチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			y.FillAllZero();
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) y(1,i) += U(j,i);
+				for(size_t j = 1; j <= M; ++j) y(1,i) += static_cast<R>( U(j,i) );
 			}
 		}
 		
@@ -1085,12 +1082,12 @@ class ArcsMat {
 		//! @param[in]	n2	終了列
 		template<typename R = double>
 		static constexpr void fillrow(ArcsMat<M,N,T>& UY, const R a, const size_t m, const size_t n1, const size_t n2){
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(0 < m && m <= M);		// 行が高さ以内かチェック
 			arcs_assert(0 < n1 && n1 <= N);	// 列が幅以内かチェック
 			arcs_assert(0 < n2 && n2 <= N);	// 列が幅以内かチェック
 			arcs_assert(n1 <= n2);				// 開始列と終了列が入れ替わらないかチェック
-			for(size_t i = n1; i <= n2; ++i) UY(m, i) = (T)a;
+			for(size_t i = n1; i <= n2; ++i) UY(m, i) = static_cast<T>(a);
 		}
 		
 		//! @brief m行目のn1列目からn2列目までを数値aで埋める関数 (n1 <= n2 であること) (戻り値渡し版)
@@ -1117,10 +1114,10 @@ class ArcsMat {
 		static constexpr ArcsMat<M,N,T> orderrow(const ArcsMat<M,N,T>& U, const ArcsMat<P,Q,R>& u){
 			static_assert(Q == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(M == P, "ArcsMat: Size Error");		// 行列のサイズチェック
-			static_assert(std::is_convertible_v<size_t, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(std::is_integral_v<R>, "ArcsMat: Input u should be integer type.");	// 整数型チェック
 			ArcsMat<M,N,T> Y;
 			for(size_t j = 1; j <= M; ++j){
-				setrow(Y,  getrow(U, (size_t)u(j,1)), j);
+				setrow(Y,  getrow(U, static_cast<size_t>( u(j,1) )), j);
 			}
 			return Y;
 		}
@@ -1133,10 +1130,10 @@ class ArcsMat {
 		static constexpr void orderrow_and_vec(ArcsMat<M,N,T>& UY, ArcsMat<P,Q,R>& uy){
 			static_assert(Q == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(M == P, "ArcsMat: Size Error");		// 行列のサイズチェック
-			static_assert(std::is_convertible_v<size_t, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(std::is_integral_v<R>, "ArcsMat: Input u should be integer type.");	// 整数型チェック
 			for(size_t j = 1; j <= M; ++j){
 				swaprow(UY, j, uy(j,1));
-				ArcsMat<P,Q,R>::swaprow(uy, j, uy(j,1));
+				ArcsMat<P,Q,R>::swaprow(uy, j, static_cast<size_t>( uy(j,1) ));
 			}
 		}
 		
@@ -1144,14 +1141,14 @@ class ArcsMat {
 		//! @tparam	P, Q, R	出力ベクトルの高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
 		//! @param[out]	y	出力ベクトル
-		template<size_t P, size_t Q, typename R = size_t>
+		template<size_t P, size_t Q, typename R = double>
 		static constexpr void sumrow(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y){
 			static_assert(Q == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			y.FillAllZero();
 			for(size_t j = 1; j <= M; ++j){
-				for(size_t i = 1; i <= N; ++i) y(j,1) += U(j,i);
+				for(size_t i = 1; i <= N; ++i) y(j,1) += static_cast<R>( U(j,i) );
 			}
 		}
 		
@@ -1266,9 +1263,9 @@ class ArcsMat {
 		//! @param[in]	n	抽出する横位置（小行列の左）
 		template<size_t P, size_t Q, typename R = double>
 		static constexpr void getsubmatrix(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t m, const size_t n){
-			static_assert(P <= M);		// 小行列の方が高さが小さいかチェック
-			static_assert(Q <= N);		// 小行列の方が幅が小さいかチェック
-			static_assert(std::is_convertible_v<size_t, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(P <= M, "ArcsMat: Size Error");	// 小行列の方が高さが小さいかチェック
+			static_assert(Q <= N, "ArcsMat: Size Error");	// 小行列の方が幅が小さいかチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(P + m - 1 <= M);	// 下側がハミ出ないかチェック
 			arcs_assert(Q + n - 1 <= N);	// 右側がハミ出ないかチェック
 			for(size_t i = 1; i <= Q; ++i) ArcsMat<P,Q,R>::setcolumn(Y, getvvector<P>(U, m, n + i - 1), i);
@@ -1295,9 +1292,9 @@ class ArcsMat {
 		//! @param[in]	n	上書きしたい横位置（小行列の左）
 		template<size_t P, size_t Q, typename R = double>
 		static constexpr void setsubmatrix(ArcsMat<M,N,T>& UY, const ArcsMat<P,Q,R>& U, const size_t m, const size_t n){
-			static_assert(P <= M);		// 小行列の方が高さが小さいかチェック
-			static_assert(Q <= N);		// 小行列の方が幅が小さいかチェック
-			static_assert(std::is_convertible_v<size_t, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(P <= M, "ArcsMat: Size Error");	// 小行列の方が高さが小さいかチェック
+			static_assert(Q <= N, "ArcsMat: Size Error");	// 小行列の方が幅が小さいかチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(P + m - 1 <= M);	// 下側がハミ出ないかチェック
 			arcs_assert(Q + n - 1 <= N);	// 右側がハミ出ないかチェック
 			for(size_t i = 1; i <= Q; ++i) setvvector(UY, ArcsMat<P,Q,R>::getcolumn(U, i), m, i + n - 1);
@@ -1326,7 +1323,7 @@ class ArcsMat {
 		static constexpr void shiftup(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t m = 1){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// 行を上にシフトする
 			for(size_t j = 1; j <= P - m; ++j){
@@ -1360,7 +1357,7 @@ class ArcsMat {
 		static constexpr void shiftdown(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t m = 1){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// 行を下にシフトする
 			for(size_t j = m + 1; j <= P; ++j){
@@ -1394,7 +1391,7 @@ class ArcsMat {
 		static constexpr void shiftleft(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t n = 1){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// 列を左にシフトする
 			for(size_t i = 1; i <= Q - n; ++i){
@@ -1428,7 +1425,7 @@ class ArcsMat {
 		static constexpr void shiftright(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t n = 1){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// 列を右にシフトする
 			for(size_t i = n + 1; i <= Q; ++i){
@@ -1463,8 +1460,8 @@ class ArcsMat {
 			static_assert(N == Q, "ArcsMat: Size Error");				// 行列のサイズチェック
 			static_assert(M + P == D, "ArcsMat: Output Size Error");	// 出力行列のサイズチェック
 			static_assert(N == E, "ArcsMat: Output Size Error");		// 出力行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, F>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<F>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<D,E,F>::setsubmatrix(Y, U1, 1, 1);
 			ArcsMat<D,E,F>::setsubmatrix(Y, U2, M + 1, 1);
 		}
@@ -1491,8 +1488,8 @@ class ArcsMat {
 			static_assert(M == P, "ArcsMat: Size Error");				// 行列のサイズチェック
 			static_assert(N + Q == E, "ArcsMat: Output Size Error");	// 出力行列のサイズチェック
 			static_assert(M == D, "ArcsMat: Output Size Error");		// 出力行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, F>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<F>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<D,E,F>::setsubmatrix(Y, U1, 1, 1);
 			ArcsMat<D,E,F>::setsubmatrix(Y, U2, 1, N + 1);
 		}
@@ -1524,10 +1521,10 @@ class ArcsMat {
 			static_assert(E + H == W, "ArcsMat: Output Size Error");	// 出力行列のサイズチェック
 			static_assert(P + G == V, "ArcsMat: Output Size Error");	// 出力行列のサイズチェック
 			static_assert(N + Q == W, "ArcsMat: Output Size Error");	// 出力行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, F>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, L>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, X>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<F>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<L>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<X>, "ArcsMat: Type Error");	// 対応可能型チェック
 			if constexpr(N == E){
 				// 縦長行列ベースで連結する場合
 				static_assert(Q == H, "ArcsMat: Size Error");			// 行列のサイズチェック
@@ -1568,8 +1565,8 @@ class ArcsMat {
 			static_assert(N == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(P == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t j = 1; j <= M; ++j) Y(j,j) = u(j,1);
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			for(size_t j = 1; j <= M; ++j) Y(j,j) = static_cast<R>( u(j,1) );
 		}
 		
 		//! @brief 縦ベクトルの各要素を対角要素に持つ正方行列を生成する関数(戻り値渡し版)
@@ -1589,8 +1586,8 @@ class ArcsMat {
 		static constexpr void getdiag(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y){
 			static_assert(Q == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(P == L, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			for(size_t j = 1; j <= L; ++j) y(j,1) = U(j,j);
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			for(size_t j = 1; j <= L; ++j) y(j,1) = static_cast<R>( U(j,j) );
 		}
 				
 		//! @brief 行列の対角要素を縦ベクトルとして取得する関数(戻り値渡し版)
@@ -1687,10 +1684,10 @@ class ArcsMat {
 		static constexpr void exp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
 			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::exp( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::exp( U(j,i) ) );
 			}
 		}
 
@@ -1711,10 +1708,10 @@ class ArcsMat {
 		static constexpr void log(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
 			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::log( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::log( U(j,i) ) );
 			}
 		}
 
@@ -1735,10 +1732,10 @@ class ArcsMat {
 		static constexpr void log10(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
 			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::log10( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::log10( U(j,i) ) );
 			}
 		}
 
@@ -1759,10 +1756,10 @@ class ArcsMat {
 		static constexpr void sin(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
 			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::sin( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::sin( U(j,i) ) );
 			}
 		}
 
@@ -1783,10 +1780,10 @@ class ArcsMat {
 		static constexpr void cos(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
 			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::cos( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::cos( U(j,i) ) );
 			}
 		}
 
@@ -1807,10 +1804,10 @@ class ArcsMat {
 		static constexpr void tan(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");		// 暗黙の型変換可能チェック
 			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::tan( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::tan( U(j,i) ) );
 			}
 		}
 
@@ -1890,7 +1887,8 @@ class ArcsMat {
 		static constexpr void arg(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_same_v<T, std::complex<R>>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsComplex<T>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsIntFloat<R>, "ArcsMat: Type Error (Need Integer or Float)");
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::arg( U(j,i) ) );
 			}
@@ -1904,7 +1902,8 @@ class ArcsMat {
 		static constexpr void real(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_same_v<T, std::complex<R>>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsComplex<T>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsIntFloat<R>, "ArcsMat: Type Error (Need Integer or Float)");
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::real( U(j,i) ) );
 			}
@@ -1918,7 +1917,8 @@ class ArcsMat {
 		static constexpr void imag(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_same_v<T, std::complex<R>>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsComplex<T>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsIntFloat<R>, "ArcsMat: Type Error (Need Integer or Float)");
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::imag( U(j,i) ) );
 			}
@@ -1932,10 +1932,10 @@ class ArcsMat {
 		static constexpr void conj(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>, "ArcsMat: Type Error (Need Complex)");
-			static_assert(std::is_same_v<T, R>, "ArcsMat: Type Error (Need same type)");
+			static_assert(ArcsMatrix::IsComplex<T>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsComplex<R>, "ArcsMat: Type Error (Need Complex)");
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = std::conj( U(j,i) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::conj( U(j,i) ) );
 			}
 		}
 		
@@ -1948,14 +1948,37 @@ class ArcsMat {
 			return ret;
 		}
 		
+		//! @brief 転置行列を返す関数 (引数渡し版)
+		//! @tparam	P, Q, R	出力の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void tp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == Q, "ArcsMat: Transpose Size Error");	// 転置サイズチェック
+			static_assert(N == P, "ArcsMat: Transpose Size Error");	// 転置サイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(i,j) = static_cast<R>( U(j,i) );
+			}
+		}
+		
+		//! @brief 転置行列を返す関数 (戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<N,M,T> tp(const ArcsMat<M,N,T>& U){
+			ArcsMat<N,M,T> ret;
+			ArcsMat<M,N,T>::tp(U, ret);
+			return ret;
+		}
+		
 		//! @brief エルミート転置行列を返す関数 (引数渡し版)
 		//! @tparam	P, Q, R	出力の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
 		//! @param[out]	Y	出力行列
 		template<size_t P, size_t Q, typename R = std::complex<double>>
 		static constexpr void Htp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
-			static_assert(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>, "ArcsMat: Type Error (Need Complex)");
-			static_assert(std::is_same_v<T, R>, "ArcsMat: Type Error (Need same type)");
+			static_assert(ArcsMatrix::IsComplex<T>, "ArcsMat: Type Error (Need Complex)");
+			static_assert(ArcsMatrix::IsComplex<R>, "ArcsMat: Type Error (Need Complex)");
 			ArcsMat<M,N,T>::tp(ArcsMat<M,N,T>::conj(U), Y);	// 複素共役して転置
 		}
 		
@@ -1968,14 +1991,28 @@ class ArcsMat {
 			return ret;
 		}
 
+		//! @brief 転置演算子
+		//! @return 結果
+		constexpr ArcsMat<N,M,T> operator~(void) const{
+			ArcsMat<N,M,T> ret;
+			if constexpr(ArcsMatrix::IsComplex<T>){
+				// 複素数型の場合
+				ret = Htp(*this);	// エルミート転置して返す
+			}else{
+				// それ以外の型の場合
+				ret = tp(*this);	// 普通に転置して返す
+			}
+			return ret;
+		}
+
 		//! @brief 行列のノルムを返す関数(戻り値渡し版のみ)
 		//! @tparam	NRM	ノルムのタイプ
 		//! @param[in]	U	入力行列
 		//! @return	結果
-		template<NormType NRM = NormType::AMT_EUCLID, typename R = double>
+		template<ArcsMatrix::NormType NRM = ArcsMatrix::NormType::AMT_EUCLID, typename R = double>
 		static constexpr R norm(const ArcsMat<M,N,T>& U){
 			ArcsMat<1,1,R> ret;
-			if constexpr(NRM == NormType::AMT_EUCLID){
+			if constexpr(NRM == ArcsMatrix::NormType::AMT_EUCLID){
 				// ユークリッドノルム(2-ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
@@ -1985,8 +2022,7 @@ class ArcsMat {
 					// 行列版
 					ret[1] = 0;	// svdが実装されるまで保留
 				}
-			}
-			if constexpr(NRM == NormType::AMT_MANHATTAN){
+			}else if constexpr(NRM == ArcsMatrix::NormType::AMT_MANHATTAN){
 				// 絶対値ノルム(1-ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
@@ -1995,8 +2031,7 @@ class ArcsMat {
 					// 行列版
 					ret[1] = ArcsMat<1,N,R>::max( ArcsMat<M,N,R>::sumcolumn( ArcsMat<M,N,T>::abs(U) ) );
 				}
-			}
-			if constexpr(NRM == NormType::AMT_INFINITY){
+			}else if constexpr(NRM == ArcsMatrix::NormType::AMT_INFINITY){
 				// 無限大ノルム(最大値ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
@@ -2005,6 +2040,8 @@ class ArcsMat {
 					// 行列版
 					ret[1] = ArcsMat<M,1,R>::max( ArcsMat<M,N,R>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
 				}
+			}else{
+				arcs_assert(false);	// ここには来ない
 			}
 			return ret[1];
 		}
@@ -2018,11 +2055,11 @@ class ArcsMat {
 		static constexpr void gettriup(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t n = 1){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 
 			for(size_t j = 1; j <= M; ++j){
 				for(size_t i = j + n - 1; i <= N; ++i){
-					Y(j,i) = U(j,i);
+					Y(j,i) = static_cast<R>( U(j,i) );
 				}
 			}
 		}
@@ -2046,11 +2083,11 @@ class ArcsMat {
 		static constexpr void gettrilo(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t m = 1){
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, R>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = i + m - 1; j <= M; ++j){
-					Y(j,i) = U(j,i);
+					Y(j,i) = static_cast<R>( U(j,i) );
 				}
 			}
 		}
@@ -2083,9 +2120,9 @@ class ArcsMat {
 			static_assert(N == NU, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(M == MP, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == NP, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(std::is_convertible_v<T, TL>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, TU>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
-			static_assert(std::is_convertible_v<T, TP>, "ArcsMat: Type Conversion Error");	// 暗黙の型変換可能チェック
+			static_assert(ArcsMatrix::IsApplicable<TL>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TU>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TP>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// 中間変数
 			ArcsMat<M,N,T> X = A;		// 行列操作用にコピー
@@ -2133,9 +2170,9 @@ class ArcsMat {
 			
 			// 入れ替え回数の判定と判定結果の保持
 			if(perm_count % 2 == 0){
-				P.Status = MatStatus::AMT_LU_EVEN;	// 偶数のとき
+				P.Status = ArcsMatrix::MatStatus::AMT_LU_EVEN;	// 偶数のとき
 			}else{
-				P.Status = MatStatus::AMT_LU_ODD;	// 奇数のとき
+				P.Status = ArcsMatrix::MatStatus::AMT_LU_ODD;	// 奇数のとき
 			}
 		}
 
@@ -2149,7 +2186,7 @@ class ArcsMat {
 		}
 		
 		//! @brief LU分解の結果のみ返す関数(引数渡し版)
-		//! @tparam	ML, NL, TL, MU, NU, TU, MP, NP, TP	L,U,P行列の高さ, 幅, 要素の型
+		//! @tparam	ML, NL, TL, MU, NU, TU	L,U行列の高さ, 幅, 要素の型
 		//! @param[in]	A	入力行列
 		//! @param[out]	L	下三角行列
 		//! @param[out]	U	上三角行列
@@ -2167,6 +2204,83 @@ class ArcsMat {
 			ArcsMat<M,N,T> L, U;
 			LU(A, L, U);
 			return {L, U};
+		}
+
+		//! @brief QR分解(引数渡し版)
+		//! @tparam	MQ, NQ, TQ, MQ, NQ, TQ	Q,R行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	Q	ユニタリ行列 Q行列
+		//! @param[out] R	上三角行列 R行列
+		template<size_t MQ, size_t NQ, typename TQ = double, size_t MR, size_t NR, typename TR = double>
+		static constexpr void QR(const ArcsMat<M,N,T>& A, ArcsMat<MQ,NQ,TQ>& Q, ArcsMat<MR,NR,TR>& R){
+			static_assert(MQ == NQ, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(M == MQ, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(M == MR, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == NR, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<TQ>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TR>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// 事前準備
+			constexpr size_t K = std::min(M,N);	// 縦長か横長か、長い方をKとする
+			auto I = ArcsMat<M,M,T>::eye();		// 初期単位行列生成
+			ArcsMat<M,1,T> a, e, v;
+			ArcsMat<M,M,T> H;
+			ArcsMat<M,N,T> HA;
+			HA = A;
+			Q = I;
+
+//			if constexpr(std::is_same_v<T, std::complex<double>>){
+			// Householder Reflections を使ったQR分解アルゴリズム(複素数版)
+			ArcsMat<1,1,T> vHv;
+			e[1] = 1; //std::complex(1.0, 0.0);
+			for(size_t k = 1; k <= K; ++k){
+				a = ArcsMat<M,N,T>::getcolumn(HA, k);
+				a = ArcsMat<M,1,T>::shiftup(a, k - 1);
+				const T norm_a = ArcsMat<M,1,T>::template norm<ArcsMatrix::NormType::AMT_EUCLID>(a);
+				v = a + sgn(a[1])*norm_a*e;
+				vHv = ~v*v;
+				if(k != 1) I( M-(k-2), M-(k-2) ) = 0;
+				if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;
+				H = I - 2.0*v*~v/vHv[1];
+				H = ArcsMat<M,M,T>::shiftdown(H, k-1);
+				H = ArcsMat<M,M,T>::shiftright(H, k-1);
+				for(size_t i = 1; i < k; ++i) H(i,i) = 1;
+				HA = H*HA;
+				Q = Q*H;
+			}
+			R = HA;
+/*			}else{
+				// Householder Reflections を使ったQR分解アルゴリズム(実数版)
+				ArcsMat<1,1,T> vTv;
+				e[1] = 1;
+				for(size_t k = 1; k <= K; ++k){
+					a = getcolumn(HA, k);
+					a = shiftup(a, k - 1);
+					v = a + sgn(a[1])*euclidnorm(a)*e;
+					vTv = tp(v)*v;
+					if(k != 1) I.SetElement(M - (k - 2), M - (k - 2), 0);
+					if(       0 <= vTv[1] && vTv[1] < epsilon) vTv[1] =  epsilon;
+					if(-epsilon <= vTv[1] && vTv[1] < 0      ) vTv[1] = -epsilon;
+					H = I - 2.0*v*tp(v)/vTv[1];
+					H = shiftdown(H, k - 1);
+					H = shiftright(H, k - 1);
+					for(size_t i = 1; i < k; ++i) H.SetElement(i,i, 1);
+					HA = H*HA;
+					Q = Q*H;
+				}
+				R = HA;
+			}
+			*/
+		}
+
+		//! @brief QR分解の結果を返す関数(タプル返し版)
+		//! @param[in]	A	入力行列
+		//! @return	(Q, R)	(直交行列, 上三角行列)のタプル
+		static constexpr std::tuple<ArcsMat<M,M,T>, ArcsMat<M,N,T>> QR(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,M,T> Q;
+			ArcsMat<M,N,T> R;
+			QR(A, Q, R);
+			return {Q, R};
 		}
 
 /*		
@@ -2223,64 +2337,6 @@ class ArcsMat {
 			L = Lp*sqrte(Dp);	// 対角行列の平方根を取って，下三角行列に掛けたものを出力
 		}
 		
-		//! @brief QR分解
-		//! 補足：実数型のときMATLABとはQとRの符号関係が逆の場合があるが正常なQR分解であることは確認済み
-		//! 補足：複素数型のときMATLABとは全く違う値が得られるが，正常なQR分解であることは確認済み
-		//! @param[in]	A	入力行列
-		//! @param[out]	Q	ユニタリ行列 Q行列
-		//! @param[out] R	上三角行列 R行列
-		constexpr friend void QR(const ArcsMat<N,M,T>& A, ArcsMat<M,M,T>& Q, ArcsMat<N,M,T>& R){
-			constexpr size_t K = std::min(N,M);
-			ArcsMat<1,M,T> a;
-			ArcsMat<1,M,T> e;
-			ArcsMat<1,M,T> v;
-			ArcsMat<M,M,T> I = ArcsMat<M,M,T>::eye();
-			ArcsMat<M,M,T> H;
-			ArcsMat<N,M,T> HA;
-			HA = A;
-			Q = I;
-			
-			if constexpr(std::is_same_v<T, std::complex<double>>){
-				// Householder Reflections を使ったQR分解アルゴリズム(複素数版)
-				ArcsMat<1,1,T> vHv;
-				e[1] = std::complex(1.0, 0.0);
-				for(size_t k = 1; k <= K; ++k){
-					a = getcolumn(HA, k);
-					a = shiftup(a, k - 1);
-					v = a + sgn(a[1])*euclidnorm(a)*e;
-					vHv = Htp(v)*v;
-					if(k != 1) I.SetElement(M - (k - 2), M - (k - 2), 0);
-					if(std::abs(vHv[1]) < epsilon) vHv[1] = epscomp;
-					H = I - 2.0*v*Htp(v)/vHv[1];
-					H = shiftdown(H, k - 1);
-					H = shiftright(H, k - 1);
-					for(size_t i = 1; i < k; ++i) H.SetElement(i,i, 1);
-					HA = H*HA;
-					Q = Q*H;
-				}
-				R = HA;
-			}else{
-				// Householder Reflections を使ったQR分解アルゴリズム(実数版)
-				ArcsMat<1,1,T> vTv;
-				e[1] = 1;
-				for(size_t k = 1; k <= K; ++k){
-					a = getcolumn(HA, k);
-					a = shiftup(a, k - 1);
-					v = a + sgn(a[1])*euclidnorm(a)*e;
-					vTv = tp(v)*v;
-					if(k != 1) I.SetElement(M - (k - 2), M - (k - 2), 0);
-					if(       0 <= vTv[1] && vTv[1] < epsilon) vTv[1] =  epsilon;
-					if(-epsilon <= vTv[1] && vTv[1] < 0      ) vTv[1] = -epsilon;
-					H = I - 2.0*v*tp(v)/vTv[1];
-					H = shiftdown(H, k - 1);
-					H = shiftright(H, k - 1);
-					for(size_t i = 1; i < k; ++i) H.SetElement(i,i, 1);
-					HA = H*HA;
-					Q = Q*H;
-				}
-				R = HA;
-			}
-		}
 		
 		//! @brief SVD特異値分解(引数渡し版)
 		//! 補足：MATLABとはU,S,Vの符号関係が入れ替わっている場合があるが正常なSVDであることは確認済み
@@ -2813,35 +2869,31 @@ class ArcsMat {
 		// 内部処理用
 		size_t Nindex;	//!< 横方向カウンタ
 		size_t Mindex;	//!< 縦方向カウンタ
-		MatStatus Status = MatStatus::AMT_NA;	// 行列の状態
+		ArcsMatrix::MatStatus Status = ArcsMatrix::MatStatus::AMT_NA;	// 行列の状態
 
 		// 行列データの実体
 		// ArcsMatは行列の縦方向にメモリアドレスが連続しているので、縦ベクトル優先。
 		std::array<std::array<T, M>, N> Data;//!< データ格納用変数 配列要素の順番は Data[N列(横方向)][M行(縦方向)]
-/*		
+
 		//! @brief 符号関数
 		//! @param[in]	u	入力
 		//! @return	符号結果
 		static constexpr T sgn(T u){
-			T ret = 0;
-			if constexpr(std::is_same_v<T, std::complex<double>>){
+			T ret = 1;
+			if constexpr(ArcsMatrix::IsComplex<T>){
 				// 複素数型の場合
-				if(u == std::complex(0.0, 0.0)){
-					ret = std::complex(0.0, 0.0);
+				if(std::abs(u) < EPSILON){
+					ret = std::complex(0.0, 0.0);	// ゼロ割回避
 				}else{
-					ret = u/std::abs(u);
+					ret = u/std::abs(u);			// 複素数に拡張された符号関数
 				}
 			}else{
 				// 実数型の場合
-				if((T)0 <= u){
-					ret = (T)1;
-				}else{
-					ret = (T)(-1);
-				}
+				ret = std::copysign(1, u);
 			}
 			return ret;
 		}
-*/		
+
 };
 
 namespace ArcsMatrix {
@@ -2905,7 +2957,7 @@ namespace ArcsMatrix {
 		}
 	}
 
-	//! @brief MM行NN列の単位行列を返す関数
+	//! @brief M行N列の単位行列を返す関数
 	//! @tparam	M, N, T	行列の高さ, 幅, 要素の型
 	//! @return 単位行列
 	template <size_t M, size_t N, typename T = double>
@@ -2935,24 +2987,6 @@ namespace ArcsMatrix {
 	template <size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> ramp(void){
 		return ArcsMat<M,N,T>::ramp();
-	}
-	
-	//! @brief 転置行列を返す関数 (引数渡し版)
-	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 結果の高さ, 幅, 要素の型
-	//! @param[in]	U	入力行列
-	//! @param[out]	Y	結果
-	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
-	constexpr void tp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
-		ArcsMat<M,N,T>::tp(U, Y);
-	}
-	
-	//! @brief 転置行列を返す関数 (戻り値渡し版)
-	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
-	//! @param[in]	U	入力行列
-	//! @return	Y	出力行列
-	template <size_t M, size_t N, typename T = double>
-	constexpr ArcsMat<N,M,T> tp(const ArcsMat<M,N,T>& U){
-		return ArcsMat<M,N,T>::tp(U);
 	}
 	
 	//! @brief 指定した列から縦ベクトルとして抽出する関数 (引数渡し版)
@@ -3813,6 +3847,24 @@ namespace ArcsMatrix {
 	constexpr ArcsMat<M,N,T> conj(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::conj(U);
 	}
+	
+	//! @brief 転置行列を返す関数 (引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 結果の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	結果
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void tp(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::tp(U, Y);
+	}
+	
+	//! @brief 転置行列を返す関数 (戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template <size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<N,M,T> tp(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::tp(U);
+	}
 		
 	//! @brief エルミート転置行列を返す関数 (引数渡し版)
 	//! @tparam	M, N, T, P, Q, R	入出力行列の高さ, 幅, 要素の型
@@ -3927,11 +3979,34 @@ namespace ArcsMatrix {
 	}
 
 	//! @brief LU分解の結果のみ返す関数(タプル返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	A	入力行列
 	//! @return	(L, U)	(下三角行列, 上三角行列)のタプル
 	template<size_t M, size_t N, typename T = double>
 	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LU(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::LU(A);
+	}
+
+	//! @brief QR分解(引数渡し版)
+	//! @tparam	M, N, T, MQ, NQ, TQ, MQ, NQ, TQ	入力行列,Q,R行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	Q	ユニタリ行列 Q行列
+	//! @param[out] R	上三角行列 R行列
+	template<
+		size_t M, size_t N, typename T = double,
+		size_t MQ, size_t NQ, typename TQ = double, size_t MR, size_t NR, typename TR = double
+	>
+	constexpr void QR(const ArcsMat<M,N,T>& A, ArcsMat<MQ,NQ,TQ>& Q, ArcsMat<MR,NR,TR>& R){
+		ArcsMat<M,N,T>::QR(A, Q, R);
+	}
+
+	//! @brief QR分解(タプル返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	(Q, R)	(ユニタリ行列, 上三角行列)のタプル
+	template<size_t M, size_t N, typename T = double>
+	constexpr std::tuple<ArcsMat<M,M,T>, ArcsMat<M,N,T>> QR(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::QR(A);
 	}
 
 }
