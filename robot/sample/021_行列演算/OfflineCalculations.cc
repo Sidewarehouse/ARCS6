@@ -804,36 +804,36 @@ int main(void){
 	// ノルム関連の関数(行列版)
 	printf("\n★★★★★★★ ノルム関連の関数(行列版)\n");
 	dispmatfmt(Ax1, "% 6.3f");
-	printf("norm<euc>(Ax1) = %f\n", norm<NormType::AMT_EUCLID>(Ax1));	// ユークリッドノルムを計算する (戻り値渡し版のみ)
-	constexpr double enormAx1 = norm<NormType::AMT_EUCLID>(Ax1);		// コンパイル時にユークリッドノルムを計算
+	printf("norm<euc>(Ax1) = %f\n", norm<NormType::AMT_L2>(Ax1));	// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	constexpr double enormAx1 = norm<NormType::AMT_L2>(Ax1);		// コンパイル時にユークリッドL2ノルムを計算
 	printf("norm<euc>(Ax1) = %f\n", enormAx1);
-	printf("norm<man>(Ax1) = %f\n", norm<NormType::AMT_MANHATTAN>(Ax1));// 絶対値ノルムを計算する (戻り値渡し版のみ)
-	constexpr double mnormAx1 = norm<NormType::AMT_MANHATTAN>(Ax1);		// コンパイル時に絶対値ノルムを計算
+	printf("norm<man>(Ax1) = %f\n", norm<NormType::AMT_L1>(Ax1));	// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	constexpr double mnormAx1 = norm<NormType::AMT_L1>(Ax1);		// コンパイル時に絶対値L1ノルムを計算
 	printf("norm<man>(Ax1) = %f\n", mnormAx1);
-	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_INFINITY>(Ax1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
-	constexpr double inormAx1 = norm<NormType::AMT_INFINITY>(Ax1);		// コンパイル時に無限大ノルムを計算
+	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_LINF>(Ax1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormAx1 = norm<NormType::AMT_LINF>(Ax1);		// コンパイル時に無限大L∞ノルムを計算
 	printf("norm<inf>(Ax1) = %f\n", inormAx1);
-	printf("norm<euc>(Acmpx2) = %f\n", norm<NormType::AMT_EUCLID>(Acmpx2));		// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
-	printf("norm<man>(Acmpx2) = %f\n", norm<NormType::AMT_MANHATTAN>(Acmpx2));	// 複素数絶対値ノルムを計算する (戻り値渡し版のみ)
-	printf("norm<inf>(Acmpx2) = %f\n", norm<NormType::AMT_INFINITY>(Acmpx2));	// 複素数無限大ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<euc>(Acmpx2) = %f\n", norm<NormType::AMT_L2>(Acmpx2));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(Acmpx2) = %f\n", norm<NormType::AMT_L1>(Acmpx2));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<inf>(Acmpx2) = %f\n", norm<NormType::AMT_LINF>(Acmpx2));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	
 	// ノルム関連の関数(ベクトル版)
 	printf("\n★★★★★★★ ノルム関連の関数(ベクトル版)\n");
 	dispmatfmt(k1, "% 6.3f");
-	printf("norm<euc>(k1) = %f\n", norm<NormType::AMT_EUCLID>(k1));		// ユークリッドノルムを計算する (戻り値渡し版のみ)
-	constexpr double enormk1 = norm<NormType::AMT_EUCLID>(k1);			// コンパイル時にユークリッドノルムを計算
+	printf("norm<euc>(k1) = %f\n", norm<NormType::AMT_L2>(k1));		// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	constexpr double enormk1 = norm<NormType::AMT_L2>(k1);			// コンパイル時にユークリッドL2ノルムを計算
 	printf("norm<euc>(k1) = %f\n", enormk1);
-	printf("norm<man>(k1) = %f\n", norm<NormType::AMT_MANHATTAN>(k1));	// 絶対値ノルムを計算する (戻り値渡し版のみ)
-	constexpr double mnormk1 = norm<NormType::AMT_MANHATTAN>(k1);		// コンパイル時に絶対値ノルムを計算
+	printf("norm<man>(k1) = %f\n", norm<NormType::AMT_L1>(k1));		// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	constexpr double mnormk1 = norm<NormType::AMT_L1>(k1);			// コンパイル時に絶対値L1ノルムを計算
 	printf("norm<man>(k1) = %f\n", mnormk1);
-	printf("norm<inf>(k1) = %f\n", norm<NormType::AMT_INFINITY>(k1));	// 無限大ノルムを計算する (戻り値渡し版のみ)
-	constexpr double inormk1 = norm<NormType::AMT_INFINITY>(k1);		// コンパイル時に無限大ノルムを計算
+	printf("norm<inf>(k1) = %f\n", norm<NormType::AMT_LINF>(k1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormk1 = norm<NormType::AMT_LINF>(k1);		// コンパイル時に無限大L∞ノルムを計算
 	printf("norm<inf>(k1) = %f\n\n", inormk1);
 	auto k1cmpx = sqrt(static_cast<ArcsMat<7,1,std::complex<double>>>(-k1));
 	dispmatfmt(k1cmpx, "% 6.3f");
-	printf("norm<euc>(k1cmpx) = %f\n", norm<NormType::AMT_EUCLID>(k1cmpx));		// 複素数ユークリッドノルムを計算する (戻り値渡し版のみ)
-	printf("norm<man>(k1cmpx) = %f\n", norm<NormType::AMT_MANHATTAN>(k1cmpx));	// 複素数絶対値ノルムを計算する (戻り値渡し版のみ)
-	printf("norm<inf>(k1cmpx) = %f\n", norm<NormType::AMT_INFINITY>(k1cmpx));	// 複素数無限大ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<euc>(k1cmpx) = %f\n", norm<NormType::AMT_L2>(k1cmpx));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(k1cmpx) = %f\n", norm<NormType::AMT_L1>(k1cmpx));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<inf>(k1cmpx) = %f\n", norm<NormType::AMT_LINF>(k1cmpx));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
 
 	// 三角行列操作関連の関数
 	printf("\n★★★★★★★ 三角行列操作関連の関数\n");
@@ -858,37 +858,42 @@ int main(void){
 		-3,  2,  6,
 		 5, -1,  5
 	);
-	dispmatfmt(A, "%3.0f");
+	dispmatfmt(A, "% 3.0f");
 	LUP(A, L, U, P);				// LU分解の結果と置換行列を計算 (引数渡し版)
-	dispmatfmt(L, "%6.2f");
-	dispmatfmt(U, "%6.2f");
-	dispmatfmt(P, "%3.0f");
-	dispmatfmt(~P*L*U, "%3.0f");	// もとに戻るかチェック
+	dispmatfmt(L, "% 6.2f");
+	dispmatfmt(U, "% 6.2f");
+	dispmatfmt(P, "% 3.0f");
+	dispmatfmt(~P*L*U, "% 3.0f");	// もとに戻るかチェック
 	std::tie(L, U, P) = LUP(A);		// LU分解の結果と置換行列を計算 (タプル返し版)
-	dispmatfmt(L, "%6.2f");
-	dispmatfmt(U, "%6.2f");
-	dispmatfmt(P, "%3.0f");
+	dispmatfmt(L, "% 6.2f");
+	dispmatfmt(U, "% 6.2f");
+	dispmatfmt(P, "% 3.0f");
 	LU(A, L, U);					// LU分解の結果のみを計算 (引数渡し版)
-	dispmatfmt(L, "%6.2f");
-	dispmatfmt(U, "%6.2f");
-	dispmatfmt(L*U, "%3.0f");		// もとに戻るかチェック
+	dispmatfmt(L, "% 6.2f");
+	dispmatfmt(U, "% 6.2f");
+	dispmatfmt(L*U, "% 3.0f");		// もとに戻るかチェック
 	std::tie(L, U) = LU(A);			// LU分解の結果のみを計算 (タプル返し版)
-	dispmatfmt(L, "%6.2f");
-	dispmatfmt(U, "%6.2f");
-	dispmatfmt(L*U, "%3.0f");		// もとに戻るかチェック
+	dispmatfmt(L, "% 6.2f");
+	dispmatfmt(U, "% 6.2f");
+	dispmatfmt(L*U, "% 3.0f");		// もとに戻るかチェック
 	constexpr auto LxUx = LU(Ax);						// コンパイル時にLU分解を計算
 	constexpr auto Lx = std::get<0>(LxUx);				// コンパイル時に計算した下三角を抽出
 	constexpr auto Ux = std::get<1>(LxUx);				// コンパイル時に計算した上三角を抽出
-	dispmatfmt(Ax, "%3.0f");
-	dispmatfmt(Lx, "%6.2f");
-	dispmatfmt(Ux, "%6.2f");
+	dispmatfmt(Ax, "% 3.0f");
+	dispmatfmt(Lx, "% 6.2f");
+	dispmatfmt(Ux, "% 6.2f");
 	dispmatfmt(Lx*Ux, "%3.0f");		// もとに戻るかチェック
 	ArcsMat<3,3,std::complex<double>> Acomp1 = {
 		4.0 + 6.0i,  1.0 - 3.0i,  5.0 + 2.0i,
 		8.0 - 5.0i, -7.0 - 6.0i,  7.0 - 1.0i,
 		9.0 + 9.0i, -7.0 - 5.0i, -5.0 - 3.0i
 	};
-	dispmatfmt(Acomp1, "%5.2f");
+	dispmatfmt(Acomp1, "% 3.0f");
+	auto [Lcomp, Ucomp, Pcomp] = LUP(Acomp1);	// 複素数LU分解と置換行列の計算
+	dispmatfmt(Lcomp, "% 8.3f");
+	dispmatfmt(Ucomp, "% 8.3f");
+	dispmatfmt(Pcomp, "% 8.3f");
+	dispmatfmt(~Pcomp*Lcomp*Ucomp, "% 5.2f");	// もとに戻るかチェック
 
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
@@ -930,6 +935,29 @@ int main(void){
 	dispmatfmt(Qqr3*~Qqr3, "% 3.1f");	// Qが直交行列かチェック
 	dispmatfmt(Qqr3*Rqr3, "% 3.1f");	// 元に戻るかチェック
 	
+	// SVD特異値分解関連の関数
+	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
+	ArcsMat<4,2> As1 = {
+		1, 2,
+		3, 4,
+		5, 6,
+		7, 8
+	};
+	ArcsMat<4,4> Us1;
+	ArcsMat<4,2> Ss1;
+	ArcsMat<2,2> Vs1;
+	SVD(As1, Us1, Ss1, Vs1);			// 特異値分解 (引数渡し版)
+	dispmatfmt(As1, "% 8.3f");
+	dispmatfmt(Us1, "% 8.3f");
+	dispmatfmt(Ss1, "% 8.3f");
+	dispmatfmt(Vs1, "% 8.3f");
+	dispmatfmt(Us1*Ss1*~Vs1, "% 8.3f");	// 元に戻るかチェック
+	auto [Us2, Ss2, Vs2] = SVD(As1);	// 特異値分解 (タプル返し版)
+	dispmatfmt(Us2, "% 8.3f");
+	dispmatfmt(Ss2, "% 8.3f");
+	dispmatfmt(Vs2, "% 8.3f");
+	dispmatfmt(Us2*Ss2*~Vs2, "% 8.3f");	// 元に戻るかチェック
+
 
 	/*
 	// 行列演算補助関連の関数のテスト
@@ -1005,24 +1033,6 @@ int main(void){
 	PrintMatrix(Rqr4, "% 8.3f");
 	PrintMatrix(Qqr4*tp(Qqr4), "% 7.3f");	// Qが直交行列かチェック
 	PrintMat(Qqr4*Rqr4);					// 元に戻るかチェック
-	
-	// SVD特異値分解のテスト1(縦長行列の場合)
-	printf("\n★★★★★★★ SVD特異値分解のテスト1(縦長行列の場合)\n");
-	Matrix<2,4> As = {
-		1, 2,
-		3, 4,
-		5, 6,
-		7, 8
-	};
-	Matrix<4,4> Us;
-	Matrix<2,4> Ss;
-	Matrix<2,2> Vs;
-	SVD(As, Us, Ss, Vs);
-	PrintMat(As);
-	PrintMat(Us);
-	PrintMat(Ss);
-	PrintMat(Vs);
-	PrintMat(Us*Ss*tp(Vs));	// 元に戻るかチェック
 	
 	// SVD特異値分解のテスト2(横長行列の場合)
 	printf("\n★★★★★★★ SVD特異値分解のテスト2(横長行列の場合)\n");
