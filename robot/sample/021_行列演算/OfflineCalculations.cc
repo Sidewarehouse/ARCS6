@@ -952,7 +952,7 @@ int main(void){
 	dispmatfmt(Ss1, "% 8.3f");
 	dispmatfmt(Vs1, "% 8.3f");
 	dispmatfmt(Us1*Ss1*~Vs1, "% 8.3f");	// 元に戻るかチェック
-	auto [Us2, Ss2, Vs2] = SVD(As1);	// 特異値分解 (タプル返し版)
+	auto [Us2, Ss2, Vs2] = SVD(~As1);	// 特異値分解 (タプル返し版)
 	dispmatfmt(Us2, "% 8.3f");
 	dispmatfmt(Ss2, "% 8.3f");
 	dispmatfmt(Vs2, "% 8.3f");

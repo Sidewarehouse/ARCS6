@@ -2011,40 +2011,40 @@ class ArcsMat {
 		//! @return	結果
 		template<ArcsMatrix::NormType NRM = ArcsMatrix::NormType::AMT_L2, typename R = double>
 		static constexpr R norm(const ArcsMat<M,N,T>& U){
-			ArcsMat<1,1,R> ret;
+			R ret = 0;
 			if constexpr(NRM == ArcsMatrix::NormType::AMT_L2){
 				// ユークリッドノルム(2-ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
 					ArcsMat<M,N,R> v = ArcsMat<M,N,T>::abs(U);
-					ret[1] = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
+					ret = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
 				}else{
 					// 行列版
 					//const auto [W, S, V] = ArcsMat<M,N,T>::SVD(U);
-					ret[1] = 0;	// svdが実装されるまで保留
+					ret = 0;	// svdが実装されるまで保留
 				}
 			}else if constexpr(NRM == ArcsMatrix::NormType::AMT_L1){
 				// 絶対値ノルム(1-ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
-					ret[1] = ArcsMat<M,N,R>::sum( ArcsMat<M,N,T>::abs(U) );
+					ret = ArcsMat<M,N,R>::sum( ArcsMat<M,N,T>::abs(U) );
 				}else{
 					// 行列版
-					ret[1] = ArcsMat<1,N,R>::max( ArcsMat<M,N,R>::sumcolumn( ArcsMat<M,N,T>::abs(U) ) );
+					ret = ArcsMat<1,N,R>::max( ArcsMat<M,N,R>::sumcolumn( ArcsMat<M,N,T>::abs(U) ) );
 				}
 			}else if constexpr(NRM == ArcsMatrix::NormType::AMT_LINF){
 				// 無限大ノルム(最大値ノルム)が指定されたとき
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
-					ret[1] = ArcsMat<M,N,R>::max( ArcsMat<M,N,T>::abs(U) );
+					ret = ArcsMat<M,N,R>::max( ArcsMat<M,N,T>::abs(U) );
 				}else{
 					// 行列版
-					ret[1] = ArcsMat<M,1,R>::max( ArcsMat<M,N,R>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
+					ret = ArcsMat<M,1,R>::max( ArcsMat<M,N,R>::sumrow( ArcsMat<M,N,T>::abs(U) ) );
 				}
 			}else{
 				arcs_assert(false);	// ここには来ない
 			}
-			return ret[1];
+			return ret;
 		}
 
 		//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
@@ -2301,7 +2301,7 @@ class ArcsMat {
 				V = V*Qn;
 				Smn = ~Snm;
 				E = ArcsMat<N,M,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::gettriup(Snm) );
-				F = ArcsMat<N,1,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::getdiag(Snm)  );
+				F = ArcsMat<std::min(M,N),1,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::getdiag(Snm)  );
 				if(std::abs(E - F) < EPSILON) break;	// 誤差がイプシロンを下回ったらループ打ち切り
 				printf("%zu: %f\n", l, std::abs(E - F));
 			}
