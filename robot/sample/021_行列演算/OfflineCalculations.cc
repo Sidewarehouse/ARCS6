@@ -696,7 +696,14 @@ int main(void){
 	printf("minidx(Fx) = %ld, %ld\n", kx, ky);
 	constexpr auto kxy2 = minidx(k1);					// コンパイル時に要素番号を計算
 	printf("kxy2 = %ld, %ld\n", std::get<0>(kxy2), std::get<1>(kxy2));
-	
+	using namespace std::literals::complex_literals;	// 虚数単位リテラル「i」の使用
+	ArcsMat<1,3,std::complex<double>> k1comp = {-2.0 + 2.0i, 4.0 + 1.0i, -1.0 - 3.0i};
+	dispmat(k1comp);
+	auto k1cmax = max(k1comp);					// 複素数の最大値
+	printf("max(k1comp) = %f + %fj\n", std::real(k1cmax), std::imag(k1cmax));
+	auto k1cmin = min(k1comp);					// 複素数の最小値
+	printf("min(k1comp) = %f + %fj\n", std::real(k1cmin), std::imag(k1cmin));
+
 	// 要素ごとの数学関数
 	printf("\n★★★★★★★ 要素ごとの数学関数\n");
 	constexpr ArcsMat<3,4> Ax1 = {
@@ -774,14 +781,13 @@ int main(void){
 	ArcsMat<3,2,std::complex<double>> Y12;
 	Y9.FillAll(39);							// 複素数行列の実数部に値を埋める
 	dispmat(Y9);
-	using namespace std::literals::complex_literals;	// 虚数単位リテラル「i」の使用
 	Y9.FillAll( 3.9 + 2.4i );				// 複素数行列に値を埋める
 	dispmat(Y9);
 	ArcsMat<2,3,std::complex<double>> Acmp1 = Pi;		//「実数行列 → 複素数行列」のコピーコンストラクタ
 	dispmat(Acmp1);
 	
-	// 転置行列関連
-	printf("\n★★★★★★★ 転置行列関連\n");
+	// 転置行列関連の関数と演算子
+	printf("\n★★★★★★★ 転置行列関連の関数と演算子\n");
 	ArcsMat<2,3> Dt;
 	dispmat(D);
 	tp(D, Dt);							// Dの転置 (引数渡し版)
@@ -794,7 +800,7 @@ int main(void){
 	Htp(Acmpx2, Y12);					// エルミート転置 (引数渡し版)
 	dispmat(Htp(Acmpx2));				// エルミート転置 (戻り値渡し版)
 	dispmat(~D);						// 実数行列の転置 (演算子版)
-	dispmat(~Acmpx2);					// 複素数行列のエルミート転置 (演算子版)
+	dispmat(~Acmpx2);					// 複素数行列のエルミート転置 (演算子版は自動的に共役転置)
 	constexpr auto jxjtx = jx1*~jx1;	// コンパイル時に転置して乗算 (演算子版)
 	constexpr auto jxtjx = (~jx1)*jx1;	// コンパイル時に転置して乗算 (演算子版)
 	dispmat(jx1);
@@ -813,7 +819,8 @@ int main(void){
 	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_LINF>(Ax1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	constexpr double inormAx1 = norm<NormType::AMT_LINF>(Ax1);		// コンパイル時に無限大L∞ノルムを計算
 	printf("norm<inf>(Ax1) = %f\n", inormAx1);
-	printf("norm<euc>(Acmpx2) = %f\n", norm<NormType::AMT_L2>(Acmpx2));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	const auto L2NormOfAcmpx2 = norm<NormType::AMT_L2, std::complex<double>>(Acmpx2);	// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<euc>(Acmpx2) = %f + %fj\n", std::real(L2NormOfAcmpx2), std::imag(L2NormOfAcmpx2) );
 	printf("norm<man>(Acmpx2) = %f\n", norm<NormType::AMT_L1>(Acmpx2));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<inf>(Acmpx2) = %f\n", norm<NormType::AMT_LINF>(Acmpx2));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	
@@ -897,18 +904,21 @@ int main(void){
 
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
-	ArcsMat<3,3> Aqr1 = {
-		2, -2, 18,
-		2,  1,  0,
-		1,  2,  0
+	ArcsMat<5,5> Aqr1 = {
+		17, 24,  1,  8, 15,
+		23,  5,  7, 14, 16,
+		 4,  6, 13, 20, 22,
+		10, 12, 19, 21,  3,
+		11, 18, 25,  2,  9
 	};
-	ArcsMat<3,3> Qqr1, Rqr1;
+	ArcsMat<5,5> Qqr1, Rqr1;
 	QR(Aqr1, Qqr1, Rqr1);				// QR分解を計算 (引数渡し版)
-	dispmatfmt(Aqr1, "% 3.0f");
-	dispmatfmt(Qqr1, "% 6.2f");
-	dispmatfmt(Rqr1, "% 6.2f");
-	dispmatfmt(Qqr1*~Qqr1, "% 6.2f");	// Qが直交行列かチェック
-	dispmatfmt(Qqr1*Rqr1, "% 6.2f");	// 元に戻るかチェック
+	dispmatfmt(Aqr1, "% 8.4f");
+	dispmatfmt(Qqr1, "% 8.4f");
+	dispmatfmt(Rqr1, "% 8.4f");
+	dispmatfmt(Qqr1*~Qqr1, "% 8.4f");	// Qが直交行列かチェック
+	dispmatfmt(Qqr1*Rqr1, "% 8.4f");	// 元に戻るかチェック
+	printf("norm<L2>(A - Q*R) = %e\n", norm<NormType::AMT_L2>(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
 	constexpr ArcsMat<3,4> Aqr2 = {
 		12, -51,   4, 39,
 		 6, 167, -68, 22,
@@ -937,7 +947,7 @@ int main(void){
 	
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
-	ArcsMat<4,2> As1 = {
+	constexpr ArcsMat<4,2> As1 = {
 		1, 2,
 		3, 4,
 		5, 6,
@@ -946,18 +956,49 @@ int main(void){
 	ArcsMat<4,4> Us1;
 	ArcsMat<4,2> Ss1;
 	ArcsMat<2,2> Vs1;
-	SVD(As1, Us1, Ss1, Vs1);			// 特異値分解 (引数渡し版)
+	SVD(As1, Us1, Ss1, Vs1);				// 特異値分解 (引数渡し版)：縦長行列の場合
 	dispmatfmt(As1, "% 8.3f");
 	dispmatfmt(Us1, "% 8.3f");
 	dispmatfmt(Ss1, "% 8.3f");
 	dispmatfmt(Vs1, "% 8.3f");
-	dispmatfmt(Us1*Ss1*~Vs1, "% 8.3f");	// 元に戻るかチェック
-	auto [Us2, Ss2, Vs2] = SVD(~As1);	// 特異値分解 (タプル返し版)
+	dispmatfmt(Us1*Ss1*~Vs1, "% 8.3f");		// 元に戻るかチェック
+	constexpr auto USVs2 = SVD(~As1);					// コンパイル時に特異値分解を計算 (タプル返し版)：横長行列の場合
+	constexpr auto Us2 = std::get<0>(USVs2);			// コンパイル時に計算したU行列を抽出
+	constexpr auto Ss2 = std::get<1>(USVs2);			// コンパイル時に計算したΣ行列を抽出
+	constexpr auto Vs2 = std::get<2>(USVs2);			// コンパイル時に計算したV行列を抽出
 	dispmatfmt(Us2, "% 8.3f");
 	dispmatfmt(Ss2, "% 8.3f");
 	dispmatfmt(Vs2, "% 8.3f");
-	dispmatfmt(Us2*Ss2*~Vs2, "% 8.3f");	// 元に戻るかチェック
-
+	dispmatfmt(Us2*Ss2*~Vs2, "% 8.3f");		// 元に戻るかチェック
+	ArcsMat<3,3> As2 = {
+		 2,  0,  2,
+		 0,  1,  0,
+		 0,  0,  0
+	};
+	ArcsMat<3,3> Us3, Ss3, Vs3;
+	std::tie(Us3, Ss3, Vs3) = SVD(As2);		// 特異値分解 (タプル返し版)：ランク落ちの場合
+	dispmatfmt(Us3, "% 8.3f");
+	dispmatfmt(Ss3, "% 8.3f");
+	dispmatfmt(Vs3, "% 8.3f");
+	dispmatfmt(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
+	As2.Set(
+		 1,  1,  3,
+		-5,  6, -3, 
+		 7, -2,  9
+	);
+	std::tie(Us3, Ss3, Vs3) = SVD(As2);		// 特異値分解 (タプル返し版)：符号修正が必要な場合
+	dispmatfmt(As2, "% 8.3f");
+	dispmatfmt(Us3, "% 8.3f");
+	dispmatfmt(Ss3, "% 8.3f");
+	dispmatfmt(Vs3, "% 8.3f");
+	dispmatfmt(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
+	ArcsMat<3,3,std::complex<double>> Us4, Ss4, Vs4;
+	std::tie(Us4, Ss4, Vs4) = SVD(Acomp1);	// 複素数特異値分解を計算 (タプル返し版)
+	dispmatfmt(Acomp1, "% 8.3f");
+	dispmatfmt(Us4, "% 8.3f");
+	dispmatfmt(Ss4, "% 8.3f");
+	dispmatfmt(Vs4, "% 8.3f");
+	dispmatfmt(Us4*Ss4*~Vs4, "% 8.3f");		// 元に戻るかチェック
 
 	/*
 	// 行列演算補助関連の関数のテスト
@@ -990,97 +1031,6 @@ int main(void){
 	PrintMat(Ach);
 	PrintMat(Lch);
 	PrintMat(Lch*tp(Lch));
-	
-	
-	// QR分解のテスト2
-	printf("\n★★★★★★★ QR分解(実数版)のテスト2\n");
-	Aqr.Set(
-		12, -51,   4,
-		 6, 167, -68,
-		-4,  24, -41
-	);
-	QR(Aqr, Qqr, Rqr);
-	PrintMat(Aqr);
-	PrintMatrix(Qqr, "% 8.3f");
-	PrintMatrix(Rqr, "% 8.3f");
-	PrintMatrix(Qqr*tp(Qqr), "% 7.3f");	// Qが直交行列かチェック
-	PrintMat(Qqr*Rqr);					// 元に戻るかチェック
-	
-	// QR分解のテスト3
-	printf("\n★★★★★★★ QR分解(実数版)のテスト3\n");
-	Matrix<4,3> Aqr3 = {
-		12, -51,   4, 39,
-		 6, 167, -68, 22,
-		-4,  24, -41, 11
-	};
-	Matrix<3,3> Qqr3;
-	Matrix<4,3> Rqr3;
-	QR(Aqr3, Qqr3, Rqr3);
-	PrintMat(Aqr3);
-	PrintMatrix(Qqr3, "% 8.3f");
-	PrintMatrix(Rqr3, "% 8.3f");
-	PrintMatrix(Qqr3*tp(Qqr3), "% 7.3f");	// Qが直交行列かチェック
-	PrintMat(Qqr3*Rqr3);					// 元に戻るかチェック
-	
-	// QR分解のテスト4
-	printf("\n★★★★★★★ QR分解(実数版)のテスト4\n");
-	Matrix<3,4> Aqr4 = tp(Aqr3);
-	Matrix<4,4> Qqr4;
-	Matrix<3,4> Rqr4;
-	QR(Aqr4, Qqr4, Rqr4);
-	PrintMat(Aqr4);
-	PrintMatrix(Qqr4, "% 8.3f");
-	PrintMatrix(Rqr4, "% 8.3f");
-	PrintMatrix(Qqr4*tp(Qqr4), "% 7.3f");	// Qが直交行列かチェック
-	PrintMat(Qqr4*Rqr4);					// 元に戻るかチェック
-	
-	// SVD特異値分解のテスト2(横長行列の場合)
-	printf("\n★★★★★★★ SVD特異値分解のテスト2(横長行列の場合)\n");
-	Matrix<4,2> As2 = tp(As);
-	Matrix<2,2> Us2;
-	Matrix<4,2> Ss2;
-	Matrix<4,4> Vs2;
-	SVD(As2, Us2, Ss2, Vs2);
-	PrintMat(As2);
-	PrintMat(Us2);
-	PrintMat(Ss2);
-	PrintMat(Vs2);
-	PrintMat(Us2*Ss2*tp(Vs2));	// 元に戻るかチェック
-	
-	// SVD特異値分解のテスト3(ランク落ちの場合)
-	printf("\n★★★★★★★ SVD特異値分解のテスト3(ランク落ちの場合)\n");
-	Matrix<3,3> As3 = {
-		 2,  0,  2,
-		 0,  1,  0,
-		 0,  0,  0
-	};
-	Matrix<3,3> Us3;
-	Matrix<3,3> Ss3;
-	Matrix<3,3> Vs3;
-	SVD(As3, Us3, Ss3, Vs3);
-	PrintMat(As3);
-	PrintMat(Us3);
-	PrintMat(Ss3);
-	PrintMat(Vs3);
-	PrintMat(Us3*Ss3*tp(Vs3));	// 元に戻るかチェック
-	printf("rank(As3) = %ld\n", rank(As3));
-	
-	// SVD特異値分解のテスト4(符号修正が必要な場合)
-	printf("\n★★★★★★★ SVD特異値分解のテスト4(符号修正が必要な場合)\n");
-	Matrix<3,3> As4 = {
-		 1,  1,  3,
-		-5,  6, -3, 
-		 7, -2,  9
-	};
-	Matrix<3,3> Us4;
-	Matrix<3,3> Ss4;
-	Matrix<3,3> Vs4;
-	SVD(As4, Us4, Ss4, Vs4);
-	PrintMat(As4);
-	PrintMat(Us4);
-	PrintMat(Ss4);
-	PrintMat(Vs4);
-	PrintMat(Us4*Ss4*tp(Vs4));	// 元に戻るかチェック
 	
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");

@@ -1620,16 +1620,25 @@ class ArcsMat {
 			return y;
 		}
 		
-		//! @brief 行列要素の最大値の要素番号を返す関数(戻り値渡し版のみ)
+		//! @brief 行列要素の最大値の要素番号を返す関数(タプル返し版のみ)
 		//! @param[in]	U	入力行列
 		//! @return	結果(タプルで返す)
 		static constexpr std::tuple<size_t,size_t> maxidx(const ArcsMat<M,N,T>& U){
 			size_t k = 1, l = 1;
 			for(size_t i = 1; i <= N; ++i){		// 横方向探索
 				for(size_t j = 1; j <= M; ++j){	// 縦方向探索
-					if( U(k,l) < U(j,i) ){
-						k = j;
-						l = i;
+					if constexpr(ArcsMatrix::IsComplex<T>){
+						// 複素数版のとき
+						if( std::abs(U(k,l)) < std::abs(U(j,i)) ){
+							k = j;
+							l = i;
+						}
+					}else{
+						// 実数版のとき
+						if( U(k,l) < U(j,i) ){
+							k = j;
+							l = i;
+						}
 					}
 				}
 			}
@@ -1644,16 +1653,25 @@ class ArcsMat {
 			return U(std::get<0>(ji), std::get<1>(ji));
 		}
 		
-		//! @brief 行列要素の最小値の要素番号を返す関数(戻り値渡し版のみ)
+		//! @brief 行列要素の最小値の要素番号を返す関数(タプル返し版のみ)
 		//! @param[in]	U	入力行列
 		//! @return	結果(タプルで返す)
 		static constexpr std::tuple<size_t,size_t> minidx(const ArcsMat<M,N,T>& U){
 			size_t k = 1, l = 1;
 			for(size_t i = 1; i <= N; ++i){		// 横方向探索
 				for(size_t j = 1; j <= M; ++j){	// 縦方向探索
-					if( U(k,l) > U(j,i) ){
-						k = j;
-						l = i;
+					if constexpr(ArcsMatrix::IsComplex<T>){
+						// 複素数版のとき
+						if( std::abs(U(k,l)) > std::abs(U(j,i)) ){
+							k = j;
+							l = i;
+						}
+					}else{
+						// 実数版のとき
+						if( U(k,l) > U(j,i) ){
+							k = j;
+							l = i;
+						}
 					}
 				}
 			}
@@ -2020,8 +2038,8 @@ class ArcsMat {
 					ret = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
 				}else{
 					// 行列版
-					//const auto [W, S, V] = ArcsMat<M,N,T>::SVD(U);
-					ret = 0;	// svdが実装されるまで保留
+					const auto [W, S, V] = ArcsMat<M,N,T>::SVD(U);
+					ret = static_cast<R>( ArcsMat<M,N,T>::max(S) );
 				}
 			}else if constexpr(NRM == ArcsMatrix::NormType::AMT_L1){
 				// 絶対値ノルム(1-ノルム)が指定されたとき
@@ -2262,15 +2280,16 @@ class ArcsMat {
 		}
 
 		//! @brief SVD特異値分解(引数渡し版)
-		//! @tparam	MU, NU, TU, MS, NS, TS, MV, NV, TV	U,Σ,V行列の高さ, 幅, 要素の型
 		//! @tparam LoopMax	ループ打ち切り最大回数 デフォルト値 = 100*max(M,N)
+		//! @tparam	MU, NU, TU, MS, NS, TS, MV, NV, TV	U,Σ,V行列の高さ, 幅, 要素の型
 		//! @param[in]	A	入力行列
 		//! @param[out]	U	U行列
 		//! @param[out]	S	Σ行列
 		//! @param[out]	V	V行列
 		template<
+			size_t LoopMax = 100*std::max(M,N),
 			size_t MU, size_t NU, typename TU = double, size_t MS, size_t NS, typename TS = double,
-			size_t MV, size_t NV, typename TV = double, size_t LoopMax = 100*std::max(M,N)
+			size_t MV, size_t NV, typename TV = double
 		>
 		static constexpr void SVD(const ArcsMat<M,N,T>& A, ArcsMat<MU,NU,TU>& U, ArcsMat<MS,NS,TS>& S, ArcsMat<MV,NV,TV>& V){
 			static_assert(MU == NU, "ArcsMat: Size Error");	// 正方行列チェック
@@ -2284,34 +2303,33 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<TV>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// 初期化
-			ArcsMat<M,N,T> Smn;
 			ArcsMat<N,M,T> Snm;
 			ArcsMat<M,M,T> Qm;
 			ArcsMat<N,N,T> Qn;
 			U = ArcsMat<M,M,T>::eye();
 			V = ArcsMat<N,N,T>::eye();
-			Smn = A;
+			S = A;
 			T E = 0, F = 0;
 			
 			// ループ打ち切り最大回数に達するまでループ
 			for(size_t l = 0; l < LoopMax; ++l){
-				ArcsMat<M,N,T>::QR(Smn, Qm, Smn);
+				ArcsMat<M,N,T>::QR(S, Qm, S);
 				U = U*Qm;
-				ArcsMat<N,M,T>::QR(~Smn, Qn, Snm);
+				ArcsMat<N,M,T>::QR(~S, Qn, Snm);
 				V = V*Qn;
-				Smn = ~Snm;
+				S = ~Snm;
 				E = ArcsMat<N,M,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::gettriup(Snm) );
 				F = ArcsMat<std::min(M,N),1,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::getdiag(Snm)  );
-				if(std::abs(E - F) < EPSILON) break;	// 誤差がイプシロンを下回ったらループ打ち切り
-				printf("%zu: %f\n", l, std::abs(E - F));
+				if(std::abs(E - F) < EPSILON) break;		// 誤差がイプシロンを下回ったらループ打ち切り
+				//printf("%zu: %f\n", l, std::abs(E - F));	// 誤差確認用コード
 			}
 			
 			// 符号修正
-			const auto Sd = ArcsMat<N,M,T>::getdiag(Snm);
-			S = ArcsMat<M,N,T>::zeros();
 			for(size_t k = 1; k <= std::min(M,N); ++k){
-				S(k,k) = std::abs(Sd[k]);
-				if(Sd[k] < 0) ArcsMat<M,M,T>::setcolumn(U, -ArcsMat<M,M,T>::getcolumn(U, k), k);
+				if( std::real(sgn( S(k,k) )) < 0){
+					S(k,k) = -S(k,k);
+					ArcsMat<M,M,T>::setcolumn(U, -ArcsMat<M,M,T>::getcolumn(U, k), k);
+				}
 			}
 		}
 
@@ -3884,7 +3902,7 @@ namespace ArcsMatrix {
 	//! @tparam	NRM, M, N, T	ノルムのタイプ, 入力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
 	//! @return	結果
-	template<NormType NRM = ArcsMatrix::NormType::AMT_L2, size_t M, size_t N, typename T = double>
+	template<NormType NRM = ArcsMatrix::NormType::AMT_L2, typename T = double, size_t M, size_t N>
 	constexpr T norm(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::template norm<NRM>(U);
 	}
@@ -3893,9 +3911,9 @@ namespace ArcsMatrix {
 	//! @tparam	NRM, M, N, T	ノルムのタイプ, 入力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
 	//! @return	結果
-	template<NormType NRM = ArcsMatrix::NormType::AMT_L2, size_t M, size_t N, typename T = double>
-	constexpr T norm(const ArcsMat<M,N,std::complex<T>>& U){
-		return ArcsMat<M,N,std::complex<T>>::template norm<NRM, T>(U);
+	template<NormType NRM = ArcsMatrix::NormType::AMT_L2, typename R = double, typename T = double, size_t M, size_t N>
+	constexpr R norm(const ArcsMat<M,N,std::complex<T>>& U){
+		return ArcsMat<M,N,std::complex<T>>::template norm<NRM, R>(U);
 	}
 	
 	//! @brief n列目を左端として右上の上三角部分のみを返す関数(下三角部分はゼロ)(引数渡し版)
