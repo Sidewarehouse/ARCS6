@@ -56,7 +56,7 @@ enum class SFkernelparam : uint8_t {
 	CFS_DISABLED	= 0b00000001,	//!< CFS(Completely Fair Scheduler)を無効にする
 	PREEMPT_DYNFULL = 0b00000010	//!< PREEMPT_DYNAMICの場合にFULLモードにする
 };
-// ↑を両方使用する場合は、
+// ↑を併用する場合は、
 // static_cast<SFkernelparam>( static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) | static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) )
 // のようにキャストを駆使して論理和を取ること。
 
@@ -275,6 +275,7 @@ class SFthread {
 		const SFthread& operator=(const SFthread&) = delete;//!< 代入演算子使用禁止
 		
 		static const long ONE_SEC_IN_NANO = 1000000000;		//!< [ns] 1秒をナノ秒で表すと
+		static const long SKEW_IN_NANO = 40;				//!< [ns] 時刻ズレ調整用パラメータ
 		pthread_mutex_t SyncMutex;							//!< 同期用Mutex
 		pthread_cond_t	SyncCond;							//!< 同期用条件
 		enum ThreadState StateFlag;							//!< 動作状態フラグ
@@ -294,7 +295,7 @@ class SFthread {
 			timespec InitTime = {0};		// ループに入る初期時刻
 			timespec NextTime = {0};		// 次のループ開始時刻
 			timespec TimeInWait = {0};		// 待機ループ内で取得する現在時刻
-			timespec PeriodTime = nsec_to_timespec(Ts);	// 所望の制御周期
+			timespec PeriodTime = nsec_to_timespec(Ts - SKEW_IN_NANO);	// 所望の制御周期(時刻ズレ調整済み)
 			timespec StartTime = {0};		// 開始時刻格納用
 			timespec StartTimePrev = {0};	// 前回の開始時間格納用
 			timespec EndTime = {0};			// 終了時刻格納用

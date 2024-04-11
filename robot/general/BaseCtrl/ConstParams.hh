@@ -56,9 +56,12 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
 			// 上記を INSERT_ZEROSLEEP にすると安定性が増すがリアルタイム性は落ちる。遅い処理系の場合に推奨。
 			// WITHOUT_ZEROSLEEP にするとリアルタイム性が向上するが，一時的に操作不能になる可能性が残る。高速な処理系の場合に選択可。
+			// 下記はカーネルパラメータの設定
+			// NO_SETTINGS もしくは CFS_DISABLED と PREEMPT_DYNFULL が併用可。詳細はSFthreadクラスのコメント欄を参照のこと。
 			static constexpr SFkernelparam THREAD_KP = SFkernelparam::CFS_DISABLED;		//!< CFSをリアルタイム用に設定
-			// 上記はカーネルパラメータの設定
-			// NO_SETTINGS と CFS_DISABLED と PREEMPT_DYNFULL が使用可。詳細はSFthreadクラスのコメント欄を参照のこと。
+			//static constexpr SFkernelparam THREAD_KP = static_cast<SFkernelparam>(
+			//	static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) | static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL)
+			//);	//!< CFSとPREEMPTの設定を併用する場合の例
 			
 			//! @brief 制御周期の設定
 			static constexpr std::array<unsigned long, THREAD_MAX> SAMPLING_TIME = {
