@@ -1,10 +1,10 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2020/05/20
+//! @date 2024/04/11
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // This program is free software;
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.
@@ -61,6 +61,9 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
 			// 上記を INSERT_ZEROSLEEP にすると安定性が増すがリアルタイム性は落ちる。遅い処理系の場合に推奨。
 			// WITHOUT_ZEROSLEEP にするとリアルタイム性が向上するが，一時的に操作不能になる可能性が残る。高速な処理系の場合に選択可。
+			static constexpr SFkernelparam THREAD_KP = SFkernelparam::CFS_DISABLED;		//!< CFSをリアルタイム用に設定
+			// 上記はカーネルパラメータの設定
+			// NO_SETTINGS と CFS_DISABLED と PREEMPT_DYNFULL が使用可。詳細はSFthreadクラスのコメント欄を参照のこと。
 			
 			//! @brief 制御周期の設定
 			static constexpr std::array<unsigned long, THREAD_MAX> SAMPLING_TIME = {
@@ -294,7 +297,7 @@ namespace ARCS {	// ARCS名前空間
 			static const std::string PLOT_FRAMEBUFF;					//!< フレームバッファ ファイルデスクリプタ
 			static const std::string PLOT_PNGFILENAME;					//!< スクリーンショットのPNGファイル名
 			static constexpr size_t PLOT_MAX = 16;						//!< [-] グラフプロットの最大数 (変更不可)
-			static constexpr size_t PLOT_NUM =  4;						//!< [-] グラフプロットの数
+			static constexpr size_t PLOT_NUM =  2;						//!< [-] グラフプロットの数
 			static constexpr double PLOT_TIMESPAN = 10;					//!< [s] プロットの時間幅
 			static constexpr double PLOT_TIMERESO = 0.01;				//!< [s] プロットの時間分解能
 			static constexpr size_t PLOT_RINGBUFF = 1024;				//!< [-] プロット用リングバッファの要素数
@@ -367,8 +370,8 @@ namespace ARCS {	// ARCS名前空間
 			
 			//! @brief 時系列プロットの縦軸最大値
 			static constexpr std::array<double, PLOT_MAX> PLOT_FMAX	= {
-				400,	// プロット0
-				400,	// プロット1
+				100,	// プロット0
+				200,	// プロット1
 			  	1.0,	// プロット2
 				1.0,	// プロット3
 				1.0,	// プロット4

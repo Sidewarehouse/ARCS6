@@ -1,10 +1,10 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2023/10/19
+//! @date 2024/04/11
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef CONSTPARAMS
@@ -56,6 +56,9 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
 			// 上記を INSERT_ZEROSLEEP にすると安定性が増すがリアルタイム性は落ちる。遅い処理系の場合に推奨。
 			// WITHOUT_ZEROSLEEP にするとリアルタイム性が向上するが，一時的に操作不能になる可能性が残る。高速な処理系の場合に選択可。
+			static constexpr SFkernelparam THREAD_KP = SFkernelparam::CFS_DISABLED;		//!< CFSをリアルタイム用に設定
+			// 上記はカーネルパラメータの設定
+			// NO_SETTINGS と CFS_DISABLED と PREEMPT_DYNFULL が使用可。詳細はSFthreadクラスのコメント欄を参照のこと。
 			
 			//! @brief 制御周期の設定
 			static constexpr std::array<unsigned long, THREAD_MAX> SAMPLING_TIME = {

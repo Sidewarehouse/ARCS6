@@ -3,10 +3,10 @@
 //!
 //! ARCS内で共通に使用する静的関数クラス
 //!
-//! @date 2023/10/19
+//! @date 2024/04/10
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include <unistd.h>
@@ -19,7 +19,7 @@
 using namespace ARCS;
 
 // ARCS改訂番号(ARCS本体側システムコード改変時にちゃんと変えること)
-const std::string ARCScommon::ARCS_REVISION("AR6-REV.23101918");	//!< (16文字以内)
+const std::string ARCScommon::ARCS_REVISION("AR6-REV.24041018");	//!< (16文字以内)
 
 //! @brief スレッドを動作させるCPUとポリシーを設定する関数
 //! @param[in]	FuncName	スレッド関数ID

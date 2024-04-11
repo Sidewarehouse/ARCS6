@@ -3,10 +3,10 @@
 //!
 //! pthreadのSCHED_FIFOで実時間スレッドを生成＆管理＆破棄する。実際に計測された制御周期や計算消費時間も提供する。
 //!
-//! @date 2023/10/19
+//! @date 2024/04/11
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef SFTHREADING
@@ -50,9 +50,19 @@ enum class SFalgorithm {
 	WITHOUT_ZEROSLEEP	//!< スリープは一切入れない
 };
 
+//! @brief カーネルパラメータのタイプの定義
+enum class SFkernelparam : uint8_t {
+	NO_SETTINGS     = 0b00000000,	//!< 何も設定しない場合
+	CFS_DISABLED	= 0b00000001,	//!< CFS(Completely Fair Scheduler)を無効にする
+	PREEMPT_DYNFULL = 0b00000010	//!< PREEMPT_DYNAMICの場合にFULLモードにする
+};
+// ↑を両方使用する場合は、
+// static_cast<SFkernelparam>( static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) | static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) )
+// のようにキャストを駆使して論理和を取ること。
+
 //! @brief 実時間スレッド生成・破棄クラス
 //! @tparam	SFA	リアルタイムアルゴリズムのタイプ
-template <SFalgorithm SFA = SFalgorithm::INSERT_ZEROSLEEP>
+template <SFalgorithm SFA = SFalgorithm::INSERT_ZEROSLEEP, SFkernelparam SFK = SFkernelparam::CFS_DISABLED>
 class SFthread {
 	public:
 		//! @brief 動作状態の定義
@@ -90,11 +100,11 @@ class SFthread {
 			}else{
 				EventLog("WITHOUT_ZEROSLEEP MODE.");
 			}
+			SetKernelParameters();		// カーネルパラメータをリアルタイム用に設定
 			pthread_mutex_init(&SyncMutex, nullptr);	// 同期用Mutexの初期化
 			pthread_cond_init(&SyncCond, nullptr);		// 同期用条件の初期化
 			pthread_create(&ThreadID, NULL, (void*(*)(void*))RealTimeThread, this);	// スレッド生成
 			CPUSettings::SetCPUandPolicy(ThreadID, CPUno, SCHED_FIFO);				// CPUコアの割り当てとスケジューリングポリシーの設定
-			SetKernelParameters();		// カーネルパラメータをリアルタイム用に設定
 			PassedLog();
 		}
 		
@@ -122,11 +132,11 @@ class SFthread {
 			}else{
 				EventLog("WITHOUT_ZEROSLEEP MODE.");
 			}
+			SetKernelParameters();		// カーネルパラメータをリアルタイム用に設定
 			pthread_mutex_init(&SyncMutex, nullptr);	// 同期用Mutexの初期化
 			pthread_cond_init(&SyncCond, nullptr);		// 同期用条件の初期化
 			pthread_create(&ThreadID, NULL, (void*(*)(void*))RealTimeThread, this);	// スレッド生成
 			CPUSettings::SetCPUandPolicy(ThreadID, CPUno, SCHED_FIFO);				// CPUコアの割り当てとスケジューリングポリシーの設定
-			SetKernelParameters();		// カーネルパラメータをリアルタイム用に設定
 			PassedLog();
 		}
 		
@@ -450,11 +460,26 @@ class SFthread {
 			// x86_64系の場合
 			#ifdef __x86_64__
 				EventLog("Setting kernel parameters for x86_64");
-				// 下記は実験的なカーネルパラメータ(様子見中)
-				//LinuxCommander::Execute("/bin/echo -1 > /proc/sys/kernel/sched_rt_runtime_us");			// CFSを無効
-				//LinuxCommander::Execute("/bin/echo 2147483647 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を最大化
+				LinuxCommander::Execute("/bin/dmesg -n 1");	// カーネルメッセージの表示を抑制
+				
+				// カーネルパラメータの設定(CFSを無効にする場合)
+				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) ){
+					// 下記が無いと1秒毎にスパイク状の遅延が生じる
+					LinuxCommander::Execute("/bin/echo -1 > /proc/sys/kernel/sched_rt_runtime_us");			// CFSを無効
+					LinuxCommander::Execute("/bin/echo 2147483647 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を最大化
+					EventLog("Kernel param: CFS Disabled");
+				}
+				
+				// カーネルパラメータの設定(PREEMPT_DYNAMICの場合にFULLモードに設定する場合)
+				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) ){
+					LinuxCommander::Execute("/bin/echo \"full\" > /sys/kernel/debug/sched/preempt");
+					EventLog("Kernel param: Set to \"full\" mode on PREEMPT_DYNAMIC");
+				}
+				
+				// リアルタイムアルゴリズムのタイプによる設定
 				if constexpr(SFA == SFalgorithm::WITHOUT_ZEROSLEEP){
 					LinuxCommander::Execute("/bin/echo 0 > /proc/sys/kernel/watchdog");					// 「BUG: soft lockup」警告防止
+					EventLog("Kernel param: Watchdog Disabled");
 				}
 			#endif
 			
@@ -478,8 +503,22 @@ class SFthread {
 			
 			// x86_64系の場合
 			#ifdef __x86_64__
-				// 下記は実験的なカーネルパラメータ(様子見中)
-				//LinuxCommander::Execute("/bin/echo 1000000 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を元に戻す
+				// カーネルパラメータをデフォルト値に戻す(CFSを無効にした場合)
+				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) ){
+					// 下記のように戻しておいた方が安定性の観点から無難
+					LinuxCommander::Execute("/bin/echo 950000 > /proc/sys/kernel/sched_rt_runtime_us");	// CFSを有効，もとに戻す
+					LinuxCommander::Execute("/bin/echo 1000000 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を元に戻す
+					EventLog("Kernel param: CFS Enabled");
+				}
+				
+				// カーネルパラメータをデフォルト値に戻す(PREEMPT_DYNAMICの場合にFULLモードに設定した場合)
+				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) ){
+					LinuxCommander::Execute("/bin/echo \"voluntary\" > /sys/kernel/debug/sched/preempt");
+					EventLog("Kernel param: Set to \"voluntary\" mode on PREEMPT_DYNAMIC");
+				}
+				
+				LinuxCommander::Execute("/bin/dmesg -n 7");	// カーネルメッセージの表示をデフォルト値に戻す
+				EventLog("Kernel param: Returned to default settings.");
 			#endif
 			
 			// ARM系の場合
@@ -488,7 +527,6 @@ class SFthread {
 			#endif
 			
 			// 下記は実験的なカーネルパラメータ(様子見中)
-			//LinuxCommander::Execute("/bin/echo 950000 > /proc/sys/kernel/sched_rt_runtime_us");	// CFSを有効，もとに戻す(古いシステムだと戻せない？？)
 			//LinuxCommander::Execute("/bin/echo 1 > /proc/sys/kernel/watchdog");					// 「BUG: soft lockup」警告防止の解除(ウオッチドックは有効に戻せないらしい)
 			//LinuxCommander::Execute("/bin/echo 1 > /proc/sys/kernel/timer_migration");			// タイマの移行を有効
 			//LinuxCommander::Execute("/bin/echo 32 > /proc/sys/kernel/sched_nr_migrate");			// プロセッサ間を移動できるタスク数を既定値に戻す

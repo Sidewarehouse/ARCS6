@@ -64,8 +64,6 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 		Graph.SetTime(Tact, t);									// [s] グラフ描画用の周期と時刻のセット
 		Graph.SetVars(0, Tcmp*1e6, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット0 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(1, Tact*1e6, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
-		Graph.SetVars(2, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
-		Graph.SetVars(3, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット3 (グラフ番号, 変数0, ..., 変数7)
 		Memory.SetData(Tact, t, Tcmp, Tact, 0, 0, 0, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		// リアルタイム制御ここまで
 	}
