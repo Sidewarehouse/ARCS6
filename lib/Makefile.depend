@@ -140,6 +140,8 @@ SA2-RasPi2.o: SA2-RasPi2.cc SA2-RasPi2.hh RPi2GPIO.hh Limiter.hh \
  ../sys/ARCSprint.hh ../sys/ARCScommon.hh Matrix.hh
 SFthread.o: SFthread.cc SFthread.hh CPUSettings.hh LinuxCommander.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
+SharedMemory.o: SharedMemory.cc SharedMemory.hh ../sys/ARCSassert.hh \
+ ../sys/ARCSeventlog.hh
 Shuffle.o: Shuffle.cc Shuffle.hh Matrix.hh ../sys/ARCSassert.hh \
  RandomGenerator.hh ../sys/ARCSeventlog.hh
 Sigmoid.o: Sigmoid.cc Sigmoid.hh
