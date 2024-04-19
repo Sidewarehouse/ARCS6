@@ -3,7 +3,7 @@
 //!
 //! POSIX準拠の共有メモリを生成・使用・解放するクラス
 //!
-//! @date 2024/04/18
+//! @date 2024/04/19
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -94,10 +94,13 @@ class SharedMemory {
 			mode_t OpenMode;	// /dev/shmファイルのモード
 			int	MmapMode;		// 共有メモリマッピングのモード
 			
+			// モード設定のチェック： ホスト側で尚且つリードオンリーはできない
+			if constexpr( W == ShMemSide::SHM_HOST && M == ShMemMode::SHM_RDONLY ) assert(false);
+			
 			// /dev/shmファイルのモード設定
-			if constexpr (W == ShMemSide::SHM_HOST){
+			if constexpr(W == ShMemSide::SHM_HOST){
 				OpenMode = O_CREAT | O_TRUNC;
-			}else if constexpr (W == ShMemSide::SHM_CLIENT){
+			}else if constexpr(W == ShMemSide::SHM_CLIENT){
 				OpenMode = static_cast<mode_t>(0);
 			}else{
 				assert(false);			// ここには来ない
