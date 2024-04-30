@@ -35,6 +35,7 @@ Discret.o: Discret.cc Discret.hh Matrix.hh ../sys/ARCSassert.hh
 DisturbanceObsrv.o: DisturbanceObsrv.cc DisturbanceObsrv.hh Matrix.hh \
  ../sys/ARCSassert.hh Discret.hh StateSpaceSystem.hh ArcsControl.hh \
  ../sys/ARCSeventlog.hh
+EthLinkChecker.o: EthLinkChecker.cc EthLinkChecker.hh
 FRAgenerator.o: FRAgenerator.cc FRAgenerator.hh ../sys/ARCSeventlog.hh
 FeedforwardNeuralNet3.o: FeedforwardNeuralNet3.cc \
  FeedforwardNeuralNet3.hh Matrix.hh ../sys/ARCSassert.hh \

@@ -2,34 +2,37 @@ ConstParams.o: ConstParams.cc ConstParams.hh ../lib/SFthread.hh \
  ../lib/CPUSettings.hh ../lib/LinuxCommander.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh \
  ../lib/CuiPlot.hh ../lib/FrameGraphics.hh ../lib/RingBuffer.hh \
- ../lib/Matrix.hh
+ ../lib/Matrix.hh ../robot/MZ07/addon/MZ07.hh ../lib/SharedMemory.hh
 ControlFunctions.o: ControlFunctions.cc ControlFunctions.hh \
  ConstParams.hh ../lib/SFthread.hh ../lib/CPUSettings.hh \
  ../lib/LinuxCommander.hh ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh \
  ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh \
  ../lib/FrameGraphics.hh ../lib/RingBuffer.hh ../lib/Matrix.hh \
- InterfaceFunctions.hh ../sys/ARCSprint.hh ../sys/ARCScommon.hh \
- ../lib/Matrix.hh ../lib/Limiter.hh ScreenParams.hh GraphPlot.hh \
- DataMemory.hh ../lib/SharedMemory.hh
+ ../robot/MZ07/addon/MZ07.hh ../lib/SharedMemory.hh InterfaceFunctions.hh \
+ ../sys/ARCSprint.hh ../sys/ARCScommon.hh ../lib/Matrix.hh \
+ ../lib/Limiter.hh ScreenParams.hh GraphPlot.hh DataMemory.hh
 DataMemory.o: DataMemory.cc DataMemory.hh ConstParams.hh \
  ../lib/SFthread.hh ../lib/CPUSettings.hh ../lib/LinuxCommander.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh ../lib/FrameGraphics.hh \
  ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh ../lib/FrameGraphics.hh \
- ../lib/RingBuffer.hh ../lib/Matrix.hh ../lib/CsvManipulator.hh
+ ../lib/RingBuffer.hh ../lib/Matrix.hh ../robot/MZ07/addon/MZ07.hh \
+ ../lib/SharedMemory.hh ../lib/CsvManipulator.hh
 GraphPlot.o: GraphPlot.cc GraphPlot.hh ConstParams.hh ../lib/SFthread.hh \
  ../lib/CPUSettings.hh ../lib/LinuxCommander.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh \
  ../lib/CuiPlot.hh ../lib/FrameGraphics.hh ../lib/RingBuffer.hh \
- ../lib/Matrix.hh ../lib/Matrix.hh
+ ../lib/Matrix.hh ../robot/MZ07/addon/MZ07.hh ../lib/SharedMemory.hh \
+ ../lib/Matrix.hh
 InterfaceFunctions.o: InterfaceFunctions.cc InterfaceFunctions.hh \
  ConstParams.hh ../lib/SFthread.hh ../lib/CPUSettings.hh \
  ../lib/LinuxCommander.hh ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh \
  ../lib/FrameGraphics.hh ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh \
  ../lib/FrameGraphics.hh ../lib/RingBuffer.hh ../lib/Matrix.hh \
- ../sys/ARCSprint.hh ../sys/ARCScommon.hh ../lib/Matrix.hh \
- ../lib/Limiter.hh
+ ../robot/MZ07/addon/MZ07.hh ../lib/SharedMemory.hh ../sys/ARCSprint.hh \
+ ../sys/ARCScommon.hh ../lib/Matrix.hh ../lib/Limiter.hh
 ScreenParams.o: ScreenParams.cc ScreenParams.hh ConstParams.hh \
  ../lib/SFthread.hh ../lib/CPUSettings.hh ../lib/LinuxCommander.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh ../lib/FrameGraphics.hh \
  ../lib/FrameFontSmall.hh ../lib/CuiPlot.hh ../lib/FrameGraphics.hh \
- ../lib/RingBuffer.hh ../lib/Matrix.hh
+ ../lib/RingBuffer.hh ../lib/Matrix.hh ../robot/MZ07/addon/MZ07.hh \
+ ../lib/SharedMemory.hh
