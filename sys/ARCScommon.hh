@@ -3,7 +3,7 @@
 //!
 //! ARCS内で共通に使用する静的関数クラス
 //!
-//! @date 2023/10/19
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2023 Yokokura, Yuki
@@ -12,6 +12,7 @@
 #ifndef ARCSCOMMON
 #define ARCSCOMMON
 
+#include <cstdint>
 #include <string>
 
 namespace ARCS {	// ARCS名前空間

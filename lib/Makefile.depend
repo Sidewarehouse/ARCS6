@@ -68,7 +68,8 @@ IrisClassDatasets.o: IrisClassDatasets.cc IrisClassDatasets.hh Matrix.hh \
 IrisDatasets.o: IrisDatasets.cc IrisDatasets.hh Matrix.hh \
  ../sys/ARCSassert.hh Shuffle.hh RandomGenerator.hh \
  ../sys/ARCSeventlog.hh BatchProcessor.hh
-Limiter.o: Limiter.cc Limiter.hh Matrix.hh ../sys/ARCSassert.hh
+Limiter.o: Limiter.cc Limiter.hh ArcsMatrix.hh ../sys/ARCSassert.hh \
+ Matrix.hh
 LinuxCommander.o: LinuxCommander.cc LinuxCommander.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
 LoadVelocityObsrv.o: LoadVelocityObsrv.cc LoadVelocityObsrv.hh Matrix.hh \
@@ -104,7 +105,7 @@ PCI-3133.o: PCI-3133.cc PCI-3133.hh ../sys/ARCSeventlog.hh
 PCI-3180.o: PCI-3180.cc PCI-3180.hh ../sys/ARCSeventlog.hh
 PCI-3340.o: PCI-3340.cc PCI-3340.hh ../sys/ARCSeventlog.hh
 PCI-3343A.o: PCI-3343A.cc PCI-3343A.hh ../sys/ARCSeventlog.hh Limiter.hh \
- Matrix.hh ../sys/ARCSassert.hh
+ ArcsMatrix.hh ../sys/ARCSassert.hh Matrix.hh
 PCI-46610x.o: PCI-46610x.cc PCI-46610x.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
 PCI-6205C.o: PCI-6205C.cc PCI-6205C.hh ../sys/ARCSeventlog.hh
@@ -113,7 +114,8 @@ PDcontroller.o: PDcontroller.cc PDcontroller.hh
 PIDcontroller.o: PIDcontroller.cc PIDcontroller.hh ../sys/ARCSassert.hh \
  ../sys/ARCSeventlog.hh
 PIcontroller.o: PIcontroller.cc PIcontroller.hh Integrator.hh \
- ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh Limiter.hh Matrix.hh
+ ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh Limiter.hh ArcsMatrix.hh \
+ Matrix.hh
 PhaseLeadLag.o: PhaseLeadLag.cc PhaseLeadLag.hh
 PulseWave.o: PulseWave.cc PulseWave.hh Matrix.hh ../sys/ARCSassert.hh
 RPi2GPIO.o: RPi2GPIO.cc RPi2GPIO.hh
@@ -137,7 +139,7 @@ ResoLoopCutDistObsrvs.o: ResoLoopCutDistObsrvs.cc \
 RingBuffer.o: RingBuffer.cc RingBuffer.hh ../sys/ARCSassert.hh Matrix.hh \
  ../sys/ARCSeventlog.hh
 SA2-RasPi2.o: SA2-RasPi2.cc SA2-RasPi2.hh RPi2GPIO.hh Limiter.hh \
- Matrix.hh ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh \
+ ArcsMatrix.hh ../sys/ARCSassert.hh Matrix.hh ../sys/ARCSeventlog.hh \
  ../sys/ARCSprint.hh ../sys/ARCScommon.hh Matrix.hh
 SFthread.o: SFthread.cc SFthread.hh CPUSettings.hh LinuxCommander.hh \
  ../sys/ARCSassert.hh ../sys/ARCSeventlog.hh
