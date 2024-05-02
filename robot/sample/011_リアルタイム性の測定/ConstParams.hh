@@ -341,8 +341,8 @@ namespace ARCS {	// ARCS名前空間
 			
 			//! @brief 時系列プロットの縦軸最大値
 			static constexpr std::array<double, PLOT_MAX> PLOT_FMAX	= {
-				1.0,	// プロット0
-				1.0,	// プロット1
+				100,	// プロット0
+				200,	// プロット1
 			  	1.0,	// プロット2
 				1.0,	// プロット3
 				1.0,	// プロット4
@@ -361,8 +361,8 @@ namespace ARCS {	// ARCS名前空間
 			
 			//! @brief 時系列プロットの縦軸最小値
 			static constexpr std::array<double, PLOT_MAX> PLOT_FMIN = {
-				-1.0,	// プロット0
-				-1.0,	// プロット1
+				 0.0,	// プロット0
+				 0.0,	// プロット1
 				-1.0,	// プロット2
 				-1.0,	// プロット3
 				-1.0,	// プロット4

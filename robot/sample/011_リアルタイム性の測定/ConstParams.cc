@@ -75,8 +75,8 @@ constexpr std::array<
 // 時系列グラフプロットの各部設定
 //!< @brief 縦軸ラベルの設定
 const std::array<std::string, ConstParams::PLOT_MAX> ConstParams::PLOT_FLABEL = {
-	"---------- [-]",	// プロット0
-	"---------- [-]",	// プロット1
+	"Consump. Time [us]",	// プロット0
+	"Actual Period [us]",	// プロット1
 	"---------- [-]",	// プロット2
 	"---------- [-]",	// プロット3
 	"---------- [-]",	// プロット4
@@ -95,8 +95,8 @@ const std::array<std::string, ConstParams::PLOT_MAX> ConstParams::PLOT_FLABEL = 
 
 //! @brief 時系列グラフプロットの縦軸書式
 const std::array<std::string, ConstParams::PLOT_MAX> ConstParams::PLOT_FFORMAT = {
-	"%6.1f",	// プロット0
-	"%6.1f",	// プロット1
+	"%6.0f",	// プロット0
+	"%6.0f",	// プロット1
 	"%6.1f",	// プロット2
 	"%6.1f",	// プロット3
 	"%6.1f",	// プロット4
@@ -118,8 +118,8 @@ const std::array<
 	std::array<std::string, ConstParams::PLOT_VAR_MAX>,
 	ConstParams::PLOT_MAX
 > ConstParams::PLOT_VAR_NAMES = {{
-	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット0
-	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット1
+	{"Tcmp", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット0
+	{"Tact", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット1
 	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット2
 	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット3
 	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット4

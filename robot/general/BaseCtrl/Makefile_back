@@ -1,5 +1,5 @@
 # ARCS6メイン用Makefile
-# 2024/05/02 Yokokura, Yuki
+# 2021/07/29 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -19,30 +19,11 @@ LIBNAME = $(LIBPATH)/ARCS_LIBS.o
 SRCNAME = $(SRCPATH)/ARCS_SRCS.o
 SYSNAME = $(SYSPATH)/ARCS_SYSS.o
 
-# コンパイラの指定
-CC = gcc
-
-# コンパイラに渡すオプション
-CFLAGS  = -Wall -Weffc++ -std=c++17 -ftree-vectorize -march=native -fPIE -DARCS_IN
-
 # リンカの指定
-LD1 = ld
 LD = g++
 
 # リンカに渡すオプション
-LD1FLAGS = -L.
 LDFLAGS = -lpthread -lm -lncursesw -lrt -ltinfo -lpng -lz
-
-# C++ファイルリスト生成
-.SUFFIXES:.cc .hh .o
-SRC=$(shell ls ../../../src/*.cc)
-SRCF=$(shell ls ../../../src/*.cc | xargs -i basename {})
-SRCOBJ0=$(SRCF:.cc=.o)
-SRCOBJ=$(filter-out OfflineCalculations.cc, $(SRCOBJ0))
-
-CTRL=$(shell ls *.cc)
-CTRLOBJ=$(CTRL:.cc=.o)
-
 
 # すべてコンパイル＆リンク (カーネルモジュール以外)
 all:
@@ -61,42 +42,6 @@ all:
 	@cd $(SYSPATH); $(MAKE) --no-print-directory
 	@$(LD) $(LDFLAGS) -o $(EXENAME) $(ADDNAME) $(LIBNAME) $(SRCNAME) $(SYSNAME) $(LDFLAGS)
 	@rm -f $(SRCPATH)/ConstParams.cc $(SRCPATH)/ConstParams.hh $(SRCPATH)/ControlFunctions.cc $(SRCPATH)/InterfaceFunctions.hh
-
-# 実装移行テスト
-.PHONY: test
-test: ARCS_CTRL.o
-	@echo "MAKEFILE TEST (CTRL) :"
-#	@cd $(SRCPATH); $(MAKE) --no-print-directory test
-	@echo $(SRC)
-	@echo $(SRCOBJ)
-#	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ConstParams.cc
-#	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ControlFunctions.cc
-#	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/InterfaceFunctions.cc
-
-ARCS_CTRL.o: ConstParams.o ControlFunctions.o InterfaceFunctions.o DataMemory.o GraphPlot.o ScreenParams.o
-	$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o ConstParams.o ControlFunctions.o InterfaceFunctions.o DataMemory.o GraphPlot.o ScreenParams.o
-
-ConstParams.o: ConstParams.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ConstParams.cc
-ControlFunctions.o: ControlFunctions.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ControlFunctions.cc
-
-InterfaceFunctions.o: $(SRCPATH)/InterfaceFunctions.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/InterfaceFunctions.cc
-DataMemory.o: $(SRCPATH)/DataMemory.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/DataMemory.cc
-GraphPlot.o: $(SRCPATH)/GraphPlot.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/GraphPlot.cc
-ScreenParams.o: $(SRCPATH)/ScreenParams.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/ScreenParams.cc
-
-
-
-# 実装移行テスト用掃除
-.PHONY: testclean
-testclean:
-	@rm -f *.o
-
 
 # カーネルモジュールのみをコンパイル＆リンク
 .PHONY: mod

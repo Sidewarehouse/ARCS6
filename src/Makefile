@@ -1,5 +1,5 @@
-# ARCS6サブディレクトリ用Makefile
-# 2021/07/31
+# ARCS6 srcディレクトリ用Makefile
+# 2024/05/02
 
 # 最終的に出来上がる中間ファイルの名前
 OBJNAME = ARCS_SRCS.o
@@ -17,14 +17,26 @@ CFLAGS  = -Wall -Weffc++ -std=c++17 -ftree-vectorize -march=native -fPIE -DARCS_
 # リンカに渡すオプション
 LDFLAGS = -L.
 
-# C++ファイル形式の指定
+# C++ファイルリスト生成
 .SUFFIXES:.cc .hh .o
 SRC=$(shell ls *.cc)
 OBJ=$(SRC:.cc=.o)
 
+# C++ファイルリスト生成V2
+SRC0=$(shell ls *.cc)
+SRC1=$(filter-out InterfaceFunctions.cc, $(SRC0))
+OBJ1=$(SRC1:.cc=.o)
+
 # ディレクトリ内すべてコンパイル＆リンク
 all: $(OBJNAME)
 
+# 実装移行テスト
+.PHONY: test
+test:
+	@echo "MAKEFILE TEST (SRC) :"
+	@echo $(SRC1)
+	@echo $(OBJ1)
+	
 # ディレクトリ内すべてコンパイル＆リンク(オフライン計算用)
 offline: $(OBJNAME)
 
