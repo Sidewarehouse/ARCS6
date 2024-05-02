@@ -1,6 +1,6 @@
 //! @file ARCS.cc
 //! @brief Advanced Robot Control System V6, ARCS6
-//! @date 2020/04/07
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //!
 //! @par コーディングの信条
@@ -13,10 +13,10 @@
 //! - いきなり100点を目指すな。60点で動いてから改良せよ。
 //!
 //! @par コーディング既約
-//! - 改変した場合はコメントを添えて，./src/ConstParams.hh の ConstParams::ARCS_REVISION を更新すること。
+//! - システムコードを改変した場合は ./sys/ARCSparams.hh の ARCSparams::ARCS_REVISION を更新すること。
 //! - 一時的にコメントアウトしたコードは最終的に消去すること。
 //! - using namespace std; は例外なく使用禁止。
-//! - 定数値は #define ではなく const を使用すること。マクロは使って良い。
+//! - 定数値は #define ではなく constexpr を使用すること。マクロは使って良い。
 //! - グローバル変数の使用は極力回避すること。
 //! - goto文の使用は極力回避すること。
 //! - コメント文は「口語的表現」でなるべく付けて，コードとの相違がないようにすること。
@@ -29,7 +29,7 @@
 //! - 本プログラムは全体的に亘ってエラー処理・例外処理は行っていない。動かないときは動かない。
 //!   ただし，arcs_assert関数を徹底的に埋め込んで常に動作チェックすること。(開発者:=ユーザというコンセプト)
 //!
-//! Copyright (C) 2011-2023 Yokokura, Yuki
+//! Copyright (C) 2011-2024 Yokokura, Yuki
 //! MIT License. For details, see the LICENSE file.
 
 #include <unistd.h>
@@ -39,7 +39,7 @@
 #include "ARCSeventlog.hh"
 #include "ARCSassert.hh"
 #include "ARCSprint.hh"
-#include "ConstParams.hh"
+#include "ARCSparams.hh"
 #include "ScreenParams.hh"
 #include "GraphPlot.hh"
 
@@ -55,7 +55,7 @@ int main(void){
 	PassedLog();			// イベントログにココを通過したことを記録
 	
 	// main関数のCPUコアとポリシーの設定
-	ARCScommon::SetCPUandPolicy(pthread_self(), ConstParams::ARCS_CPU_MAIN, ConstParams::ARCS_POL_MAIN, ConstParams::ARCS_PRIO_MAIN);
+	ARCScommon::SetCPUandPolicy(pthread_self(), ARCSparams::ARCS_CPU_MAIN, ARCSparams::ARCS_POL_MAIN, ARCSparams::ARCS_PRIO_MAIN);
 	
 	ScreenParams ScrPara;	// 画面パラメータの生成
 	GraphPlot Grph;			// グラフプロットの生成

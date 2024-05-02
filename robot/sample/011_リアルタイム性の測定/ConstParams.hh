@@ -1,18 +1,15 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/04/11
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// MIT License. For details, see the LICENSE file.
 
 #ifndef CONSTPARAMS
 #define CONSTPARAMS
 
-#include <pthread.h>
 #include <cmath>
 #include "SFthread.hh"
 #include "FrameGraphics.hh"
@@ -26,12 +23,6 @@ namespace ARCS {	// ARCS名前空間
 		public:
 			// タイトルに表示させる制御系の名前(識別用に好きな名前を入力)
 			static const std::string CTRLNAME;		//!< (60文字以内)
-			
-			// ARCS改訂番号(ARCSコード改変時にちゃんと変えること)
-			static const std::string ARCS_REVISION;	//!< (16文字以内)
-			
-			// イベントログの設定
-			static const std::string EVENTLOG_NAME;	//!< イベントログファイル名
 			
 			// 画面サイズの設定 (モニタ解像度に合うように設定すること)
 			// 1024×600(WSVGA) の場合に下記をアンコメントすること
@@ -82,29 +73,6 @@ namespace ARCS {	// ARCS名前空間
 				    2,	// [-] 制御用周期実行関数2 (スレッド2) 使用するCPUコア番号
 				    1,	// [-] 制御用周期実行関数3 (スレッド3) 使用するCPUコア番号
 			};
-			
-			// ARCSシステムスレッドの設定
-			static constexpr int ARCS_POL_CMDI = SCHED_RR;	//!< 指令入力スレッドのポリシー
-			static constexpr int ARCS_POL_DISP = SCHED_RR;	//!< 表示スレッドのポリシー
-			static constexpr int ARCS_POL_EMER = SCHED_RR;	//!< 緊急停止スレッドのポリシー
-			static constexpr int ARCS_POL_GRPL = SCHED_RR;	//!< グラフ表示スレッドのポリシー
-			static constexpr int ARCS_POL_INFO = SCHED_RR;	//!< 情報取得スレッドのポリシー
-			static constexpr int ARCS_POL_MAIN = SCHED_RR;	//!< main関数のポリシー
-			static constexpr int ARCS_PRIO_CMDI = 32;		//!< 指令入力スレッドの優先順位(SCHED_RRはFIFO+32にするのがPOSIX.1-2001での決まり)
-			static constexpr int ARCS_PRIO_DISP = 33;		//!< 表示スレッドの優先順位
-			static constexpr int ARCS_PRIO_EMER = 34;		//!< 緊急停止スレッドの優先順位
-			static constexpr int ARCS_PRIO_GRPL = 35;		//!< グラフ表示スレッドの優先順位
-			static constexpr int ARCS_PRIO_INFO = 36;		//!< 情報取得スレッドの優先順位
-			static constexpr int ARCS_PRIO_MAIN = 37;		//!< main関数スレッドの優先順位
-			static constexpr unsigned int  ARCS_CPU_CMDI = 0;		//!< 指令入力スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-			static constexpr unsigned int  ARCS_CPU_DISP = 0;		//!< 表示スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-			static constexpr unsigned int  ARCS_CPU_EMER = 0;		//!< 緊急停止スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-			static constexpr unsigned int  ARCS_CPU_GRPL = 1;		//!< グラフ表示スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-			static constexpr unsigned int  ARCS_CPU_INFO = 0;		//!< 情報取得スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-			static constexpr unsigned int  ARCS_CPU_MAIN = 0;		//!< main関数に割り当てるCPUコア番号（実時間スレッドとは別にすること）
-			static constexpr unsigned long ARCS_TIME_DISP = 33333;	//!< [us] 表示の更新時間（ここの時間は厳密ではない）
-			static constexpr unsigned long ARCS_TIME_GRPL = 33333;	//!< [us] グラフ表示の更新時間（ここの時間は厳密ではない）
-			static constexpr unsigned long ARCS_TIME_INFO = 33333;	//!< [us] 情報取得の更新時間（ここの時間は厳密ではない）
 			
 			// 実験機アクチュエータの設定
 			static constexpr unsigned int ACTUATOR_MAX = 16;	//!< ARCSが対応しているアクチュエータの最大数
@@ -300,7 +268,7 @@ namespace ARCS {	// ARCS名前空間
 			static const std::string PLOT_FRAMEBUFF;					//!< フレームバッファ ファイルデスクリプタ
 			static const std::string PLOT_PNGFILENAME;					//!< スクリーンショットのPNGファイル名
 			static constexpr size_t PLOT_MAX = 16;						//!< [-] グラフプロットの最大数 (変更不可)
-			static constexpr size_t PLOT_NUM =  2;						//!< [-] グラフプロットの数
+			static constexpr size_t PLOT_NUM =  4;						//!< [-] グラフプロットの数
 			static constexpr double PLOT_TIMESPAN = 10;					//!< [s] プロットの時間幅
 			static constexpr double PLOT_TIMERESO = 0.01;				//!< [s] プロットの時間分解能
 			static constexpr size_t PLOT_RINGBUFF = 1024;				//!< [-] プロット用リングバッファの要素数
@@ -373,8 +341,8 @@ namespace ARCS {	// ARCS名前空間
 			
 			//! @brief 時系列プロットの縦軸最大値
 			static constexpr std::array<double, PLOT_MAX> PLOT_FMAX	= {
-				100,	// プロット0
-				200,	// プロット1
+				1.0,	// プロット0
+				1.0,	// プロット1
 			  	1.0,	// プロット2
 				1.0,	// プロット3
 				1.0,	// プロット4
@@ -393,8 +361,8 @@ namespace ARCS {	// ARCS名前空間
 			
 			//! @brief 時系列プロットの縦軸最小値
 			static constexpr std::array<double, PLOT_MAX> PLOT_FMIN = {
-				 0.0,	// プロット0
-				 0.0,	// プロット1
+				-1.0,	// プロット0
+				-1.0,	// プロット1
 				-1.0,	// プロット2
 				-1.0,	// プロット3
 				-1.0,	// プロット4

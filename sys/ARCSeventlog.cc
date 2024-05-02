@@ -4,16 +4,17 @@
 //! ARCS用のイベントログクラス
 //! 注意：リアルタイム空間ではこのライブラリが提供する関数は可能な限り使用しないこと。ジッタに影響するので。デバッグ時なら使用OK。
 //!
-//! @date 2023/10/19
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include <fstream>
 #include "ARCSeventlog.hh"
 #include "ARCScommon.hh"
 #include "ARCSscreen.hh"
+#include "ARCSparams.hh"
 #include "ConstParams.hh"
 
 using namespace ARCS;
@@ -24,11 +25,11 @@ ARCSscreen* ARCSeventlog::ARCSscreenPtr = nullptr;	//!< ARCS画面ポインタ
 //! @brief コンストラクタ
 ARCSeventlog::ARCSeventlog(void){
 	// イベントログファイルの準備とヘッダの書き出し
-	std::ofstream EventLogFile(ConstParams::EVENTLOG_NAME.c_str(), std::ios::out | std::ios::trunc);
+	std::ofstream EventLogFile(ARCSparams::EVENTLOG_NAME.c_str(), std::ios::out | std::ios::trunc);
 	EventLogFile << "ARCS EVENT LOG FILE" << std::endl;
 	EventLogFile << "DATE: " << ARCScommon::GetNowTime();
 	EventLogFile << "CTRLNAME: " << ConstParams::CTRLNAME << std::endl;
-	EventLogFile << "ARCS_REVISION: " << ARCScommon::ARCS_REVISION << std::endl;
+	EventLogFile << "ARCS_REVISION: " << ARCSparams::ARCS_REVISION << std::endl;
 	EventLogFile << std::endl;
 	EventLogFile << "CPU:TIME: FILE:LINE: MESSAGE" << std::endl;
 	PassedLog();
@@ -93,7 +94,7 @@ void ARCSeventlog::PassedLog_from_macro(
 //! @param[in] file ファイル名
 //! @param[in] line 行番号
 void ARCSeventlog::WriteEventLog(const std::string& str, const std::string& file, const int line){
-	std::ofstream EventLogFile(ConstParams::EVENTLOG_NAME.c_str(), std::ios::out | std::ios::app);
+	std::ofstream EventLogFile(ARCSparams::EVENTLOG_NAME.c_str(), std::ios::out | std::ios::app);
 	EventLogFile << file << " " << line << ": " << str <<std::endl;
 }
 
@@ -104,6 +105,6 @@ void ARCSeventlog::WriteEventLog(const std::string& str, const std::string& file
 //! @param[in] cpu	CPUコア
 //! @param[in] time	CPU時間
 void ARCSeventlog::WriteEventLog(const std::string& str, const std::string& file, const int line, const int cpu, const clock_t time){
-	std::ofstream EventLogFile(ConstParams::EVENTLOG_NAME.c_str(), std::ios::out | std::ios::app);
+	std::ofstream EventLogFile(ARCSparams::EVENTLOG_NAME.c_str(), std::ios::out | std::ios::app);
 	EventLogFile << cpu << ":" << time << ": " << file << ":" << line << ": " << str <<std::endl;
 }

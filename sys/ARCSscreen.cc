@@ -1,10 +1,10 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2023/10/19
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include <unistd.h>
@@ -15,6 +15,7 @@
 #include "ARCScommon.hh"
 #include "ARCSeventlog.hh"
 #include "ARCSprint.hh"
+#include "ARCSparams.hh"
 #include "ScreenParams.hh"
 #include "GraphPlot.hh"
 
@@ -83,30 +84,30 @@ ARCSscreen::ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, S
 	pthread_create(&CommandThreadID, NULL, (void*(*)(void*))CommandThread, this);		// 指令入力スレッド生成
 	ARCScommon::SetCPUandPolicy(
 		CommandThreadID,
-		ConstParams::ARCS_CPU_CMDI,
-		ConstParams::ARCS_POL_CMDI,
-		ConstParams::ARCS_PRIO_CMDI
+		ARCSparams::ARCS_CPU_CMDI,
+		ARCSparams::ARCS_POL_CMDI,
+		ARCSparams::ARCS_PRIO_CMDI
 	);
 	pthread_create(&DisplayThreadID, NULL, (void*(*)(void*))DisplayThread, this);		// 表示スレッド生成
 	ARCScommon::SetCPUandPolicy(
 		DisplayThreadID,
-		ConstParams::ARCS_CPU_DISP,
-		ConstParams::ARCS_POL_DISP,
-		ConstParams::ARCS_PRIO_DISP
+		ARCSparams::ARCS_CPU_DISP,
+		ARCSparams::ARCS_POL_DISP,
+		ARCSparams::ARCS_PRIO_DISP
 	);
 	pthread_create(&EmergencyThreadID, NULL, (void*(*)(void*))EmergencyThread, this);	// 緊急停止スレッド生成
 	ARCScommon::SetCPUandPolicy(
 		EmergencyThreadID,
-		ConstParams::ARCS_CPU_EMER,
-		ConstParams::ARCS_POL_EMER,
-		ConstParams::ARCS_PRIO_EMER
+		ARCSparams::ARCS_CPU_EMER,
+		ARCSparams::ARCS_POL_EMER,
+		ARCSparams::ARCS_PRIO_EMER
 	);
 	pthread_create(&GraphThreadID, NULL, (void*(*)(void*))GraphThread, this);			// グラフ表示スレッド生成
 	ARCScommon::SetCPUandPolicy(
 		GraphThreadID,
-		ConstParams::ARCS_CPU_GRPL,
-		ConstParams::ARCS_POL_GRPL,
-		ConstParams::ARCS_PRIO_GRPL
+		ARCSparams::ARCS_CPU_GRPL,
+		ARCSparams::ARCS_POL_GRPL,
+		ARCSparams::ARCS_PRIO_GRPL
 	);
 	
 	PassedLog();	// イベントログにココを通過したことを記録
@@ -380,7 +381,7 @@ void ARCSscreen::DisplayThread(ARCSscreen* const p){
 		}
 		
 		doupdate();							// ARCS画面更新
-		usleep(ConstParams::ARCS_TIME_DISP);// 指定時間だけ待機
+		usleep(ARCSparams::ARCS_TIME_DISP);	// 指定時間だけ待機
 	}
 	endwin();
 	
@@ -453,7 +454,7 @@ void ARCSscreen::GraphThread(ARCSscreen* const p){
 		while(1){
 			p->Graph.DrawWaves();						// グラフ描画実行
 			if(p->CommandStatus == PHAS_STOP) break;	// 停止指令が来たら描画終了
-			usleep(ConstParams::ARCS_TIME_GRPL);		// 指定時間だけ待機
+			usleep(ARCSparams::ARCS_TIME_GRPL);			// 指定時間だけ待機
 		}
 		
 		// 終了指令の待機
@@ -757,7 +758,7 @@ void ARCSscreen::DispBaseScreen(void){
 	for(int i=0;i<=HORIZONTAL_MAX;i++) mvwaddstr(MainScreen,  0,i," ");
 	mvwaddstr(MainScreen,  0,0,"ARCS6 - ADVANCED ROBOT CONTROL SYSTEM V6");
 	mvwprintw(MainScreen, 0,41,"%s",ConstParams::CTRLNAME.c_str());
-	mvwprintw(MainScreen, 0,HORIZONTAL_MAX-16,"%s",ARCScommon::ARCS_REVISION.c_str());
+	mvwprintw(MainScreen, 0, HORIZONTAL_MAX - 16, "%s", ARCSparams::ARCS_REVISION.c_str());
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLUE));
 	for(int i=0;i<=HORIZONTAL_MAX;i++) mvwaddstr(MainScreen,  1,i," ");
 	mvwaddstr(MainScreen,  1,0," REALTIME STATUS      |SAMPLING  ACTUAL |CONSUMPT|ACT. MAX|ACT. MIN| EVENT LOG");

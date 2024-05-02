@@ -1,10 +1,10 @@
 //! @file ConstParams.cc
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2023/10/19
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include "ConstParams.hh"
@@ -15,9 +15,6 @@ using namespace ARCS;
 
 // タイトルに表示させる制御系の名前(識別用に好きな名前を入力)
 const std::string ConstParams::CTRLNAME("<TITLE: NOTITLE >");		//!< (画面に入る文字数以内)
-
-// イベントログの設定
-const std::string ConstParams::EVENTLOG_NAME("EventLog.txt");		//!< イベントログファイル名
 
 // 実験データCSVファイルの設定
 const std::string ConstParams::DATA_NAME("DATA.csv");				//!< CSVファイル名

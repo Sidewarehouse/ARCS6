@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/04/11
+//! @date 2024/05/02
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -13,8 +13,9 @@
 #include "ARCSthread.hh"
 #include "ARCScommon.hh"
 #include "ARCSeventlog.hh"
-#include "ConstParams.hh"
 #include "ARCSassert.hh"
+#include "ARCSparams.hh"
+#include "ConstParams.hh"
 #include "ScreenParams.hh"
 #include "GraphPlot.hh"
 
@@ -48,9 +49,9 @@ ARCSthread::ARCSthread(ARCSassert& Asrt, ScreenParams& SP, GraphPlot& GP) :
 	pthread_create(&InfoGetThreadID, NULL, (void*(*)(void*))InfoGetThread, this);
 	ARCScommon::SetCPUandPolicy(
 		InfoGetThreadID,
-		ConstParams::ARCS_CPU_INFO,
-		ConstParams::ARCS_POL_INFO,
-		ConstParams::ARCS_PRIO_INFO
+		ARCSparams::ARCS_CPU_INFO,
+		ARCSparams::ARCS_POL_INFO,
+		ARCSparams::ARCS_PRIO_INFO
 	);
 	PassedLog();
 }
@@ -154,7 +155,7 @@ void ARCSthread::InfoGetThread(ARCSthread* const p){
 		// 制御用変数値を更新
 		p->CtrlFuncs.UpdateControlValue();	// 制御用周期実行関数群クラス内部で，ARCS画面パラメータに書き込む/から読み込む
 		
-		usleep(ConstParams::ARCS_TIME_INFO);// 指定時間だけ待機
+		usleep(ARCSparams::ARCS_TIME_INFO);	// 指定時間だけ待機
 	}
 	
 	EventLog("InfoGetThread Destructed.");
