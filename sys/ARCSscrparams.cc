@@ -1,20 +1,20 @@
-//! @file ScreenParams.cc
+//! @file ARCSscrparams.cc
 //! @brief ARCS画面パラメータ格納クラス
 //!        ARCS用画面に表示する各種パラメータを格納します。
-//! @date 2020/04/10
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include <tuple>
-#include "ScreenParams.hh"
+#include "ARCSscrparams.hh"
 #include "ARCSeventlog.hh"
 
 using namespace ARCS;
 
 //! @brief コンストラクタ
-ScreenParams::ScreenParams(void)
+ARCSscrparams::ARCSscrparams(void)
 	: TimeMutex(PTHREAD_MUTEX_INITIALIZER),
 	  ActMutex(PTHREAD_MUTEX_INITIALIZER),
 	  IndicMutex(PTHREAD_MUTEX_INITIALIZER),
@@ -45,13 +45,13 @@ ScreenParams::ScreenParams(void)
 }
 
 //! @brief デストラクタ
-ScreenParams::~ScreenParams(){
+ARCSscrparams::~ARCSscrparams(){
 	PassedLog();
 }
 
 //! @brief 時刻を取得する関数
 //! @return	時刻
-double ScreenParams::GetTime(void){
+double ARCSscrparams::GetTime(void){
 	double ret;
 	pthread_mutex_lock(&TimeMutex);
 	ret = Time;
@@ -61,7 +61,7 @@ double ScreenParams::GetTime(void){
 
 //! @brief 時刻を設定する関数
 //! @param[in]	t	時刻
-void ScreenParams::SetTime(const double t){
+void ARCSscrparams::SetTime(const double t){
 	pthread_mutex_lock(&TimeMutex);
 	Time = t;
 	pthread_mutex_unlock(&TimeMutex);
@@ -70,7 +70,7 @@ void ScreenParams::SetTime(const double t){
 //! @brief 実際の制御周期，消費時間，制御周期の最大値，最小値を返す関数
 //! @param[in]	ThreadNum	リアルタイムスレッド番号
 //! @return 制御周期，消費時間，制御周期の最大値，最小値
-std::tuple<double, double, double, double> ScreenParams::GetTimeVars(const unsigned int ThreadNum){
+std::tuple<double, double, double, double> ARCSscrparams::GetTimeVars(const unsigned int ThreadNum){
 	double PT, CT, Max, Min;
 	pthread_mutex_lock(&TimeMutex);
 	PT  = PeriodicTime.at(ThreadNum);
@@ -86,7 +86,7 @@ std::tuple<double, double, double, double> ScreenParams::GetTimeVars(const unsig
 //! @param[out]	CT	消費時間の配列
 //! @param[out]	Max	制御周期の最大値の配列
 //! @param[out]	Min	制御周期の最小値の配列
-void ScreenParams::GetTimeVars(
+void ARCSscrparams::GetTimeVars(
 	std::array<double, ConstParams::THREAD_MAX>& PT,
 	std::array<double, ConstParams::THREAD_MAX>& CT,
 	std::array<double, ConstParams::THREAD_MAX>& Max,
@@ -105,7 +105,7 @@ void ScreenParams::GetTimeVars(
 //! @param[in]	CT	消費時間の配列
 //! @param[in]	Max	制御周期の最大値の配列
 //! @param[in]	Min	制御周期の最小値の配列
-void ScreenParams::SetTimeVars(
+void ARCSscrparams::SetTimeVars(
 	const std::array<double, ConstParams::THREAD_MAX>& PT,
 	const std::array<double, ConstParams::THREAD_MAX>& CT,
 	const std::array<double, ConstParams::THREAD_MAX>& Max,
@@ -121,32 +121,32 @@ void ScreenParams::SetTimeVars(
 
 //! @brief ネットワークリンクフラグを取得する関数
 //! @return ネットワークリンクフラグ
-bool ScreenParams::GetNetworkLink(void){
+bool ARCSscrparams::GetNetworkLink(void){
 	return NetworkLink;
 }
 
 //! @brief ネットワークリンクフラグを設定する関数
 //! @param[in] LinkFlag	ネットワークリンクフラグ
-void ScreenParams::SetNetworkLink(const bool LinkFlag){
+void ARCSscrparams::SetNetworkLink(const bool LinkFlag){
 	NetworkLink = LinkFlag;
 }
 
 //! @brief ロボット初期化フラグを取得する関数
 //! @return ロボット初期化フラグ
-bool ScreenParams::GetInitializing(void){
+bool ARCSscrparams::GetInitializing(void){
 	return Initializing;
 }
 
 //! @brief ロボット初期化フラグを設定する関数
 //! @param[in] InitFlag	ロボット初期化フラグ
-void ScreenParams::SetInitializing(const bool InitFlag){
+void ARCSscrparams::SetInitializing(const bool InitFlag){
 	Initializing = InitFlag;
 }
 
 //! @brief 電流と位置を取得する関数
 //! @param[in]	ActNum	アクチュエータ番号
 //! @return	電流指令，位置応答
-std::tuple<double, double> ScreenParams::GetCurrentAndPosition(const unsigned int ActNum){
+std::tuple<double, double> ARCSscrparams::GetCurrentAndPosition(const unsigned int ActNum){
 	double Current, Position;
 	pthread_mutex_lock(&ActMutex);
 	Current  = CurrentRef.at(ActNum);
@@ -158,7 +158,7 @@ std::tuple<double, double> ScreenParams::GetCurrentAndPosition(const unsigned in
 //! @brief 電流と位置の配列を取得する関数
 //! @param[in]	Current	電流指令の配列
 //! @param[in]	Position	位置応答の配列
-void ScreenParams::GetCurrentAndPosition(
+void ARCSscrparams::GetCurrentAndPosition(
 	std::array<double, ConstParams::ACTUATOR_NUM>& Current,
 	std::array<double, ConstParams::ACTUATOR_NUM>& Position
 ){
@@ -171,7 +171,7 @@ void ScreenParams::GetCurrentAndPosition(
 //! @brief 電流と位置の配列を設定する関数
 //! @param[in]	Current		電流指令
 //! @param[in]	Position	位置応答
-void ScreenParams::SetCurrentAndPosition(
+void ARCSscrparams::SetCurrentAndPosition(
 	const std::array<double, ConstParams::ACTUATOR_NUM>& Current,
 	const std::array<double, ConstParams::ACTUATOR_NUM>& Position
 ){
@@ -183,7 +183,7 @@ void ScreenParams::SetCurrentAndPosition(
 
 //! @brief 任意変数インジケータの配列を返す関数
 //! @param[out]	Vars	任意変数値の配列
-void ScreenParams::GetVarIndicator(std::array<double, ConstParams::INDICVARS_MAX>& Vars){
+void ARCSscrparams::GetVarIndicator(std::array<double, ConstParams::INDICVARS_MAX>& Vars){
 	pthread_mutex_lock(&IndicMutex);
 	Vars = VarIndicator;
 	pthread_mutex_unlock(&IndicMutex);
@@ -191,7 +191,7 @@ void ScreenParams::GetVarIndicator(std::array<double, ConstParams::INDICVARS_MAX
 
 //! @brief 任意変数インジケータの配列を設定する関数
 //! @param[in]	Vars	任意変数値の配列
-void ScreenParams::SetVarIndicator(const std::array<double, ConstParams::INDICVARS_MAX>& Vars){
+void ARCSscrparams::SetVarIndicator(const std::array<double, ConstParams::INDICVARS_MAX>& Vars){
 	pthread_mutex_lock(&IndicMutex);
 	VarIndicator = Vars;
 	pthread_mutex_unlock(&IndicMutex);
@@ -199,7 +199,7 @@ void ScreenParams::SetVarIndicator(const std::array<double, ConstParams::INDICVA
 
 //! @brief オンライン設定変数の配列を返す関数
 //! @param[out]	Vars	オンライン設定変数値の配列
-void ScreenParams::GetOnlineSetVars(std::array<double, ConstParams::ONLINEVARS_MAX>& Vars){
+void ARCSscrparams::GetOnlineSetVars(std::array<double, ConstParams::ONLINEVARS_MAX>& Vars){
 	pthread_mutex_lock(&OnsetMutex);
 	Vars = OnlineSetVar;
 	pthread_mutex_unlock(&OnsetMutex);
@@ -207,7 +207,7 @@ void ScreenParams::GetOnlineSetVars(std::array<double, ConstParams::ONLINEVARS_M
 
 //! @brief オンライン設定変数の配列を設定する関数
 //! @param[in]	Vars	オンライン設定変数値の配列
-void ScreenParams::SetOnlineSetVars(const std::array<double, ConstParams::ONLINEVARS_MAX>& Vars){
+void ARCSscrparams::SetOnlineSetVars(const std::array<double, ConstParams::ONLINEVARS_MAX>& Vars){
 	pthread_mutex_lock(&OnsetMutex);
 	OnlineSetVar = Vars;
 	pthread_mutex_unlock(&OnsetMutex);
@@ -216,7 +216,7 @@ void ScreenParams::SetOnlineSetVars(const std::array<double, ConstParams::ONLINE
 //! @brief オンライン設定変数に値を設定する関数
 //! @param[in]	VarNum	変数番号
 //! @param[in]	VarVal	オンライン設定変数値
-void ScreenParams::SetOnlineSetVar(const unsigned int VarNum, const double VarVal){
+void ARCSscrparams::SetOnlineSetVar(const unsigned int VarNum, const double VarVal){
 	pthread_mutex_lock(&OnsetMutex);
 	OnlineSetVar[VarNum] = VarVal;
 	pthread_mutex_unlock(&OnsetMutex);

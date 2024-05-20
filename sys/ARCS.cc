@@ -40,7 +40,7 @@
 #include "ARCSassert.hh"
 #include "ARCSprint.hh"
 #include "ARCSparams.hh"
-#include "ScreenParams.hh"
+#include "ARCSscrparams.hh"
 #include "GraphPlot.hh"
 
 using namespace ARCS;
@@ -57,7 +57,7 @@ int main(void){
 	// main関数のCPUコアとポリシーの設定
 	ARCScommon::SetCPUandPolicy(pthread_self(), ARCSparams::ARCS_CPU_MAIN, ARCSparams::ARCS_POL_MAIN, ARCSparams::ARCS_PRIO_MAIN);
 	
-	ScreenParams ScrPara;	// 画面パラメータの生成
+	ARCSscrparams ScrPara;	// 画面パラメータの生成
 	GraphPlot Grph;			// グラフプロットの生成
 	ARCSscreen ARCSscr(ARCSlog, ARCSast, ARCSprt, ScrPara, Grph);	// ARCS画面初期化＆初期画面描画
 	ARCSthread ARCSthd(ARCSast, ScrPara, Grph);						// リアルタイムスレッドの生成

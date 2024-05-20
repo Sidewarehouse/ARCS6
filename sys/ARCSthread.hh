@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/04/11
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -17,12 +17,12 @@
 #include <functional>
 #include "ControlFunctions.hh"
 #include "SFthread.hh"
-#include "DataMemory.hh"
+#include "ARCSmemory.hh"
 
 // 前方宣言
 namespace ARCS {
 	class ARCSassert;
-	class ScreenParams;
+	class ARCSscrparams;
 	class GraphPlot;
 }
 
@@ -30,7 +30,7 @@ namespace ARCS {	// ARCS名前空間
 	//! @brief ARCSリアルタイムスレッド管理クラス
 	class ARCSthread {
 		public:
-			ARCSthread(ARCSassert& ARCSast, ScreenParams& SP, GraphPlot& GP);	//!< コンストラクタ
+			ARCSthread(ARCSassert& ARCSast, ARCSscrparams& SP, GraphPlot& GP);	//!< コンストラクタ
 			~ARCSthread();					//!< デストラクタ
 			void Start(void);				//!< スレッドを開始する関数
 			void Stop(void);				//!< スレッドを停止する関数
@@ -42,9 +42,9 @@ namespace ARCS {	// ARCS名前空間
 			const ARCSthread& operator=(const ARCSthread&) = delete;//!< 代入演算子使用禁止
 			
 			ARCSassert& ARCSast;	//!< ARCSアサートへの参照
-			ScreenParams& ScrPara;	//!< 画面パラメータへの参照
+			ARCSscrparams& ScrPara;	//!< 画面パラメータへの参照
 			GraphPlot& Graph;		//!< グラフプロットへの参照
-			DataMemory ExpDatMem;	//!< 実験データ保存メモリ
+			ARCSmemory ExpDatMem;	//!< 実験データ保存メモリ
 			
 			ControlFunctions CtrlFuncs;								//!< 制御用周期実行関数群
 			std::array<std::function<bool(double,double,double)>, ConstParams::THREAD_MAX> CtrlFuncObj;			//!< 制御用周期実行関数の関数オブジェクト配列

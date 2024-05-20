@@ -1,9 +1,9 @@
 //! @file ControlFunctions.hh
 //! @brief 制御用周期実行関数群クラス
-//! @date 2020/03/13
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef CONTROL_FUNCTIONS
@@ -16,9 +16,9 @@
 
 // 前方宣言
 namespace ARCS{
+	class ARCSmemory;
+	class ARCSscrparams;
 	class GraphPlot;
-	class DataMemory;
-	class ScreenParams;
 }
 
 namespace ARCS {	// ARCS名前空間
@@ -34,7 +34,7 @@ class ControlFunctions {
 		};
 		
 		//! @brief コンストラクタ
-		ControlFunctions(ScreenParams& SP, GraphPlot& GP, DataMemory& DM)
+		ControlFunctions(ARCSscrparams& SP, GraphPlot& GP, ARCSmemory& DM)
 			: Screen(SP),			// 画面パラメータへの参照
 				Graph(GP),			// グラフプロットへの参照
 				Memory(DM),			// データメモリへの参照
@@ -92,9 +92,9 @@ class ControlFunctions {
 		ControlFunctions(const ControlFunctions&) = delete;					//!< コピーコンストラクタ使用禁止
 		const ControlFunctions& operator=(const ControlFunctions&) = delete;//!< 代入演算子使用禁止
 		
-		ScreenParams& Screen;			//!< 画面パラメータへの参照
+		ARCSscrparams& Screen;			//!< 画面パラメータへの参照
 		GraphPlot& Graph;				//!< グラフプロットへの参照
-		DataMemory& Memory;				//!< データメモリへの参照
+		ARCSmemory& Memory;				//!< データメモリへの参照
 		InterfaceFunctions Interface;	//!< インターフェースクラス
 		CtrlFuncMode CmdFlag;			//!< 動作モード設定フラグ
 		std::array< std::function<bool(double,double,double)>, ConstParams::THREAD_MAX> CtrlFuncObj;	//!< 各制御用周期実行関数の関数オブジェクト配列

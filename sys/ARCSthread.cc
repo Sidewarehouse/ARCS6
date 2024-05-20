@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/05/02
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -15,14 +15,14 @@
 #include "ARCSeventlog.hh"
 #include "ARCSassert.hh"
 #include "ARCSparams.hh"
+#include "ARCSscrparams.hh"
 #include "ConstParams.hh"
-#include "ScreenParams.hh"
 #include "GraphPlot.hh"
 
 using namespace ARCS;
 
 //! @brief コンストラクタ
-ARCSthread::ARCSthread(ARCSassert& Asrt, ScreenParams& SP, GraphPlot& GP) :
+ARCSthread::ARCSthread(ARCSassert& Asrt, ARCSscrparams& SP, GraphPlot& GP) :
 	ARCSast(Asrt),					// ARCSアサートへの参照
 	ScrPara(SP),					// 画面パラメータへの参照
 	Graph(GP),						// グラフプロットへの参照

@@ -1,5 +1,5 @@
 # ARCS6メイン用Makefile
-# 2024/05/02 Yokokura, Yuki
+# 2024/05/21 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -8,13 +8,13 @@ EXENAME = ARCS
 EVNTLOG = EventLog.txt
 
 # ディレクトリパス
-ADDPATH = ../addon
+EQPPATH = ../equip
 LIBPATH = ../../../lib
 SRCPATH = ../../../src
 SYSPATH = ../../../sys
 
 # 中間ファイルへのパス
-ADDNAME = $(ADDPATH)/ARCS_ADDON.o
+ADDNAME = $(EQPPATH)/ARCS_ADDON.o
 LIBNAME = $(LIBPATH)/ARCS_LIBS.o
 SRCNAME = $(SRCPATH)/ARCS_SRCS.o
 SYSNAME = $(SYSPATH)/ARCS_SYSS.o
@@ -43,60 +43,72 @@ SRCOBJ=$(filter-out OfflineCalculations.cc, $(SRCOBJ0))
 CTRL=$(shell ls *.cc)
 CTRLOBJ=$(CTRL:.cc=.o)
 
+SYS=$(shell ls ../../../sys/*.cc)
+#SYSF=$(shell ls ../../../sys/*.cc | xargs -i basename {})
+SYSOBJ=$(SYS:.cc=.o)
+SYSOBJ_OFLN=$(filter-out ../../../sys/ARCS.o, $(SYSOBJ))
 
 # すべてコンパイル＆リンク (カーネルモジュール以外)
-all:
-	@cp $(SYSPATH)/ARCS.cc.def $(SYSPATH)/ARCS.cc
-	@cp -p ConstParams.cc $(SRCPATH)/
-	@cp -p ConstParams.hh $(SRCPATH)/
-	@cp -p ControlFunctions.cc $(SRCPATH)/
-	@cp -p InterfaceFunctions.hh $(SRCPATH)/
-	@echo "ARCS addon :"
-	@cd $(ADDPATH); $(MAKE) --no-print-directory
-	@echo "ARCS lib :"
+all: ARCS_CTRL.o ARCS_SYS.o
+	@echo "ARCS equip: "
+	@cd $(EQPPATH); $(MAKE) --no-print-directory
+	@echo "ARCS lib: "
 	@cd $(LIBPATH); $(MAKE) --no-print-directory
-	@echo "ARCS src :"
-	@cd $(SRCPATH); $(MAKE) --no-print-directory
-	@echo "ARCS sys :"
-	@cd $(SYSPATH); $(MAKE) --no-print-directory
-	@$(LD) $(LDFLAGS) -o $(EXENAME) $(ADDNAME) $(LIBNAME) $(SRCNAME) $(SYSNAME) $(LDFLAGS)
-	@rm -f $(SRCPATH)/ConstParams.cc $(SRCPATH)/ConstParams.hh $(SRCPATH)/ControlFunctions.cc $(SRCPATH)/InterfaceFunctions.hh
+	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(ADDNAME) $(LIBNAME) $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
 
-# 実装移行テスト
-.PHONY: test
-test: ARCS_CTRL.o
-	@echo "MAKEFILE TEST (CTRL) :"
-#	@cd $(SRCPATH); $(MAKE) --no-print-directory test
-	@echo $(SRC)
-	@echo $(SRCOBJ)
-#	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ConstParams.cc
-#	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ControlFunctions.cc
-#	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/InterfaceFunctions.cc
-
-ARCS_CTRL.o: ConstParams.o ControlFunctions.o InterfaceFunctions.o DataMemory.o GraphPlot.o ScreenParams.o
-	$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o ConstParams.o ControlFunctions.o InterfaceFunctions.o DataMemory.o GraphPlot.o ScreenParams.o
-
+# 制御関数周りのコンパイル＆リンク
+ARCS_CTRL.o: ConstParams.o ControlFunctions.o GraphPlot.o InterfaceFunctions.o
+	@echo -n "ARCS ctrl: "
+	$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o ConstParams.o ControlFunctions.o GraphPlot.o InterfaceFunctions.o
 ConstParams.o: ConstParams.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ConstParams.cc
+	@echo -n "ARCS ctrl: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c ConstParams.cc
 ControlFunctions.o: ControlFunctions.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c ControlFunctions.cc
+	@echo -n "ARCS ctrl: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c ControlFunctions.cc
+GraphPlot.o: GraphPlot.cc
+	@echo -n "ARCS ctrl: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c GraphPlot.cc
+InterfaceFunctions.o: $(SYSPATH)/InterfaceFunctions.cc
+	@echo -n "ARCS ctrl: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SYSPATH)/InterfaceFunctions.cc
 
-InterfaceFunctions.o: $(SRCPATH)/InterfaceFunctions.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/InterfaceFunctions.cc
-DataMemory.o: $(SRCPATH)/DataMemory.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/DataMemory.cc
-GraphPlot.o: $(SRCPATH)/GraphPlot.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/GraphPlot.cc
-ScreenParams.o: $(SRCPATH)/ScreenParams.cc
-	$(CC) -O2 $(LIBHEAD) $(CFLAGS) -I. -I$(SRCPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SRCPATH)/ScreenParams.cc
+# ARCSシステムファイルのコンパイル＆リンク
+ARCS_SYS.o: $(SYSOBJ)
+	@echo -n "ARCS sys: "
+	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS.o $(SYSOBJ)
+$(SYSPATH)/%.o: $(SYSPATH)/%.cc
+	@echo -n "ARCS sys: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 
+# すべてコンパイル＆リンク (オフライン計算用)
+.PHONY: offline
+offline: OfflineCalculations.o ARCS_CTRL.o ARCS_SYS_OFLN.o
+	@echo "ARCS equip: "
+	@cd $(EQPPATH); $(MAKE) --no-print-directory
+	@echo "ARCS lib: "
+	@cd $(LIBPATH); $(MAKE) --no-print-directory
+	@$(LD) -o $(EXENAME) ./OfflineCalculations.o ./ARCS_CTRL.o $(ADDNAME) $(LIBNAME) $(SYSPATH)/ARCS_SYS_OFLN.o $(LDFLAGS)
 
+# オフライン計算エントリポイント
+OfflineCalculations.o: OfflineCalculations.cc
+	@echo -n "ARCS ofln: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineCalculations.cc
 
-# 実装移行テスト用掃除
-.PHONY: testclean
-testclean:
-	@rm -f *.o
+# ARCSシステムファイルのコンパイル＆リンク (オフライン計算用)
+ARCS_SYS_OFLN.o: $(SYSOBJ_OFLN)
+	@echo -n "ARCS ofln: "
+	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS_OFLN.o $(SYSOBJ_OFLN)
 
+# すべてコンパイル＆リンク (アセンブリリスト出力用)
+.PHONY: asmlist
+asmlist:
+	@echo "ARCS equip: "
+	@cd $(EQPPATH); $(MAKE) --no-print-directory asmlist
+	@echo "ARCS lib: "
+	@cd $(LIBPATH); $(MAKE) --no-print-directory asmlist
+	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(CTRL)
+	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SYS)
 
 # カーネルモジュールのみをコンパイル＆リンク
 .PHONY: mod
@@ -105,59 +117,18 @@ mod:
 	@echo -n -e "ARCS mod : \n"
 	@cd ../../../mod; $(MAKE) --no-print-directory
 
-# すべてコンパイル＆リンク (オフライン計算用)
-.PHONY: offline
-offline:
-	@echo "ARCS OFFLINE CALCULATION MODE :" 
-	@cp OfflineCalculations.cc $(SYSPATH)/ARCS.cc
-	@cp -p ConstParams.cc $(SRCPATH)/
-	@cp -p ConstParams.hh $(SRCPATH)/
-	@cp -p ControlFunctions.cc $(SRCPATH)/
-	@cp -p InterfaceFunctions.hh $(SRCPATH)/
-	@echo "ARCS addon :"
-	@cd $(ADDPATH); $(MAKE) --no-print-directory
-	@echo "ARCS lib :"
-	@cd $(LIBPATH); $(MAKE) --no-print-directory
-	@echo "ARCS src :"
-	@cd $(SRCPATH); $(MAKE) --no-print-directory
-	@echo "ARCS sys :"
-	@cd $(SYSPATH); $(MAKE) --no-print-directory
-	@$(LD) $(LDFLAGS) -o $(EXENAME) $(ADDNAME) $(LIBNAME) $(SRCNAME) $(SYSNAME) $(LDFLAGS)
-	@rm -f $(SRCPATH)/ConstParams.cc $(SRCPATH)/ConstParams.hh $(SRCPATH)/ControlFunctions.cc $(SRCPATH)/InterfaceFunctions.hh
-	@cp $(SYSPATH)/ARCS.cc.def $(SYSPATH)/ARCS.cc
-	
-# すべてコンパイル＆リンク (オフライン計算＋アセンブリリスト出力用)
-.PHONY: asmlist
-asmlist:
-	@echo "ARCS OFFLINE ASM LIST MODE :"
-	@cp OfflineCalculations.cc $(SYSPATH)/ARCS.cc
-	@cp -p ConstParams.cc $(SRCPATH)/
-	@cp -p ConstParams.hh $(SRCPATH)/
-	@cp -p ControlFunctions.cc $(SRCPATH)/
-	@cp -p InterfaceFunctions.hh $(SRCPATH)/
-	@echo "ARCS addon :"
-	@cd $(ADDPATH); $(MAKE) --no-print-directory asmlist
-	@echo "ARCS lib :"
-	@cd $(LIBPATH); $(MAKE) --no-print-directory asmlist
-	@echo "ARCS src :"
-	@cd $(SRCPATH); $(MAKE) --no-print-directory asmlist
-	@echo "ARCS sys :"
-	@cd $(SYSPATH); $(MAKE) --no-print-directory asmlist
-	@rm -f $(SRCPATH)/ConstParams.cc $(SRCPATH)/ConstParams.hh $(SRCPATH)/ControlFunctions.cc $(SRCPATH)/InterfaceFunctions.hh
-	@cp $(SYSPATH)/ARCS.cc.def $(SYSPATH)/ARCS.cc
-
 # 掃除
 .PHONY: clean
 clean:
-	@$(MAKE) --no-print-directory clean -C $(ADDPATH)
+	@$(MAKE) --no-print-directory clean -C $(EQPPATH)
 	@$(MAKE) --no-print-directory clean -C $(LIBPATH)
-	@$(MAKE) --no-print-directory clean -C $(SRCPATH)
-	@$(MAKE) --no-print-directory clean -C $(SYSPATH)
 	@rm -f $(EXENAME)
 	@rm -f $(EVNTLOG)
+	@rm -f *.o
+	@rm -f *.s
 	@rm -f core
-	@rm -f $(SRCPATH)/ConstParams.cc $(SRCPATH)/ConstParams.hh $(SRCPATH)/ControlFunctions.cc $(SRCPATH)/InterfaceFunctions.hh
-
+	@rm -f $(SYSPATH)/*.o
+	
 # カーネルモジュールの掃除
 .PHONY: mod_clean
 mod_clean:
@@ -172,7 +143,7 @@ dep:
 	@cp -p ConstParams.hh $(SRCPATH)/
 	@cp -p ControlFunctions.cc $(SRCPATH)/
 	@cp -p InterfaceFunctions.hh $(SRCPATH)/
-	@cd $(ADDPATH); $(MAKE) --no-print-directory dep
+	@cd $(EQPPATH); $(MAKE) --no-print-directory dep
 	@cd $(LIBPATH); $(MAKE) --no-print-directory dep
 	@cd $(SRCPATH); $(MAKE) --no-print-directory dep
 	@cd $(SYSPATH); $(MAKE) --no-print-directory dep
@@ -182,7 +153,7 @@ dep:
 .PHONY: debug
 debug:
 	@echo "ARCS GDB DEBUG MODE :"
-	@$(MAKE) --no-print-directory clean -C $(ADDPATH)
+	@$(MAKE) --no-print-directory clean -C $(EQPPATH)
 	@$(MAKE) --no-print-directory clean -C $(LIBPATH)
 	@$(MAKE) --no-print-directory clean -C $(SRCPATH)
 	@$(MAKE) --no-print-directory clean -C $(SYSPATH)
@@ -192,7 +163,7 @@ debug:
 	@cp -p ConstParams.hh $(SRCPATH)/
 	@cp -p ControlFunctions.cc $(SRCPATH)/
 	@cp -p InterfaceFunctions.hh $(SRCPATH)/
-	@cd $(ADDPATH); $(MAKE) --no-print-directory debug
+	@cd $(EQPPATH); $(MAKE) --no-print-directory debug
 	@cd $(LIBPATH); $(MAKE) --no-print-directory debug
 	@cd $(SRCPATH); $(MAKE) --no-print-directory debug
 	@cd $(SYSPATH); $(MAKE) --no-print-directory debug

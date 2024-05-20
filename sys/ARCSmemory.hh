@@ -1,16 +1,16 @@
-//! @file DataMemory.hh
+//! @file ARCSmemory.hh
 //! @brief データメモリクラス
 //!
 //! 実験データを保存してCSVファイルへの出力を行うクラス。
 //!
-//! @date 2020/06/11
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
-#ifndef DATAMEMORY
-#define DATAMEMORY
+#ifndef ARCSMEMORY
+#define ARCSMEMORY
 
 #include <array>
 #include <memory>
@@ -19,10 +19,10 @@
 
 namespace ARCS {	// ARCS名前空間
 	//! @brief データメモリクラス
-	class DataMemory {
+	class ARCSmemory {
 		public:
-			DataMemory();				//!< コンストラクタ
-			~DataMemory();				//!< デストラクタ
+			ARCSmemory();				//!< コンストラクタ
+			~ARCSmemory();				//!< デストラクタ
 			void Reset(void);			//!< リセットする関数
 			void WriteCsvFile(void);	//!< CSVファイルを書き出す関数
 			
@@ -66,9 +66,9 @@ namespace ARCS {	// ARCS名前空間
 			}
 			
 		private:
-			DataMemory(DataMemory&& r) = delete;					//!< ムーブコンストラクタ使用禁止
-			DataMemory(const DataMemory&) = delete;					//!< コピーコンストラクタ使用禁止
-			const DataMemory& operator=(const DataMemory&) = delete;//!< 代入演算子使用禁止
+			ARCSmemory(ARCSmemory&& r) = delete;					//!< ムーブコンストラクタ使用禁止
+			ARCSmemory(const ARCSmemory&) = delete;					//!< コピーコンストラクタ使用禁止
+			const ARCSmemory& operator=(const ARCSmemory&) = delete;//!< 代入演算子使用禁止
 			
 			//! @brief [-] データの要素数(丸め誤差対策のために念のため1個分メモリを多く確保しておく)
 			static constexpr size_t ELEMENT_NUM = (ConstParams::DATA_END - ConstParams::DATA_START)/ConstParams::DATA_RESO + 1;

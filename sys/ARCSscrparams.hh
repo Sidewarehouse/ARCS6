@@ -1,14 +1,14 @@
-//! @file ScreenParams.hh
+//! @file ARCSscrparams.hh
 //! @brief ARCS画面パラメータ格納クラス
 //!        ARCS用画面に表示する各種パラメータを格納します。
-//! @date 2020/04/10
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
-#ifndef SCREENPARAMS
-#define SCREENPARAMS
+#ifndef ARCSSCRPARAMS
+#define ARCSSCRPARAMS
 
 #include <pthread.h>
 #include <array>
@@ -16,10 +16,10 @@
 
 namespace ARCS {	// ARCS名前空間
 	//! @brief ARCS画面パラメータ格納クラス
-	class ScreenParams {
+	class ARCSscrparams {
 		public:
-			ScreenParams();		//!< コンストラクタ
-			~ScreenParams();	//!< デストラクタ
+			ARCSscrparams();		//!< コンストラクタ
+			~ARCSscrparams();	//!< デストラクタ
 			
 			// リアルタイムスレッド関連の関数
 			double GetTime(void);						//!< 時刻を取得する関数
@@ -117,8 +117,8 @@ namespace ARCS {	// ARCS名前空間
 			}
 			
 		private:
-			ScreenParams(const ScreenParams&) = delete;					//!< コピーコンストラクタ使用禁止
-			const ScreenParams& operator=(const ScreenParams&) = delete;//!< 代入演算子使用禁止
+			ARCSscrparams(const ARCSscrparams&) = delete;					//!< コピーコンストラクタ使用禁止
+			const ARCSscrparams& operator=(const ARCSscrparams&) = delete;//!< 代入演算子使用禁止
 			
 			// Mutexロック
 			pthread_mutex_t TimeMutex;	//!< 時刻関連変数アクセス用Mutex

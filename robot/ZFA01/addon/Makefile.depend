@@ -1,6 +1,0 @@
-AddonTemplate.o: AddonTemplate.cc AddonTemplate.hh \
- ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh
-ZFA01.o: ZFA01.cc ZFA01.hh ../../../lib/Matrix.hh \
- ../../../sys/ARCSassert.hh ../../../lib/TwoInertiaParamDef.hh \
- ../../../lib/Limiter.hh ../../../lib/Matrix.hh \
- ../../../sys/ARCSeventlog.hh
