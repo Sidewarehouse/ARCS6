@@ -33,6 +33,9 @@ LD = g++
 LD1FLAGS = -L.
 LDFLAGS = -lpthread -lm -lncursesw -lrt -ltinfo -lpng -lz
 
+# ライブラリヘッダファイルへのパス
+LIBHEAD = -I/usr/src/linux/include
+
 # C++ファイルリスト生成
 .SUFFIXES:.cc .hh .o
 SRC=$(shell ls ../../../src/*.cc)
@@ -40,23 +43,32 @@ SRCF=$(shell ls ../../../src/*.cc | xargs -i basename {})
 SRCOBJ0=$(SRCF:.cc=.o)
 SRCOBJ=$(filter-out OfflineCalculations.cc, $(SRCOBJ0))
 
-CTRL=$(shell ls *.cc)
-CTRLOBJ=$(CTRL:.cc=.o)
+# ARCSライブラリ用ファイルリスト生成
+LIB=$(shell ls ../../../lib/*.cc)
+LIBOBJ=$(LIB:.cc=.o)
+LIBOBJ_DEBG=$(LIB:.cc=_dbg.o)
 
+# 制御コード用ファイルリスト生成
+CTRL0=$(shell ls *.cc)
+CTRL=$(filter-out OfflineCalculations.cc, $(CTRL0))
+CTRLOBJ=$(CTRL:.cc=.o)
+CTRLOBJ_DEBG=$(CTRL:.cc=_dbg.o)
+
+# ARCSシステム用ファイルリスト生成
 SYS=$(shell ls ../../../sys/*.cc)
 #SYSF=$(shell ls ../../../sys/*.cc | xargs -i basename {})
 SYSOBJ=$(SYS:.cc=.o)
 SYSOBJ_OFLN=$(filter-out ../../../sys/ARCS.o, $(SYSOBJ))
+SYSOBJ_DEBG=$(SYS:.cc=_dbg.o)
 
-# すべてコンパイル＆リンク (カーネルモジュール以外)
-all: ARCS_CTRL.o ARCS_SYS.o
+# すべてコンパイル＆リンク（通常モード）
+all: ARCS_LIB.o ARCS_CTRL.o ARCS_SYS.o
 	@echo "ARCS equip: "
 	@cd $(EQPPATH); $(MAKE) --no-print-directory
-	@echo "ARCS lib: "
-	@cd $(LIBPATH); $(MAKE) --no-print-directory
-	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(ADDNAME) $(LIBNAME) $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
-
-# 制御関数周りのコンパイル＆リンク
+#	@echo "ARCS lib: "
+#	@cd $(LIBPATH); $(MAKE) --no-print-directory
+	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(ADDNAME) $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
+# 制御関数周りのコンパイル＆リンク（通常モード）
 ARCS_CTRL.o: ConstParams.o ControlFunctions.o GraphPlot.o InterfaceFunctions.o
 	@echo -n "ARCS ctrl: "
 	$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o ConstParams.o ControlFunctions.o GraphPlot.o InterfaceFunctions.o
@@ -72,14 +84,21 @@ GraphPlot.o: GraphPlot.cc
 InterfaceFunctions.o: $(SYSPATH)/InterfaceFunctions.cc
 	@echo -n "ARCS ctrl: "
 	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SYSPATH)/InterfaceFunctions.cc
-
-# ARCSシステムファイルのコンパイル＆リンク
+# ARCSシステムファイルのコンパイル＆リンク（通常モード）
 ARCS_SYS.o: $(SYSOBJ)
 	@echo -n "ARCS sys: "
 	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS.o $(SYSOBJ)
 $(SYSPATH)/%.o: $(SYSPATH)/%.cc
 	@echo -n "ARCS sys: "
 	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# ARCSライブラリのコンパイル＆リンク（通常モード）
+ARCS_LIB.o: $(LIBOBJ)
+	@echo -n "ARCS6-lib: "
+	$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB.o $(LIBOBJ)
+$(LIBPATH)/%.o: $(LIBPATH)/%.cc
+	@echo -n "ARCS6-lib: "
+	$(CC) -O2 -pipe $(CFLAGS) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+
 
 # すべてコンパイル＆リンク (オフライン計算用)
 .PHONY: offline
@@ -100,15 +119,42 @@ ARCS_SYS_OFLN.o: $(SYSOBJ_OFLN)
 	@echo -n "ARCS ofln: "
 	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS_OFLN.o $(SYSOBJ_OFLN)
 
-# すべてコンパイル＆リンク (アセンブリリスト出力用)
+# すべてコンパイル (アセンブリリスト出力用)
 .PHONY: asmlist
 asmlist:
+	@echo "ARCS ASM LIST MODE:"
 	@echo "ARCS equip: "
 	@cd $(EQPPATH); $(MAKE) --no-print-directory asmlist
 	@echo "ARCS lib: "
 	@cd $(LIBPATH); $(MAKE) --no-print-directory asmlist
 	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(CTRL)
 	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SYS)
+
+# デバッグモード
+.PHONY: debug
+debug: ARCS_CTRL_DEBG.o ARCS_LIB_DEBG.o ARCS_SYS_DEBG.o
+	@echo "ARCS equip: "
+	@cd $(EQPPATH); $(MAKE) --no-print-directory debug
+	$(LD) -o $(EXENAME) ./ARCS_CTRL_DEBG.o $(ADDNAME) $(LIBPATH)/ARCS_LIB_DEBG.o $(SYSPATH)/ARCS_SYS_DEBG.o $(LDFLAGS)
+	@gdb ARCS
+# 制御コードのコンパイル＆リンク（デバッグモード）
+ARCS_CTRL_DEBG.o: $(CTRLOBJ_DEBG)
+	@$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL_DEBG.o $(CTRLOBJ_DEBG)
+%_dbg.o: %.cc
+	@echo -n "ARCS6-debg-ctrl: "
+	$(CC) -ggdb3 -Og $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# ARCSライブラリのコンパイル＆リンク（デバッグモード）
+ARCS_LIB_DEBG.o: $(LIBOBJ_DEBG)
+	@$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB_DEBG.o $(LIBOBJ_DEBG)
+$(LIBPATH)/%_dbg.o: $(LIBPATH)/%.cc
+	@echo -n "ARCS6-debg-lib: "
+	$(CC) -ggdb3 -Og $(CFLAGS) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# ARCSシステムのコンパイル＆リンク（デバッグモード）
+ARCS_SYS_DEBG.o: $(SYSOBJ_DEBG)
+	@$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS_DEBG.o $(SYSOBJ_DEBG)
+$(SYSPATH)/%_dbg.o: $(SYSPATH)/%.cc
+	@echo -n "ARCS6-debg-sys: "
+	$(CC) -ggdb3 -Og $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 
 # カーネルモジュールのみをコンパイル＆リンク
 .PHONY: mod
@@ -150,8 +196,8 @@ dep:
 	@rm -f $(SRCPATH)/ConstParams.cc $(SRCPATH)/ConstParams.hh $(SRCPATH)/ControlFunctions.cc $(SRCPATH)/InterfaceFunctions.hh
 
 # デバッグ
-.PHONY: debug
-debug:
+.PHONY: debug0
+debug0:
 	@echo "ARCS GDB DEBUG MODE :"
 	@$(MAKE) --no-print-directory clean -C $(EQPPATH)
 	@$(MAKE) --no-print-directory clean -C $(LIBPATH)
