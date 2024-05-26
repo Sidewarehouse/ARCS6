@@ -1,5 +1,5 @@
 # ARCS6メイン用Makefile
-# 2024/05/21 Yokokura, Yuki
+# 2024/05/27 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -7,8 +7,9 @@ EXENAME = ARCS
 # イベントログの名前
 EVNTLOG = EventLog.txt
 
-# ディレクトリパス
-EQPPATH = ../equip
+# 相対ディレクトリパス
+EQPPATH  = ../equip
+EQPCPATH = ../equip/c
 LIBPATH = ../../../lib
 SRCPATH = ../../../src
 SYSPATH = ../../../sys
@@ -23,7 +24,7 @@ SYSNAME = $(SYSPATH)/ARCS_SYSS.o
 CC = gcc
 
 # コンパイラに渡すオプション
-CFLAGS  = -Wall -Weffc++ -std=c++17 -ftree-vectorize -march=native -fPIE -DARCS_IN
+CFLAGS  = -pipe -Wall -Weffc++ -std=c++17 -ftree-vectorize -march=native -fPIE -DARCS_IN
 
 # リンカの指定
 LD1 = ld
@@ -43,16 +44,26 @@ SRCF=$(shell ls ../../../src/*.cc | xargs -i basename {})
 SRCOBJ0=$(SRCF:.cc=.o)
 SRCOBJ=$(filter-out OfflineCalculations.cc, $(SRCOBJ0))
 
-# ARCSライブラリ用ファイルリスト生成
-LIB=$(shell ls ../../../lib/*.cc)
-LIBOBJ=$(LIB:.cc=.o)
-LIBOBJ_DEBG=$(LIB:.cc=_dbg.o)
-
 # 制御コード用ファイルリスト生成
 CTRL0=$(shell ls *.cc)
 CTRL=$(filter-out OfflineCalculations.cc, $(CTRL0))
 CTRLOBJ=$(CTRL:.cc=.o)
 CTRLOBJ_DEBG=$(CTRL:.cc=_dbg.o)
+
+# 実験装置固有コード用ファイルリスト生成
+EQP=$(shell ls ../equip/*.cc)
+EQPOBJ=$(EQP:.cc=.o)
+EQPOBJ_DEBG=$(EQP:.cc=_dbg.o)
+
+# 実験装置固有C言語コード用ファイルリスト生成
+EQPC=$(shell ls ../equip/c/*.c)
+EQPCOBJ=$(EQPC:.c=.o)
+EQPCOBJ_DEBG=$(EQPC:.c=_dbg.o)
+
+# ARCSライブラリ用ファイルリスト生成
+LIB=$(shell ls ../../../lib/*.cc)
+LIBOBJ=$(LIB:.cc=.o)
+LIBOBJ_DEBG=$(LIB:.cc=_dbg.o)
 
 # ARCSシステム用ファイルリスト生成
 SYS=$(shell ls ../../../sys/*.cc)
@@ -61,44 +72,39 @@ SYSOBJ=$(SYS:.cc=.o)
 SYSOBJ_OFLN=$(filter-out ../../../sys/ARCS.o, $(SYSOBJ))
 SYSOBJ_DEBG=$(SYS:.cc=_dbg.o)
 
-# すべてコンパイル＆リンク（通常モード）
-all: ARCS_LIB.o ARCS_CTRL.o ARCS_SYS.o
-	@echo "ARCS equip: "
-	@cd $(EQPPATH); $(MAKE) --no-print-directory
-#	@echo "ARCS lib: "
-#	@cd $(LIBPATH); $(MAKE) --no-print-directory
-	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(ADDNAME) $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
-# 制御関数周りのコンパイル＆リンク（通常モード）
-ARCS_CTRL.o: ConstParams.o ControlFunctions.o GraphPlot.o InterfaceFunctions.o
-	@echo -n "ARCS ctrl: "
-	$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o ConstParams.o ControlFunctions.o GraphPlot.o InterfaceFunctions.o
-ConstParams.o: ConstParams.cc
-	@echo -n "ARCS ctrl: "
-	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c ConstParams.cc
-ControlFunctions.o: ControlFunctions.cc
-	@echo -n "ARCS ctrl: "
-	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c ControlFunctions.cc
-GraphPlot.o: GraphPlot.cc
-	@echo -n "ARCS ctrl: "
-	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c GraphPlot.cc
-InterfaceFunctions.o: $(SYSPATH)/InterfaceFunctions.cc
-	@echo -n "ARCS ctrl: "
-	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SYSPATH)/InterfaceFunctions.cc
-# ARCSシステムファイルのコンパイル＆リンク（通常モード）
-ARCS_SYS.o: $(SYSOBJ)
-	@echo -n "ARCS sys: "
-	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS.o $(SYSOBJ)
-$(SYSPATH)/%.o: $(SYSPATH)/%.cc
-	@echo -n "ARCS sys: "
+# 通常モード
+all: ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS.o
+	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
+# 制御コードのコンパイル＆リンク（通常モード）
+ARCS_CTRL.o: $(CTRLOBJ)
+	@$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o $(CTRLOBJ)
+%.o: %.cc
+	@echo -n "ARCS6-ctrl: "
 	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# 実験装置固有コードのコンパイル＆リンク（通常モード）
+ARCS_EQP.o: $(EQPOBJ)
+	@$(LD1) -L. -r -o $(EQPPATH)/ARCS_EQP.o $(EQPOBJ)
+$(EQPPATH)/%.o: $(EQPPATH)/%.cc
+	@echo -n "ARCS6-eqp: "
+	$(CC) -O2 $(CFLAGS) -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# 実験装置固有C言語コードのコンパイル＆リンク（通常モード）
+ARCS_EQPC.o: $(EQPCOBJ)
+	@$(LD1) $(LD1FLAGS) -r -o $(EQPCPATH)/ARCS_EQPC.o $(EQPCOBJ)
+$(EQPCPATH)/%.o: $(EQPCPATH)/%.c
+	@echo -n "ARCS6-eqpc: "
+	$(CC) -O2 -Wall -std=c17 -march=native -fPIE -I$(EQPCPATH) -c $< -o $@
 # ARCSライブラリのコンパイル＆リンク（通常モード）
 ARCS_LIB.o: $(LIBOBJ)
-	@echo -n "ARCS6-lib: "
-	$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB.o $(LIBOBJ)
+	@$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB.o $(LIBOBJ)
 $(LIBPATH)/%.o: $(LIBPATH)/%.cc
 	@echo -n "ARCS6-lib: "
-	$(CC) -O2 -pipe $(CFLAGS) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
-
+	$(CC) -O2 $(CFLAGS) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# ARCSシステムファイルのコンパイル＆リンク（通常モード）
+ARCS_SYS.o: $(SYSOBJ)
+	@$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS.o $(SYSOBJ)
+$(SYSPATH)/%.o: $(SYSPATH)/%.cc
+	@echo -n "ARCS6-sys: "
+	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 
 # すべてコンパイル＆リンク (オフライン計算用)
 .PHONY: offline
@@ -132,10 +138,8 @@ asmlist:
 
 # デバッグモード
 .PHONY: debug
-debug: ARCS_CTRL_DEBG.o ARCS_LIB_DEBG.o ARCS_SYS_DEBG.o
-	@echo "ARCS equip: "
-	@cd $(EQPPATH); $(MAKE) --no-print-directory debug
-	$(LD) -o $(EXENAME) ./ARCS_CTRL_DEBG.o $(ADDNAME) $(LIBPATH)/ARCS_LIB_DEBG.o $(SYSPATH)/ARCS_SYS_DEBG.o $(LDFLAGS)
+debug: ARCS_CTRL_DEBG.o ARCS_EQP_DEBG.o ARCS_EQPC_DEBG.o ARCS_LIB_DEBG.o ARCS_SYS_DEBG.o
+	@$(LD) -o $(EXENAME) ./ARCS_CTRL_DEBG.o $(EQPPATH)/ARCS_EQP_DEBG.o $(EQPCPATH)/ARCS_EQPC_DEBG.o $(LIBPATH)/ARCS_LIB_DEBG.o $(SYSPATH)/ARCS_SYS_DEBG.o $(LDFLAGS)
 	@gdb ARCS
 # 制御コードのコンパイル＆リンク（デバッグモード）
 ARCS_CTRL_DEBG.o: $(CTRLOBJ_DEBG)
@@ -143,6 +147,18 @@ ARCS_CTRL_DEBG.o: $(CTRLOBJ_DEBG)
 %_dbg.o: %.cc
 	@echo -n "ARCS6-debg-ctrl: "
 	$(CC) -ggdb3 -Og $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# 実験装置固有コードのコンパイル＆リンク（デバッグモード）
+ARCS_EQP_DEBG.o: $(EQPOBJ_DEBG)
+	@$(LD1) -L. -r -o $(EQPPATH)/ARCS_EQP_DEBG.o $(EQPOBJ_DEBG)
+$(EQPPATH)/%_dbg.o: $(EQPPATH)/%.cc
+	@echo -n "ARCS6-debg-eqp: "
+	$(CC) -ggdb3 -Og $(CFLAGS) -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+# 実験装置固有C言語コードのコンパイル＆リンク（デバッグモード）
+ARCS_EQPC_DEBG.o: $(EQPCOBJ_DEBG)
+	@$(LD1) $(LD1FLAGS) -r -o $(EQPCPATH)/ARCS_EQPC_DEBG.o $(EQPCOBJ_DEBG)
+$(EQPCPATH)/%_dbg.o: $(EQPCPATH)/%.c
+	@echo -n "ARCS6-debg-eqpc: "
+	$(CC) -ggdb3 -Og -Wall -std=c17 -march=native -fPIE -I$(EQPCPATH) -c $< -o $@
 # ARCSライブラリのコンパイル＆リンク（デバッグモード）
 ARCS_LIB_DEBG.o: $(LIBOBJ_DEBG)
 	@$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB_DEBG.o $(LIBOBJ_DEBG)
