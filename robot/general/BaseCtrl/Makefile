@@ -1,5 +1,5 @@
 # ARCS6メイン用Makefile
-# 2024/05/27 Yokokura, Yuki
+# 2024/05/28 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -67,7 +67,6 @@ LIBOBJ_DEBG=$(LIB:.cc=_dbg.o)
 
 # ARCSシステム用ファイルリスト生成
 SYS=$(shell ls ../../../sys/*.cc)
-#SYSF=$(shell ls ../../../sys/*.cc | xargs -i basename {})
 SYSOBJ=$(SYS:.cc=.o)
 SYSOBJ_OFLN=$(filter-out ../../../sys/ARCS.o, $(SYSOBJ))
 SYSOBJ_DEBG=$(SYS:.cc=_dbg.o)
@@ -106,35 +105,25 @@ $(SYSPATH)/%.o: $(SYSPATH)/%.cc
 	@echo -n "ARCS6-sys: "
 	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 
-# すべてコンパイル＆リンク (オフライン計算用)
+# オフライン計算モード
 .PHONY: offline
-offline: OfflineCalculations.o ARCS_CTRL.o ARCS_SYS_OFLN.o
-	@echo "ARCS equip: "
-	@cd $(EQPPATH); $(MAKE) --no-print-directory
-	@echo "ARCS lib: "
-	@cd $(LIBPATH); $(MAKE) --no-print-directory
-	@$(LD) -o $(EXENAME) ./OfflineCalculations.o ./ARCS_CTRL.o $(ADDNAME) $(LIBNAME) $(SYSPATH)/ARCS_SYS_OFLN.o $(LDFLAGS)
-
+offline: OfflineCalculations.o ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS_OFLN.o
+	@$(LD) -o $(EXENAME) ./OfflineCalculations.o ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS_OFLN.o $(LDFLAGS)
 # オフライン計算エントリポイント
 OfflineCalculations.o: OfflineCalculations.cc
-	@echo -n "ARCS ofln: "
+	@echo -n "ARCS6-ofln: "
 	$(CC) -O2 $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineCalculations.cc
-
-# ARCSシステムファイルのコンパイル＆リンク (オフライン計算用)
+# ARCSシステムファイルのコンパイル＆リンク (オフライン計算モード)
 ARCS_SYS_OFLN.o: $(SYSOBJ_OFLN)
-	@echo -n "ARCS ofln: "
-	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS_OFLN.o $(SYSOBJ_OFLN)
+	@$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS_OFLN.o $(SYSOBJ_OFLN)
 
-# すべてコンパイル (アセンブリリスト出力用)
+# アセンブリリスト出力モード
 .PHONY: asmlist
-asmlist:
-	@echo "ARCS ASM LIST MODE:"
-	@echo "ARCS equip: "
-	@cd $(EQPPATH); $(MAKE) --no-print-directory asmlist
-	@echo "ARCS lib: "
-	@cd $(LIBPATH); $(MAKE) --no-print-directory asmlist
-	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(CTRL)
-	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $(SYS)
+asmlist: OfflineCalculations.s
+# オフライン計算エントリポイント
+OfflineCalculations.s: OfflineCalculations.cc
+	@echo -n "ARCS6-ofln-asm: "
+	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineCalculations.cc
 
 # デバッグモード
 .PHONY: debug
@@ -182,8 +171,6 @@ mod:
 # 掃除
 .PHONY: clean
 clean:
-	@$(MAKE) --no-print-directory clean -C $(EQPPATH)
-	@$(MAKE) --no-print-directory clean -C $(LIBPATH)
 	@rm -f $(EXENAME)
 	@rm -f $(EVNTLOG)
 	@rm -f *.o
