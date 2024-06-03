@@ -1,23 +1,20 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2020/04/09
+//! @date 2024/05/06
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
-#include <unistd.h>
 #include <cmath>
-#include <cfloat>
-#include <tuple>
 #include "ControlFunctions.hh"
 #include "ARCSprint.hh"
 #include "ARCSassert.hh"
-#include "ScreenParams.hh"
+#include "ARCSmemory.hh"
+#include "ARCSscrparams.hh"
 #include "InterfaceFunctions.hh"
 #include "GraphPlot.hh"
-#include "DataMemory.hh"
 
 // 追加のARCSライブラリをここに記述
 #include "Matrix.hh"
@@ -82,7 +79,7 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 //! @return		クロックオーバーライドフラグ (true = リアルタイムループ, false = 非リアルタイムループ)
 bool ControlFunctions::ControlFunction2(double t, double Tact, double Tcmp){
 	// 制御用定数宣言
-	[[maybe_unused]] const double Ts = ConstParams::SAMPLING_TIME[1]*1e-9;	// [s]	制御周期
+	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[1]*1e-9;	// [s]	制御周期
 	
 	// 制御用変数宣言
 	
@@ -110,7 +107,7 @@ bool ControlFunctions::ControlFunction2(double t, double Tact, double Tcmp){
 //! @return		クロックオーバーライドフラグ (true = リアルタイムループ, false = 非リアルタイムループ)
 bool ControlFunctions::ControlFunction3(double t, double Tact, double Tcmp){
 	// 制御用定数宣言
-	[[maybe_unused]] const double Ts = ConstParams::SAMPLING_TIME[2]*1e-9;	// [s]	制御周期
+	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[2]*1e-9;	// [s]	制御周期
 	
 	// 制御用変数宣言
 	
