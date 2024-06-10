@@ -1,7 +1,7 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/05/06
+//! @date 2024/06/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -757,7 +757,7 @@ void ARCSscreen::DispBaseScreen(void){
 	wattrset(MainScreen, COLOR_PAIR(BLACK_CYAN));
 	for(int i=0;i<=HORIZONTAL_MAX;i++) mvwaddstr(MainScreen,  0,i," ");
 	mvwaddstr(MainScreen,  0,0,"ARCS6 - ADVANCED ROBOT CONTROL SYSTEM V6");
-	mvwprintw(MainScreen, 0,41,"%s",ConstParams::CTRLNAME.c_str());
+	mvwprintw(MainScreen, 0,41,"%s",ConstParams::CTRLNAME);
 	mvwprintw(MainScreen, 0, HORIZONTAL_MAX - 16, "%s", ARCSparams::ARCS_REVISION.c_str());
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLUE));
 	for(int i=0;i<=HORIZONTAL_MAX;i++) mvwaddstr(MainScreen,  1,i," ");

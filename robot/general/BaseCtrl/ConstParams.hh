@@ -22,7 +22,7 @@ namespace ARCS {	// ARCS名前空間
 	class ConstParams {
 		public:
 			// タイトルに表示させる制御系の名前(識別用に好きな名前を入力)
-			static const std::string CTRLNAME;		//!< (60文字以内)
+			static constexpr char CTRLNAME[] = "<TITLE: NOTITLE >";	//!< (画面に入る文字数以内)
 			
 			// 画面サイズの設定 (モニタ解像度に合うように設定すること)
 			// 1024×600(WSVGA) の場合に下記をアンコメントすること
@@ -40,7 +40,7 @@ namespace ARCS {	// ARCS名前空間
 			// それ以外の解像度の場合は各自で値を探すこと
 			
 			// 実験データCSVファイルの設定
-			static const std::string DATA_NAME;				//!< CSVファイル名
+			static constexpr char DATA_NAME[] = "DATA.csv";	//!< CSVファイル名
 			static constexpr double DATA_START =  0;		//!< [s] 保存開始時刻
 			static constexpr double DATA_END   = 10;		//!< [s] 保存終了時刻
 			static constexpr double DATA_RESO  = 0.001;		//!< [s] データの時間分解能
