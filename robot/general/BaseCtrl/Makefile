@@ -1,5 +1,5 @@
 # ARCS6 Makefile
-# 2024/06/11 Yokokura, Yuki
+# 2024/06/13 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -45,16 +45,19 @@ CTRLDEP=$(CTRL:.cc=)
 EQP=$(shell ls $(EQPPATH)/*.cc)
 EQPOBJ=$(EQP:.cc=.o)
 EQPOBJ_DEBG=$(EQP:.cc=_dbg.o)
+EQPDEP=$(EQP:.cc=)
 
 # 実験装置固有C言語コード用ファイルリスト生成
 EQPC=$(shell ls $(EQPCPATH)/*.c)
 EQPCOBJ=$(EQPC:.c=.o)
 EQPCOBJ_DEBG=$(EQPC:.c=_dbg.o)
+EQPCDEP=$(EQPC:.c=)
 
 # ARCSライブラリ用ファイルリスト生成
 LIB=$(shell ls $(LIBPATH)/*.cc)
 LIBOBJ=$(LIB:.cc=.o)
 LIBOBJ_DEBG=$(LIB:.cc=_dbg.o)
+LIBDEP=$(LIB:.cc=)
 
 # ARCSシステム用ファイルリスト生成
 SYS=$(shell ls $(SYSPATH)/*.cc)
@@ -172,7 +175,10 @@ dep:
 	@echo "ARCS6 DEPENDENCY CHECKING :"
 	@rm -f Makefile.depend
 	@for x in $(CTRLDEP); do $(CC) -I. -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
-	@for x in $(SYSDEP);  do $(CC) -I. -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
+	@for x in $(EQPDEP);  do $(CC)     -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
+	@for x in $(EQPCDEP); do $(CC) -I.              -I$(EQPCPATH)                           -MM -MT $$x.o $$x.c  >> Makefile.depend; done
+	@for x in $(LIBDEP);  do $(CC)                                -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
+	@for x in $(SYSDEP);  do $(CC) -I. -I$(EQPPATH)               -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
 
 # カーネルモジュールのみをコンパイル＆リンク
 .PHONY: mod

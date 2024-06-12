@@ -1,7 +1,7 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/05/02
+//! @date 2024/06/13
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -14,8 +14,6 @@
 #include "SFthread.hh"
 #include "FrameGraphics.hh"
 #include "CuiPlot.hh"
-
-// 注意！： const std::string は ConstParams.cc で定義すること。それ以外は constexpr として ConstParams.hh で定義。
 
 namespace ARCS {	// ARCS名前空間
 	//! @brief 定数値格納用クラス
@@ -258,15 +256,15 @@ namespace ARCS {	// ARCS名前空間
 			// 任意変数値表示の設定
 			static constexpr unsigned int INDICVARS_MAX = 16;	//!< 表示変数最大数 (変更不可)
 			static constexpr unsigned int INDICVARS_NUM = 10;	//!< 表示したい変数の数 (最大数 INDICVARS_MAX まで)
-			static const std::string INDICVARS_FORMS[];			//!< 任意に表示したい変数値の表示形式 (printfの書式と同一)
+			static const std::string INDICVARS_FORMS[INDICVARS_MAX];			//!< 任意に表示したい変数値の表示形式 (printfの書式と同一)
 			
 			// オンライン設定変数の設定
 			static constexpr unsigned int ONLINEVARS_MAX = 16;	//!< オンライン設定変数最大数 (変更不可)
 			static constexpr unsigned int ONLINEVARS_NUM = 10;	//!< オンライン設定変数の数 (最大数 ONLINEVARS_MAX まで)
 			
 			// 時系列グラフプロットの共通設定
-			static const std::string PLOT_FRAMEBUFF;					//!< フレームバッファ ファイルデスクリプタ
-			static const std::string PLOT_PNGFILENAME;					//!< スクリーンショットのPNGファイル名
+			static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";		//!< フレームバッファ ファイルデスクリプタ
+			static constexpr char PLOT_PNGFILENAME[] = "Screenshot.png";//!< スクリーンショットのPNGファイル名
 			static constexpr size_t PLOT_MAX = 16;						//!< [-] グラフプロットの最大数 (変更不可)
 			static constexpr size_t PLOT_NUM =  4;						//!< [-] グラフプロットの数
 			static constexpr double PLOT_TIMESPAN = 10;					//!< [s] プロットの時間幅
@@ -274,8 +272,8 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr size_t PLOT_RINGBUFF = 1024;				//!< [-] プロット用リングバッファの要素数
 			static constexpr unsigned int PLOT_TGRID_NUM = 10;			//!< [-] 時間軸グリッドの分割数
 			static constexpr unsigned int PLOT_VAR_MAX = 8;				//!< [-] プロット可能な変数の最大数 (変更不可)
-			static const std::string PLOT_TFORMAT;						//!< 時間軸書式
-			static const std::string PLOT_TLABEL;						//!< 時間軸ラベル
+			static constexpr char PLOT_TFORMAT[] = "%3.1f";				//!< 時間軸書式
+			static constexpr char PLOT_TLABEL[] = "Time [s]";			//!< 時間軸ラベル
 			static const std::array<std::string, PLOT_MAX> PLOT_FLABEL;	//!< 縦軸ラベル
 			static const std::array<std::string, PLOT_MAX> PLOT_FFORMAT;//!< 縦軸書式
 			static const std::array<
@@ -301,10 +299,10 @@ namespace ARCS {	// ARCS名前空間
 				true,	// プロット9
 				true,	// プロット10
 				true,	// プロット11
-				false,	// プロット12
-				false,	// プロット13
-				false,	// プロット14
-				false,	// プロット15
+				true,	// プロット12
+				true,	// プロット13
+				true,	// プロット14
+				true,	// プロット15
 			};
 			
 			//! @brief 時系列プロットの変数ごとの線の色
@@ -479,7 +477,7 @@ namespace ARCS {	// ARCS名前空間
 				153,	// プロット15
 			};
 			
-			//! @brief 時系列プロットの種類
+			//! @brief 時系列プロットの種類の設定
 			//! 下記のプロット方法が使用可能
 			//!	PLOT_LINE		線プロット
 			//!	PLOT_BOLDLINE 	太線プロット
@@ -545,8 +543,8 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr int PLOTXY_TOP = 709;			//!< [px] 上位置
 			static constexpr int PLOTXY_WIDTH = 300;		//!< [px] 幅
 			static constexpr int PLOTXY_HEIGHT = 270;		//!< [px] 高さ
-			static const std::string PLOTXY_XLABEL;			//!< X軸ラベル
-			static const std::string PLOTXY_YLABEL;			//!< Y軸ラベル
+			static constexpr char PLOTXY_XLABEL[] = "POSITION X [m]";	//!< X軸ラベル
+			static constexpr char PLOTXY_YLABEL[] = "POSITION Y [m]";	//!< Y軸ラベル
 			static constexpr double PLOTXY_XMAX =  1.5;		//!< [m] X軸最大値
 			static constexpr double PLOTXY_XMIN = -0.5;		//!< [m] X軸最小値
 			static constexpr double PLOTXY_YMAX =  1.0;		//!< [m] Y軸最大値
@@ -562,8 +560,8 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr int PLOTXZ_TOP = 709;			//!< [px] 上位置
 			static constexpr int PLOTXZ_WIDTH = 300;		//!< [px] 幅
 			static constexpr int PLOTXZ_HEIGHT = 270;		//!< [px] 高さ
-			static const std::string PLOTXZ_XLABEL;			//!< X軸ラベル
-			static const std::string PLOTXZ_ZLABEL;			//!< Z軸ラベル
+			static constexpr char PLOTXZ_XLABEL[] = "POSITION X [m]";	//!< X軸ラベル
+			static constexpr char PLOTXZ_ZLABEL[] = "POSITION Z [m]";	//!< Z軸ラベル
 			static constexpr double PLOTXZ_XMAX =  1.5;		//!< [m] X軸最大値
 			static constexpr double PLOTXZ_XMIN = -0.5;		//!< [m] X軸最小値
 			static constexpr double PLOTXZ_ZMAX =  2.0;		//!< [m] Z軸最大値
@@ -579,8 +577,8 @@ namespace ARCS {	// ARCS名前空間
 			static constexpr int PLOTUS_TOP = 709;			//!< [px] 上位置
 			static constexpr int PLOTUS_WIDTH = 300;		//!< [px] 幅
 			static constexpr int PLOTUS_HEIGHT = 270;		//!< [px] 高さ
-			static const std::string PLOTUS_XLABEL;			//!< X軸ラベル
-			static const std::string PLOTUS_YLABEL;			//!< Y軸ラベル
+			static constexpr char PLOTUS_XLABEL[] = "X AXIS [-]";		//!< X軸ラベル
+			static constexpr char PLOTUS_YLABEL[] = "Y AXIS [-]";		//!< Y軸ラベル
 			static constexpr double PLOTUS_XMAX =  10;		//!< [mm] X軸最大値
 			static constexpr double PLOTUS_XMIN = -10;		//!< [mm] X軸最小値
 			static constexpr double PLOTUS_YMAX =  20;		//!< [mm] Y軸最大値

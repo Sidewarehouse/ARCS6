@@ -1,7 +1,7 @@
 //! @file ConstParams.cc
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/06/04
+//! @date 2024/06/13
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -13,20 +13,6 @@ using namespace ARCS;
 
 // 実験データCSVファイルの設定
 //const std::string ConstParams::DATA_NAME("DATA.csv");				//!< CSVファイル名
-
-// SCHED_FIFOリアルタイムスレッドの設定
-constexpr std::array<unsigned long, ConstParams::THREAD_MAX> ConstParams::SAMPLING_TIME;	//!< 制御周期の設定
-constexpr std::array<unsigned int, ConstParams::THREAD_MAX> ConstParams::CPUCORE_NUMBER;	//!< 使用CPUコアの設定
-
-// 実験機アクチュエータの設定
-constexpr std::array<ConstParams::ActType, ConstParams::ACTUATOR_MAX> ConstParams::ACT_TYPE;		//!< 実験機アクチュエータの種類の設定（リニアモータか回転モータかの設定）
-constexpr std::array<ConstParams::ActRefUnit, ConstParams::ACTUATOR_MAX> ConstParams::ACT_REFUNIT;	//!< 実験機アクチュエータの指令単位の設定（電流なのか推力なのかトルクなのかの設定）
-constexpr std::array<double, ConstParams::ACTUATOR_MAX> ConstParams::ACT_FORCE_TORQUE_CONST;//!< トルク/推力定数の設定
-constexpr std::array<double, ConstParams::ACTUATOR_MAX> ConstParams::ACT_RATED_CURRENT;		//!< 定格電流値の設定
-constexpr std::array<double, ConstParams::ACTUATOR_MAX> ConstParams::ACT_MAX_CURRENT;		//!< 瞬時最大許容電流値の設定
-constexpr std::array<double, ConstParams::ACTUATOR_MAX> ConstParams::ACT_RATED_TORQUE;		//!< 定格トルクの設定
-constexpr std::array<double, ConstParams::ACTUATOR_MAX> ConstParams::ACT_MAX_TORQUE;		//!< 瞬時最大トルクの設定
-constexpr std::array<double, ConstParams::ACTUATOR_MAX> ConstParams::ACT_INITPOS;			//!< 初期位置の設定
 
 // 任意変数値表示の設定
 const std::string ConstParams::INDICVARS_FORMS[INDICVARS_MAX] = {
@@ -47,25 +33,6 @@ const std::string ConstParams::INDICVARS_FORMS[INDICVARS_MAX] = {
 	"% 13.4f",	// 任意に表示したい変数値の表示形式(printfの書式と同一)
 	"% 13.4f",	// 任意に表示したい変数値の表示形式(printfの書式と同一)
 };
-
-// 時系列グラフプロットの共通設定
-const std::string ConstParams::PLOT_FRAMEBUFF("/dev/fb0");			//!< フレームバッファ ファイルデスクリプタ
-const std::string ConstParams::PLOT_PNGFILENAME("Screenshot.png");	//!< スクリーンショットのPNGファイル名
-const std::string ConstParams::PLOT_TFORMAT("%3.1f");				//!< 横軸書式
-const std::string ConstParams::PLOT_TLABEL("Time [s]");				//!< 横軸ラベル
-constexpr std::array<bool, ConstParams::PLOT_MAX> ConstParams::PLOT_VISIBLE;			//!< グラフ描画の有効/無効設定
-constexpr std::array<FGcolors, ConstParams::PLOT_VAR_MAX> ConstParams::PLOT_VAR_COLORS;	//!< 線の色
-constexpr std::array<unsigned int, ConstParams::PLOT_MAX> ConstParams::PLOT_VAR_NUM;	//!< プロットする変数の数 (≦PLOT_VAR_MAX)
-constexpr std::array<double, ConstParams::PLOT_MAX> ConstParams::PLOT_FMAX;				//!< 縦軸最大値
-constexpr std::array<double, ConstParams::PLOT_MAX> ConstParams::PLOT_FMIN;				//!< 縦軸最小値
-constexpr std::array<unsigned int, ConstParams::PLOT_MAX> ConstParams::PLOT_FGRID_NUM;	//!< 縦軸グリッドの分割数
-constexpr std::array<int, ConstParams::PLOT_MAX> ConstParams::PLOT_LEFT;				//!< [px] 左位置
-constexpr std::array<int, ConstParams::PLOT_MAX> ConstParams::PLOT_TOP;					//!< [px] 上位置
-constexpr std::array<int, ConstParams::PLOT_MAX> ConstParams::PLOT_WIDTH;				//!< [px] 幅
-constexpr std::array<int, ConstParams::PLOT_MAX> ConstParams::PLOT_HEIGHT;				//!< [px] 高さ
-constexpr std::array<
-	std::array<CuiPlotTypes, ConstParams::PLOT_VAR_MAX>, ConstParams::PLOT_MAX
-> ConstParams::PLOT_TYPE;																//!< プロットの種類
 
 // 時系列グラフプロットの各部設定
 //!< @brief 縦軸ラベルの設定
@@ -130,15 +97,3 @@ const std::array<
 	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット14
 	{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット15
 }};
-
-// 作業空間XYプロットの設定
-const std::string ConstParams::PLOTXY_XLABEL("POSITION X [m]");		//!< X軸ラベル
-const std::string ConstParams::PLOTXY_YLABEL("POSITION Y [m]");		//!< Y軸ラベル
-
-// 作業空間XZプロットの設定
-const std::string ConstParams::PLOTXZ_XLABEL("POSITION X [m]");		//!< X軸ラベル
-const std::string ConstParams::PLOTXZ_ZLABEL("POSITION Z [m]");		//!< Z軸ラベル
-
-// ユーザプロットの設定
-const std::string ConstParams::PLOTUS_XLABEL("X AXIS [-]");	//!< X軸ラベル
-const std::string ConstParams::PLOTUS_YLABEL("Y AXIS [-]");	//!< Y軸ラベル
