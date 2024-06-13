@@ -1,9 +1,3 @@
-ConstParams.o: ConstParams.cc ConstParams.hh ../../../lib/SFthread.hh \
- ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
- ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
- ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
- ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh
 ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ConstParams.hh ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
  ../../../lib/LinuxCommander.hh ../../../lib/FrameGraphics.hh \
@@ -414,6 +408,12 @@ GraphPlot.o: GraphPlot.cc GraphPlot.hh ConstParams.hh \
  ../../../sys/ARCSeventlog.hh ../../../sys/ARCSassert.hh \
  ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh GraphPlot.hh \
  ConstParams.hh
+../../../sys/ConstParams.o: ../../../sys/ConstParams.cc ConstParams.hh \
+ ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
+ ../../../lib/LinuxCommander.hh ../../../lib/FrameGraphics.hh \
+ ../../../lib/FrameFontSmall.hh ../../../lib/CuiPlot.hh \
+ ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
+ ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh
 ../../../sys/InterfaceFunctions.o: ../../../sys/InterfaceFunctions.cc \
  ../equip/InterfaceFunctions.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \

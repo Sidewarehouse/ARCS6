@@ -124,7 +124,12 @@ void GraphPlot::DrawTimeSeriesPlotPlane(void){
 		Plot.at(j)->SetGridDivision(ConstParams::PLOT_TGRID_NUM, ConstParams::PLOT_FGRID_NUM.at(j));						// グリッドの分割数の設定
 		Plot.at(j)->SetGridLabelFormat(ConstParams::PLOT_TFORMAT, ConstParams::PLOT_FFORMAT.at(j));							// グリッドのラベルの書式設定
 		Plot.at(j)->DrawAxis();				// 軸の描画
-		Plot.at(j)->DrawLegends(ConstParams::PLOT_VAR_NAMES.at(j), ConstParams::PLOT_VAR_COLORS, ConstParams::PLOT_VAR_NUM.at(j));	// 凡例の設定＆描画
+		
+		// プロット変数名の char[] を std::string に変換
+		std::array<std::string, ConstParams::PLOT_VAR_MAX> VarNameBuff;
+		for(size_t i = 0; i < ConstParams::PLOT_VAR_MAX; ++i) VarNameBuff.at(i) = ConstParams::PLOT_VAR_NAMES.at(j).at(i);
+		
+		Plot.at(j)->DrawLegends(VarNameBuff, ConstParams::PLOT_VAR_COLORS, ConstParams::PLOT_VAR_NUM.at(j));	// 凡例の設定＆描画
 		Plot.at(j)->StorePlaneInBuffer();	// プロット平面の描画データをバッファに保存しておく
 		Plot.at(j)->Disp();					// プロット平面を画面表示
 	}

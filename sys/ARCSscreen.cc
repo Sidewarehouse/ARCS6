@@ -1,7 +1,7 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/06/11
+//! @date 2024/06/14
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -916,7 +916,7 @@ void ARCSscreen::DispParameters(void){
 	std::array<double, ConstParams::INDICVARS_MAX> VarIndicator;
 	ScrPara.GetVarIndicator(VarIndicator);
 	for(unsigned int i = 0; i < ConstParams::INDICVARS_NUM; ++i){
-		mvwprintw(MainScreen, 24+i, 4, ConstParams::INDICVARS_FORMS[i].c_str(), VarIndicator.at(i));
+		mvwprintw(MainScreen, 24+i, 4, ConstParams::INDICVARS_FORMS.at(i), VarIndicator.at(i));
 	}
 	
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLACK));	// 文字色を基本に戻す
