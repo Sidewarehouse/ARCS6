@@ -2035,11 +2035,12 @@ class ArcsMat {
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
 					ArcsMat<M,N,R> v = ArcsMat<M,N,T>::abs(U);
+					v.Disp("%g");
 					ret = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
 				}else{
 					// 行列版
 					const auto [W, S, V] = ArcsMat<M,N,T>::SVD(U);
-					ret = static_cast<R>( ArcsMat<M,N,T>::max(S) );
+					ret = std::abs( ArcsMat<M,N,T>::max(S) );
 				}
 			}else if constexpr(NRM == ArcsMatrix::NormType::AMT_L1){
 				// 絶対値ノルム(1-ノルム)が指定されたとき

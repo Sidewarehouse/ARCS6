@@ -809,38 +809,38 @@ int main(void){
 
 	// ノルム関連の関数(行列版)
 	printf("\n★★★★★★★ ノルム関連の関数(行列版)\n");
-	dispmatfmt(Ax1, "% 6.3f");
-	printf("norm<euc>(Ax1) = %f\n", norm<NormType::AMT_L2>(Ax1));	// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
-	constexpr double enormAx1 = norm<NormType::AMT_L2>(Ax1);		// コンパイル時にユークリッドL2ノルムを計算
-	printf("norm<euc>(Ax1) = %f\n", enormAx1);
-	printf("norm<man>(Ax1) = %f\n", norm<NormType::AMT_L1>(Ax1));	// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
-	constexpr double mnormAx1 = norm<NormType::AMT_L1>(Ax1);		// コンパイル時に絶対値L1ノルムを計算
-	printf("norm<man>(Ax1) = %f\n", mnormAx1);
-	printf("norm<inf>(Ax1) = %f\n", norm<NormType::AMT_LINF>(Ax1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
-	constexpr double inormAx1 = norm<NormType::AMT_LINF>(Ax1);		// コンパイル時に無限大L∞ノルムを計算
-	printf("norm<inf>(Ax1) = %f\n", inormAx1);
-	const auto L2NormOfAcmpx2 = norm<NormType::AMT_L2, std::complex<double>>(Acmpx2);	// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
-	printf("norm<euc>(Acmpx2) = %f + %fj\n", std::real(L2NormOfAcmpx2), std::imag(L2NormOfAcmpx2) );
-	printf("norm<man>(Acmpx2) = %f\n", norm<NormType::AMT_L1>(Acmpx2));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
-	printf("norm<inf>(Acmpx2) = %f\n", norm<NormType::AMT_LINF>(Acmpx2));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
+	dispmatfmt(Ax1, "% 7.4f");
+	printf("norm<euc>(Ax1) = % 7.4f\n", norm<NormType::AMT_L2>(Ax1));	// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	double enormAx1 = norm<NormType::AMT_L2>(Ax1);			// コンパイル時にユークリッドL2ノルムを計算
+	printf("norm<euc>(Ax1) = % 7.4f\n", enormAx1);
+/*	printf("norm<man>(Ax1) = % 7.4f\n", norm<NormType::AMT_L1>(Ax1));	// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	constexpr double mnormAx1 = norm<NormType::AMT_L1>(Ax1);			// コンパイル時に絶対値L1ノルムを計算
+	printf("norm<man>(Ax1) = % 7.4f\n", mnormAx1);
+	printf("norm<inf>(Ax1) = % 7.4f\n", norm<NormType::AMT_LINF>(Ax1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormAx1 = norm<NormType::AMT_LINF>(Ax1);			// コンパイル時に無限大L∞ノルムを計算
+	printf("norm<inf>(Ax1) = % 7.4f\n", inormAx1);
+	dispmatfmt(Acmpx2, "% 7.4f");
+	printf("norm<euc>(Acmpx2) = % 7.4f\n", norm<NormType::AMT_L2>(Acmpx2));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(Acmpx2) = % 7.4f\n", norm<NormType::AMT_L1>(Acmpx2));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<inf>(Acmpx2) = % 7.4f\n", norm<NormType::AMT_LINF>(Acmpx2));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	
 	// ノルム関連の関数(ベクトル版)
 	printf("\n★★★★★★★ ノルム関連の関数(ベクトル版)\n");
-	dispmatfmt(k1, "% 6.3f");
-	printf("norm<euc>(k1) = %f\n", norm<NormType::AMT_L2>(k1));		// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
-	constexpr double enormk1 = norm<NormType::AMT_L2>(k1);			// コンパイル時にユークリッドL2ノルムを計算
-	printf("norm<euc>(k1) = %f\n", enormk1);
-	printf("norm<man>(k1) = %f\n", norm<NormType::AMT_L1>(k1));		// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
-	constexpr double mnormk1 = norm<NormType::AMT_L1>(k1);			// コンパイル時に絶対値L1ノルムを計算
-	printf("norm<man>(k1) = %f\n", mnormk1);
-	printf("norm<inf>(k1) = %f\n", norm<NormType::AMT_LINF>(k1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
-	constexpr double inormk1 = norm<NormType::AMT_LINF>(k1);		// コンパイル時に無限大L∞ノルムを計算
-	printf("norm<inf>(k1) = %f\n\n", inormk1);
+	dispmatfmt(k1, "% 7.4f");
+	printf("norm<euc>(k1) = % 7.4f\n", norm<NormType::AMT_L2>(k1));		// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	constexpr double enormk1 = norm<NormType::AMT_L2>(k1);				// コンパイル時にユークリッドL2ノルムを計算
+	printf("norm<euc>(k1) = % 7.4f\n", enormk1);
+	printf("norm<man>(k1) = % 7.4f\n", norm<NormType::AMT_L1>(k1));		// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	constexpr double mnormk1 = norm<NormType::AMT_L1>(k1);				// コンパイル時に絶対値L1ノルムを計算
+	printf("norm<man>(k1) = % 7.4f\n", mnormk1);
+	printf("norm<inf>(k1) = % 7.4f\n", norm<NormType::AMT_LINF>(k1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
+	constexpr double inormk1 = norm<NormType::AMT_LINF>(k1);			// コンパイル時に無限大L∞ノルムを計算
+	printf("norm<inf>(k1) = % 7.4f\n\n", inormk1);
 	auto k1cmpx = sqrt(static_cast<ArcsMat<7,1,std::complex<double>>>(-k1));
-	dispmatfmt(k1cmpx, "% 6.3f");
-	printf("norm<euc>(k1cmpx) = %f\n", norm<NormType::AMT_L2>(k1cmpx));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
-	printf("norm<man>(k1cmpx) = %f\n", norm<NormType::AMT_L1>(k1cmpx));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
-	printf("norm<inf>(k1cmpx) = %f\n", norm<NormType::AMT_LINF>(k1cmpx));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
+	dispmatfmt(k1cmpx, "% 7.4f");
+	printf("norm<euc>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_L2>(k1cmpx));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_L1>(k1cmpx));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<inf>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_LINF>(k1cmpx));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
 
 	// 三角行列操作関連の関数
 	printf("\n★★★★★★★ 三角行列操作関連の関数\n");
@@ -999,7 +999,7 @@ int main(void){
 	dispmatfmt(Ss4, "% 8.3f");
 	dispmatfmt(Vs4, "% 8.3f");
 	dispmatfmt(Us4*Ss4*~Vs4, "% 8.3f");		// 元に戻るかチェック
-
+*/
 	/*
 	// 行列演算補助関連の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");

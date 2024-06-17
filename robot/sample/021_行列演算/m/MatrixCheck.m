@@ -105,7 +105,28 @@ k1 = [
 norm(k1)
 norm(k1, 1)
 norm(k1, Inf)
+k1cmpx = sqrt(-k1)
+norm(k1cmpx)
+norm(k1cmpx, 1)
+norm(k1cmpx, Inf)
 
+disp 'š LU•ª‰ğŠÖ˜A‚ÌŠÖ”'
+A = [
+	10, -7,  0 ;
+	-3,  2,  6 ;
+	 5, -1,  5
+];
+[L, U, P] = lu(A)
+Acomp1 = [
+	4 + 6i,  1 - 3i,  5 + 2i ;
+	8 - 5i, -7 - 6i,  7 - 1i ;
+	9 + 9i, -7 - 5i, -5 - 3i
+];
+[L, U, P] = lu(Acomp1)
+
+disp 'š QR•ª‰ğŠÖ˜A‚ÌŠÖ”'
+A = magic(5)
+[Q, R] = qr(A)
 
 %{
 % QR•ª‰ğ
