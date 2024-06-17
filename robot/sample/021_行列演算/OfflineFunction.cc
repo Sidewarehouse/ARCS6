@@ -1,6 +1,6 @@
-//! @file OfflineCalculations.cc
+//! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2022/08/05
+//! @date 2024/06/17
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -9,7 +9,7 @@
 //! - ARCSライブラリはもちろんそのままいつも通り使用可能。
 //! - 従って，オフラインで何か計算をしたいときに，このソースコードに記述すれば良い。
 //!
-// Copyright (C) 2011-2022 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // This program is free software;
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.

@@ -424,3 +424,4 @@ GraphPlot.o: GraphPlot.cc GraphPlot.hh ConstParams.hh \
  ../../../sys/ARCSprint.hh ../../../sys/ARCScommon.hh \
  ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
  ../../../lib/ArcsMatrix.hh
+OfflineFunction.o: OfflineFunction.cc ../../../lib/ArcsMatrix.hh

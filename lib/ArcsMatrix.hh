@@ -2035,7 +2035,7 @@ class ArcsMat {
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
 					ArcsMat<M,N,R> v = ArcsMat<M,N,T>::abs(U);
-					v.Disp("%g");
+					//v.Disp("%g");
 					ret = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
 				}else{
 					// 行列版
