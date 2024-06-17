@@ -807,7 +807,7 @@ int main(void){
 	dispmatfmt(jxjtx, "% 3.0f");
 	dispmatfmt(jxtjx, "% 3.0f");
 
-	// ノルム関連の関数(行列版)
+	// ノルム関連の関数(行列版)2
 	printf("\n★★★★★★★ ノルム関連の関数(行列版)\n");
 	dispmatfmt(Ax1, "% 7.4f");
 	printf("norm<euc>(Ax1) = % 7.4f\n", norm<NormType::AMT_L2>(Ax1));	// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)

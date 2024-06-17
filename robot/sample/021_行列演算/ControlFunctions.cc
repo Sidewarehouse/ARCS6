@@ -9,17 +9,14 @@
 // For details, see the License.txt file.
 
 // 基本のインクルードファイル
-#include <unistd.h>
 #include <cmath>
-#include <cfloat>
-#include <tuple>
 #include "ControlFunctions.hh"
 #include "ARCSprint.hh"
 #include "ARCSassert.hh"
-#include "ScreenParams.hh"
+#include "ARCSmemory.hh"
+#include "ARCSscrparams.hh"
 #include "InterfaceFunctions.hh"
 #include "GraphPlot.hh"
-#include "DataMemory.hh"
 
 // 追加のARCSライブラリをここに記述
 #include "Matrix.hh"

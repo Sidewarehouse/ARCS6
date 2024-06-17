@@ -81,16 +81,16 @@ Ax1 = [
 	    pi/4,     pi/2, 3.0*pi/4,     pi ; 
 	5.0*pi/4, 3.0*pi/2, 7.0*pi/4, 2.0*pi 
 ]
-norm(Ax1)
-norm(Ax1, 1)
-norm(Ax1, Inf)
+fprintf('norm(Ax1) = %f\n', norm(Ax1));
+fprintf('norm(Ax1, 1) = %f\n',norm(Ax1, 1)); 
+fprintf('norm(Ax1, Inf) = %f\n', norm(Ax1, Inf));
 Acmpx2 = [
   1 + 1j,  3 + 4j,  3 - 4j ;
  -1 + 1j, -3 + 4j, -3 - 4j
 ]
-norm(Acmpx2)
-norm(Acmpx2, 1)
-norm(Acmpx2, Inf)
+fprintf('norm(Acmpx2) = %f\n', norm(Acmpx2));
+fprintf('norm(Acmpx2, 1) = %f\n', norm(Acmpx2, 1));
+fprintf('norm(Acmpx2, Inf) = %f\n\n', norm(Acmpx2, Inf));
 
 disp '★ ノルム関連の関数(ベクトル版)'
 k1 = [
@@ -102,13 +102,13 @@ k1 = [
  -1.000 ;
   6.000
 ];
-norm(k1)
-norm(k1, 1)
-norm(k1, Inf)
+fprintf('norm(k1) = %f\n', norm(k1));
+fprintf('norm(k1, 1) = %f\n', norm(k1, 1));
+fprintf('norm(k1, Inf) = %f\n', norm(k1, Inf));
 k1cmpx = sqrt(-k1)
-norm(k1cmpx)
-norm(k1cmpx, 1)
-norm(k1cmpx, Inf)
+fprintf('norm(k1cmpx) = %f\n', norm(k1cmpx));
+fprintf('norm(k1cmpx, 1) = %f\n', norm(k1cmpx, 1));
+fprintf('norm(k1cmpx, Inf) = %f\n\n', norm(k1cmpx, Inf));
 
 disp '★ LU分解関連の関数'
 A = [
