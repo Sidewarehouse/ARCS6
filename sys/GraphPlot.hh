@@ -3,10 +3,10 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2023/05/20
+//! @date 2024/06/19
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef GRAPHPLOT
@@ -15,14 +15,13 @@
 #include <pthread.h>
 #include <cfloat>
 #include "ConstParams.hh"
+#include "CustomPlot.hh"
 #include "Matrix.hh"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief グラフプロットクラス
 class GraphPlot {
 	public:
-		CuiPlot UserPlot;			//!< ユーザプロット
-		
 		explicit GraphPlot(void);	//!< コンストラクタ
 		~GraphPlot();				//!< デストラクタ
 		void DrawPlotPlane(void);	//!< プロット平面の描画
@@ -87,14 +86,15 @@ class GraphPlot {
 		void DrawTimeSeriesPlot(void);			//!< 時系列プロットを描画する関数
 		void DrawWorkSpacePlotPlane(void);		//!< 作業空間プロット平面を描画する関数
 		void DrawWorkSpacePlot(void);			//!< 作業空間プロットを描画する関数
-		void DrawUserPlotPlane(void);			//!< ユーザプロット平面を描画する関数
-		void DrawUserPlot(void);				//!< ユーザプロットを描画する関数
+		void DrawCustomPlotPlane(void);			//!< カスタムプロット平面を描画する関数
+		void DrawCustomPlot(void);				//!< カスタムプロットを描画する関数
 		
 		// フレームバッファとキュイプロット
 		FrameGraphics FG;						//!< フレームバッファ
 		std::array<std::unique_ptr<CuiPlot>, ConstParams::PLOT_NUM> Plot;		//!< 時系列用キュイプロットへのスマートポインタのクラス配列
 		CuiPlot PlotXY;							//!< XY作業空間用キュイプロット
 		CuiPlot PlotXZ;							//!< XZ作業空間用キュイプロット
+		CustomPlot CtmPlot;						//!< カスタムプロット
 		
 		// 時系列プロット読み込み用変数
 		pthread_mutex_t PlotVarsMutex;	//!< プロット描画変数用のMutex

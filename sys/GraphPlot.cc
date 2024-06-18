@@ -3,10 +3,10 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2021/09/29
+//! @date 2024/06/19
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include <memory>
@@ -17,11 +17,11 @@ using namespace ARCS;
 
 //! @brief コンストラクタ
 GraphPlot::GraphPlot(void)
-	: UserPlot(FG, ConstParams::PLOTUS_LEFT, ConstParams::PLOTUS_TOP, ConstParams::PLOTUS_WIDTH, ConstParams::PLOTUS_HEIGHT),
-	  FG(ConstParams::PLOT_FRAMEBUFF),
+	: FG(ConstParams::PLOT_FRAMEBUFF),
 	  Plot({nullptr}),
 	  PlotXY(FG, ConstParams::PLOTXY_LEFT, ConstParams::PLOTXY_TOP, ConstParams::PLOTXY_WIDTH, ConstParams::PLOTXY_HEIGHT),
 	  PlotXZ(FG, ConstParams::PLOTXZ_LEFT, ConstParams::PLOTXZ_TOP, ConstParams::PLOTXZ_WIDTH, ConstParams::PLOTXZ_HEIGHT),
+	  CtmPlot(FG),
 	  PlotVarsMutex(PTHREAD_MUTEX_INITIALIZER),
 	  StorageEnable(false),
 	  PlotNumBuf(0),
@@ -76,14 +76,14 @@ void GraphPlot::SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, c
 void GraphPlot::DrawPlotPlane(void){
 	DrawTimeSeriesPlotPlane();	// 時系列プロット平面の描画
 	DrawWorkSpacePlotPlane();	// 作業空間プロット平面の描画
-	DrawUserPlotPlane();		// ユーザプロット平面の描画
+	DrawCustomPlotPlane();		// カスタムプロット平面の描画
 }
 
 //! @brief プロット波形の描画
 void GraphPlot::DrawWaves(void){
 	DrawTimeSeriesPlot();		// 時系列プロットの描画
 	DrawWorkSpacePlot();		// 作業空間プロットの描画
-	DrawUserPlot();				// ユーザプロットの描画
+	DrawCustomPlot();			// カスタムプロットの描画
 }
 
 //! @brief 再開始後にプロットをリセットする関数
@@ -232,31 +232,13 @@ void GraphPlot::DrawWorkSpacePlot(void){
 	PlotXZ.Disp();	// プロット平面＋プロットの描画
 }
 
-//! @brief ユーザプロット平面を描画する関数
-void GraphPlot::DrawUserPlotPlane(void){
-	// ユーザプロットのグラフパラメータの設定＆描画
-	UserPlot.Visible(ConstParams::PLOTUS_VISIBLE);	// 可視化設定
-	UserPlot.SetColors(
-		ConstParams::PLOT_AXIS_COLOR,	// 軸の色の設定
-		ConstParams::PLOT_GRID_COLOR,	// グリッドの色の設定
-		ConstParams::PLOT_TEXT_COLOR,	// 文字色の設定
-		ConstParams::PLOT_BACK_COLOR,	// 背景色の設定
-		ConstParams::PLOT_CURS_COLOR	// カーソルの色の設定
-	);
-	UserPlot.SetAxisLabels(ConstParams::PLOTUS_XLABEL, ConstParams::PLOTUS_YLABEL);	// 軸ラベルの設定
-	UserPlot.SetRanges(ConstParams::PLOTUS_XMIN, ConstParams::PLOTUS_XMAX, ConstParams::PLOTUS_YMIN, ConstParams::PLOTUS_YMAX);	// 軸の範囲設定
-	UserPlot.SetGridDivision(ConstParams::PLOTUS_XGRID, ConstParams::PLOTUS_YGRID);	// グリッドの分割数の設定
-	UserPlot.DrawAxis();															// 軸の描画
-	UserPlot.StorePlaneInBuffer();													// プロット平面の描画データをバッファに保存しておく
-	UserPlot.Disp();																// プロット平面を画面表示
+//! @brief カスタムプロット平面を描画する関数
+void GraphPlot::DrawCustomPlotPlane(void){
+	CtmPlot.DrawPlotPlane();
 }
 
-//! @brief ユーザプロットを描画する関数
-void GraphPlot::DrawUserPlot(void){
-	//PlotUser.LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
-	
-		// ここに時間で変動するプロットを記述する
-	
-	//PlotUser.Disp();				// プロット平面＋プロットの描画
+//! @brief カスタムプロットを描画する関数
+void GraphPlot::DrawCustomPlot(void){
+	CtmPlot.DrawPlot();
 }
 

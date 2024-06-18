@@ -1,6 +1,6 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/05/06
+//! @date 2024/06/19
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -15,9 +15,10 @@
 #include "ARCSscrparams.hh"
 #include "InterfaceFunctions.hh"
 #include "GraphPlot.hh"
+#include "CustomPlot.hh"
 
 // 追加のARCSライブラリをここに記述
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 
 using namespace ARCS;
 

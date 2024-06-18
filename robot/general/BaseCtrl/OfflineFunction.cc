@@ -1,6 +1,6 @@
-//! @file OfflineCalculations.cc
+//! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2020/06/10
+//! @date 2024/06/18
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -9,7 +9,7 @@
 //! - ARCSライブラリはもちろんそのままいつも通り使用可能。
 //! - 従って，オフラインで何か計算をしたいときに，このソースコードに記述すれば良い。
 //!
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
@@ -20,7 +20,7 @@
 #include <complex>
 
 // 追加のARCSライブラリをここに記述
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "CsvManipulator.hh"
 
 using namespace ARCS;

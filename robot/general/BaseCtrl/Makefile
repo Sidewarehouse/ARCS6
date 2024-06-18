@@ -1,5 +1,5 @@
 # ARCS6 Makefile
-# 2024/06/13 Yokokura, Yuki
+# 2024/06/17 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -36,7 +36,7 @@ LDFLAGS = -lpthread -lm -lncursesw -lrt -ltinfo -lpng -lz
 
 # 制御コード用ファイルリスト生成
 CTRL0=$(shell ls *.cc)
-CTRL=$(filter-out OfflineCalculations.cc, $(CTRL0))
+CTRL=$(filter-out OfflineFunction.cc, $(CTRL0))
 CTRLOBJ=$(CTRL:.cc=.o)
 CTRLOBJ_DEBG=$(CTRL:.cc=_dbg.o)
 CTRLDEP=$(CTRL:.cc=)
@@ -102,23 +102,23 @@ $(SYSPATH)/%.o: $(SYSPATH)/%.cc
 
 # オフライン計算モード
 .PHONY: offline
-offline: OfflineCalculations.o ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS_OFLN.o
-	@$(LD) -o $(EXENAME) ./OfflineCalculations.o ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS_OFLN.o $(LDFLAGS)
+offline: OfflineFunction.o ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS_OFLN.o
+	@$(LD) -o $(EXENAME) ./OfflineFunction.o ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS_OFLN.o $(LDFLAGS)
 # オフライン計算エントリポイント
-OfflineCalculations.o: OfflineCalculations.cc
+OfflineFunction.o: OfflineFunction.cc
 	@echo -n "ARCS6-ofln: "
-	$(CC) $(OPTIMLV) $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineCalculations.cc
+	$(CC) $(OPTIMLV) $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineFunction.cc
 # ARCSシステムファイルのコンパイル＆リンク (オフライン計算モード)
 ARCS_SYS_OFLN.o: $(SYSOBJ_OFLN)
 	@$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS_OFLN.o $(SYSOBJ_OFLN)
 
 # アセンブリリスト出力モード
 .PHONY: asmlist
-asmlist: OfflineCalculations.s
+asmlist: OfflineFunction.s
 # オフライン計算エントリポイント
-OfflineCalculations.s: OfflineCalculations.cc
+OfflineFunction.s: OfflineFunction.cc
 	@echo -n "ARCS6-ofln-asm: "
-	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineCalculations.cc
+	$(CC) -S -g $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c OfflineFunction.cc
 
 # デバッグモード
 .PHONY: debug
@@ -179,6 +179,7 @@ dep:
 	@for x in $(EQPCDEP); do $(CC) -I.              -I$(EQPCPATH)                           -MM -MT $$x.o $$x.c  >> Makefile.depend; done
 	@for x in $(LIBDEP);  do $(CC)                                -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
 	@for x in $(SYSDEP);  do $(CC) -I. -I$(EQPPATH)               -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
+	@$(CC) -I. -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM OfflineFunction.cc >> Makefile.depend
 
 # カーネルモジュールのみをコンパイル＆リンク
 .PHONY: mod

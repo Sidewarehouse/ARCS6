@@ -1,7 +1,7 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/06/14
+//! @date 2024/06/19
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -647,21 +647,6 @@ class ConstParams {
 		static constexpr unsigned int PLOTXZ_ZGRID = 4;	//!< Z軸グリッドの分割数
 		static constexpr double PLOTXZ_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXZ_VAL_ZPOS =  1.9;	//!< 数値表示の上位置
-		
-		//! @brief ユーザプロットの設定
-		static constexpr bool PLOTUS_VISIBLE = false;	//!< プロット可視/不可視設定
-		static constexpr int PLOTUS_LEFT = 905;			//!< [px] 左位置
-		static constexpr int PLOTUS_TOP = 709;			//!< [px] 上位置
-		static constexpr int PLOTUS_WIDTH = 300;		//!< [px] 幅
-		static constexpr int PLOTUS_HEIGHT = 270;		//!< [px] 高さ
-		static constexpr char PLOTUS_XLABEL[] = "X AXIS [-]";		//!< X軸ラベル
-		static constexpr char PLOTUS_YLABEL[] = "Y AXIS [-]";		//!< Y軸ラベル
-		static constexpr double PLOTUS_XMAX =  10;		//!< [mm] X軸最大値
-		static constexpr double PLOTUS_XMIN = -10;		//!< [mm] X軸最小値
-		static constexpr double PLOTUS_YMAX =  20;		//!< [mm] Y軸最大値
-		static constexpr double PLOTUS_YMIN =   0;		//!< [mm] Y軸最小値
-		static constexpr unsigned int PLOTUS_XGRID = 4;	//!< X軸グリッドの分割数
-		static constexpr unsigned int PLOTUS_YGRID = 4;	//!< Y軸グリッドの分割数
 		
 	private:
 		ConstParams() = delete;	//!< コンストラクタ使用禁止

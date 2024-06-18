@@ -73,7 +73,12 @@
 			"compare": "cpp",
 			"numbers": "cpp",
 			"cfenv": "cpp",
-			"cassert": "cpp"
+			"cassert": "cpp",
+			"charconv": "cpp",
+			"format": "cpp",
+			"iomanip": "cpp",
+			"span": "cpp",
+			"variant": "cpp"
 		}
 	},
 }
