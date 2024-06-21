@@ -6,7 +6,6 @@
                 "/usr/include/**",
                 "./",
                 "./lib/",
-                "./src/",
                 "./sys/",
                 "./robot/**"
             ],
@@ -17,7 +16,7 @@
                 "ARCS_IN"
             ],
             "compilerPath": "/usr/bin/gcc",
-            "cStandard": "c11",
+            "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "linux-gcc-x64",
             "configurationProvider": "ms-vscode.makefile-tools"
@@ -25,10 +24,9 @@
         {
             "name": "Linux/Samba",
             "includePath": [
-                "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.25.28610/include/**",
+                "%INCLUDE%/**",
                 "./",
                 "./lib/",
-                "./src/",
                 "./sys/",
                 "./robot/**"
             ],
@@ -38,8 +36,8 @@
                 "_UNICODE",
                 "ARCS_IN"
             ],
-            "compilerPath": "C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.25.28610/bin/Hostx64/x64/cl.exe",
-            "cStandard": "c11",
+            "compilerPath": "cl.exe",
+            "cStandard": "c17",
             "cppStandard": "c++17",
             "intelliSenseMode": "windows-msvc-x64"
         }
