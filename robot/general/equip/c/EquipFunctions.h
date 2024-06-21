@@ -1,4 +1,4 @@
-//! @file AddonFunction.h
+//! @file EquipFunctions.h
 //! @brief 関数群のベースコード
 //!
 //! クラスにまとめるまでもない関数群を追加する場合は，この関数ベースコードを基に作ってネ。
@@ -11,10 +11,10 @@
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.
 
-#ifndef ADDONFUNCTION
-#define ADDONFUNCTION
+#ifndef EQUIPFUNCTIONS
+#define EQUIPFUNCTIONS
 
-double AddonFunction(double u);	//!< 関数のベース
+double EquipFunctions(double u);	//!< 関数のベース
 
 #endif
 

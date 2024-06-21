@@ -1,5 +1,5 @@
 # ARCS6 Makefile
-# 2024/06/17 Yokokura, Yuki
+# 2024/06/21 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -164,10 +164,15 @@ clean:
 	@rm -f *.o
 	@rm -f *.s
 	@rm -f core
+	@rm -f *Zone.Identifier
 	@rm -f $(EQPPATH)/*.o
+	@rm -f $(EQPPATH)/*Zone.Identifier
 	@rm -f $(EQPCPATH)/*.o
+	@rm -f $(EQPCPATH)/*Zone.Identifier
 	@rm -f $(LIBPATH)/*.o
+	@rm -f $(LIBPATH)/*Zone.Identifier
 	@rm -f $(SYSPATH)/*.o
+	@rm -f $(SYSPATH)/*Zone.Identifier
 
 # 依存関係ファイルの生成
 .PHONY: dep

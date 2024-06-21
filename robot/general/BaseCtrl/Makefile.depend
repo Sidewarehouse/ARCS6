@@ -10,8 +10,9 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../sys/GraphPlot.hh \
  ../../../sys/ARCSmemory.hh ../../../sys/ARCSscrparams.hh \
  ../../../lib/ArcsMatrix.hh
-../equip/AddonTemplate.o: ../equip/AddonTemplate.cc \
- ../equip/AddonTemplate.hh
+../equip/EquipBase.o: ../equip/EquipBase.cc ../equip/EquipBase.hh
+../equip/EquipTemplate.o: ../equip/EquipTemplate.cc \
+ ../equip/EquipTemplate.hh
 ../equip/c/AddonFunction.o: ../equip/c/AddonFunction.c \
  ../equip/c/AddonFunction.h
 ../../../lib/ActivationFunctions.o: ../../../lib/ActivationFunctions.cc \

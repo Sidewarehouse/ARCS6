@@ -1,5 +1,5 @@
-//! @file AddonTemplate.hh
-//! @brief クラステンプレート
+//! @file EquipTemplate.hh
+//! @brief クラステンプレート(Equipディレクトリ版)
 //!
 //! クラス(テンプレート版)を追加する場合は，このクラステンプレートを基に作ってネ。
 //!
@@ -11,8 +11,8 @@
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.
 
-#ifndef ADDONTEMPLATE
-#define ADDONTEMPLATE
+#ifndef EQUIPTEMPLATE
+#define EQUIPTEMPLATE
 
 #include <cassert>
 
@@ -33,10 +33,10 @@ namespace ARCS {	// ARCS名前空間
 //! @brief クラステンプレート
 //! @tparam 
 //template <>
-class AddonTemplate {
+class EquipTemplate {
 	public:
 		//! @brief コンストラクタ
-		AddonTemplate()
+		EquipTemplate()
 			// :
 		{
 			
@@ -44,20 +44,20 @@ class AddonTemplate {
 
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	r	右辺値
-		AddonTemplate(AddonTemplate&& r)
+		EquipTemplate(EquipTemplate&& r)
 			// :
 		{
 			
 		}
 
 		//! @brief デストラクタ
-		~AddonTemplate(){
+		~EquipTemplate(){
 			
 		}
 		
 	private:
-		AddonTemplate(const AddonTemplate&) = delete;					//!< コピーコンストラクタ使用禁止
-		const AddonTemplate& operator=(const AddonTemplate&) = delete;	//!< 代入演算子使用禁止
+		EquipTemplate(const EquipTemplate&) = delete;					//!< コピーコンストラクタ使用禁止
+		const EquipTemplate& operator=(const EquipTemplate&) = delete;	//!< 代入演算子使用禁止
 };
 }
 

@@ -1,5 +1,5 @@
-//! @file AddonTemplate.cc
-//! @brief クラステンプレート
+//! @file EquipTemplate.cc
+//! @brief クラステンプレート(Equipディレクトリ版)
 //!
 //! クラス(テンプレート版)を追加する場合は，このクラステンプレートを基に作ってネ。
 //!
@@ -11,7 +11,7 @@
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.
 
-#include "AddonTemplate.hh"
+#include "EquipTemplate.hh"
 
 // テンプレートクラスのため，実体もヘッダ側に実装。
 
