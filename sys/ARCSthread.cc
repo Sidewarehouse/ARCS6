@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/05/06
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -17,15 +17,15 @@
 #include "ARCSparams.hh"
 #include "ARCSscrparams.hh"
 #include "ConstParams.hh"
-#include "GraphPlot.hh"
+#include "ARCSgraphics.hh"
 
 using namespace ARCS;
 
 //! @brief コンストラクタ
-ARCSthread::ARCSthread(ARCSassert& Asrt, ARCSscrparams& SP, GraphPlot& GP) :
+ARCSthread::ARCSthread(ARCSassert& Asrt, ARCSscrparams& SP, ARCSgraphics& GP) :
 	ARCSast(Asrt),					// ARCSアサートへの参照
 	ScrPara(SP),					// 画面パラメータへの参照
-	Graph(GP),						// グラフプロットへの参照
+	Graph(GP),						// グラフィックスへの参照
 	ExpDatMem(),					// 実験データ保存メモリの初期化
 	CtrlFuncs(SP, GP, ExpDatMem),	// 制御用周期実行関数群の初期化
 	CtrlFuncObj(),					// 制御用周期実行関数の関数オブジェクトの初期化

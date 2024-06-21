@@ -1,9 +1,9 @@
-//! @file GraphPlot.cc
-//! @brief グラフプロットクラス
+//! @file ARCSgraphics.cc
+//! @brief グラフィッククラス
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/06/21
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -11,12 +11,12 @@
 
 #include <memory>
 #include <cmath>
-#include "GraphPlot.hh"
+#include "ARCSgraphics.hh"
 
 using namespace ARCS;
 
 //! @brief コンストラクタ
-GraphPlot::GraphPlot(void)
+ARCSgraphics::ARCSgraphics(void)
 	: FG(ConstParams::PLOT_FRAMEBUFF),
 	  Plot({nullptr}),
 	  PlotXY(FG, ConstParams::PLOTXY_LEFT, ConstParams::PLOTXY_TOP, ConstParams::PLOTXY_WIDTH, ConstParams::PLOTXY_HEIGHT),
@@ -49,13 +49,13 @@ GraphPlot::GraphPlot(void)
 }
 
 //! @brief デストラクタ
-GraphPlot::~GraphPlot(){
+ARCSgraphics::~ARCSgraphics(){
 	PassedLog();
 }
 
 //! @brief 作業空間プロットに位置ベクトルを設定する関数（6軸配列版）
 //! @param[in]	AxPosition	1軸～6軸の作業空間位置ベクトル XYZ--- [m,m,m,0,0,0]^T
-void GraphPlot::SetWorkspace(const std::array<Matrix<1,6>, 6>& AxPosition){
+void ARCSgraphics::SetWorkspace(const std::array<Matrix<1,6>, 6>& AxPosition){
 	//pthread_mutex_lock(&WorkspaceMutex);	 ←リアルタイム性悪化の原因！(一時的な対処)
 	AxisPos = AxPosition;
 	//pthread_mutex_unlock(&WorkspaceMutex);
@@ -65,7 +65,7 @@ void GraphPlot::SetWorkspace(const std::array<Matrix<1,6>, 6>& AxPosition){
 //! @param[in]	Pos1	1軸の作業空間位置ベクトル XYZ--- [m,m,m]^T
 //! @param[in]	Pos2	2軸の作業空間位置ベクトル XYZ--- [m,m,m]^T
 //! @param[in]	Pos3	3軸の作業空間位置ベクトル XYZ--- [m,m,m]^T
-void GraphPlot::SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, const Matrix<1,3>& Pos3){
+void ARCSgraphics::SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, const Matrix<1,3>& Pos3){
 	//pthread_mutex_lock(&WorkspaceMutex); ←リアルタイム性悪化の原因！(一時的な対処)
 	AxisPos.at(3).LoadShortVector(Pos1);
 	AxisPos.at(4).LoadShortVector(Pos2);
@@ -75,32 +75,32 @@ void GraphPlot::SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, c
 
 //! @brief フレームバッファクラスへの参照を返す関数
 //! @return	FrameGraphicsへの参照
-FrameGraphics& GraphPlot::GetFGrefs(void){
+FrameGraphics& ARCSgraphics::GetFGrefs(void){
 	return FG;
 }
 
 //! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
-void GraphPlot::SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj){
+void ARCSgraphics::SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj){
 	DrawUserPlaneFunc = DrawPlaneFobj;	// ユーザカスタムプロット平面描画関数の関数オブジェクトを格納
 	DrawUserPlotFunc  = DrawPlotFobj;	// ユーザカスタムプロット描画関数の関数オブジェクトを格納
 }
 
 //! @brief プロット平面の描画
-void GraphPlot::DrawPlotPlane(void){
+void ARCSgraphics::DrawPlotPlane(void){
 	DrawTimeSeriesPlotPlane();	// 時系列プロット平面の描画
 	DrawWorkSpacePlotPlane();	// 作業空間プロット平面の描画
 	DrawUserPlaneFunc(); 		// ユーザカスタムプロット平面の描画(関数オブジェクト経由で実行)
 }
 
 //! @brief プロット波形の描画
-void GraphPlot::DrawWaves(void){
+void ARCSgraphics::DrawWaves(void){
 	DrawTimeSeriesPlot();		// 時系列プロットの描画
 	DrawWorkSpacePlot();		// 作業空間プロットの描画
 	DrawUserPlotFunc();			// ユーザカスタムプロットの描画(関数オブジェクト経由で実行)
 }
 
 //! @brief 再開始後にプロットをリセットする関数
-void GraphPlot::ResetWaves(void){
+void ARCSgraphics::ResetWaves(void){
 	TimeRingBuf.ClearBuffer();		// 時間リングバッファをクリア
 	
 	// 時系列プロット平面の分だけ回す
@@ -113,7 +113,7 @@ void GraphPlot::ResetWaves(void){
 }
 
 //! @brief 画面をPNGファイルとして出力する関数
-void GraphPlot::SaveScreenImage(void){
+void ARCSgraphics::SaveScreenImage(void){
 	EventLog("Writing PNG File...");
 	FG.LoadFrameToScreen();								// フレームバッファから画面バッファに読み込み
 	FG.SavePngImageFile(ConstParams::PLOT_PNGFILENAME);	// PNGファイル書き出し
@@ -121,7 +121,7 @@ void GraphPlot::SaveScreenImage(void){
 }
 
 //! @brief 時系列プロット平面を描画する関数
-void GraphPlot::DrawTimeSeriesPlotPlane(void){
+void ARCSgraphics::DrawTimeSeriesPlotPlane(void){
 	// 時系列プロット平面の分だけグラフパラメータの設定＆描画
 	for(size_t j = 0; j < ConstParams::PLOT_NUM; ++j){
 		Plot.at(j)->Visible(ConstParams::PLOT_VISIBLE.at(j));	// 可視化設定
@@ -149,7 +149,7 @@ void GraphPlot::DrawTimeSeriesPlotPlane(void){
 }
 
 //! @brief 時系列プロットを描画する関数
-void GraphPlot::DrawTimeSeriesPlot(void){
+void ARCSgraphics::DrawTimeSeriesPlot(void){
 	// 時系列プロット平面の分だけ描画
 	for(size_t j = 0; j < ConstParams::PLOT_NUM; ++j){
 		Plot.at(j)->LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
@@ -164,7 +164,7 @@ void GraphPlot::DrawTimeSeriesPlot(void){
 }
 
 //! @brief 作業空間プロット平面を描画する関数
-void GraphPlot::DrawWorkSpacePlotPlane(void){
+void ARCSgraphics::DrawWorkSpacePlotPlane(void){
 	// 作業空間XYプロットのグラフパラメータの設定＆描画
 	PlotXY.Visible(ConstParams::PLOTXY_VISIBLE);	// 可視化設定
 	PlotXY.SetColors(
@@ -201,7 +201,7 @@ void GraphPlot::DrawWorkSpacePlotPlane(void){
 }
 
 //! @brief 作業空間プロットを描画する関数
-void GraphPlot::DrawWorkSpacePlot(void){
+void ARCSgraphics::DrawWorkSpacePlot(void){
 	// 作業空間XYプロットの描画
 	PlotXY.LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
 	//pthread_mutex_lock(&WorkspaceMutex); ←リアルタイム性悪化の原因！(一時的な対処)

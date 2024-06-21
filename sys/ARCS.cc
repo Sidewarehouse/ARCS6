@@ -1,6 +1,6 @@
 //! @file ARCS.cc
 //! @brief Advanced Robot Control System V6, ARCS6
-//! @date 2024/05/02
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //!
 //! @par コーディングの信条
@@ -41,7 +41,7 @@
 #include "ARCSprint.hh"
 #include "ARCSparams.hh"
 #include "ARCSscrparams.hh"
-#include "GraphPlot.hh"
+#include "ARCSgraphics.hh"
 
 using namespace ARCS;
 
@@ -58,7 +58,7 @@ int main(void){
 	ARCScommon::SetCPUandPolicy(pthread_self(), ARCSparams::ARCS_CPU_MAIN, ARCSparams::ARCS_POL_MAIN, ARCSparams::ARCS_PRIO_MAIN);
 	
 	ARCSscrparams ScrPara;	// 画面パラメータの生成
-	GraphPlot Grph;			// グラフプロットの生成
+	ARCSgraphics Grph;		// グラフプロットの生成
 	ARCSscreen ARCSscr(ARCSlog, ARCSast, ARCSprt, ScrPara, Grph);	// ARCS画面初期化＆初期画面描画
 	ARCSthread ARCSthd(ARCSast, ScrPara, Grph);						// リアルタイムスレッドの生成
 	

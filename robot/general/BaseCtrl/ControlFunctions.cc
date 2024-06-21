@@ -1,6 +1,6 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/06/21
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -8,13 +8,13 @@
 
 // 基本のインクルードファイル
 #include <cmath>
-#include "ControlFunctions.hh"
 #include "ARCSprint.hh"
 #include "ARCSassert.hh"
 #include "ARCSmemory.hh"
 #include "ARCSscrparams.hh"
+#include "ARCSgraphics.hh"
+#include "ControlFunctions.hh"
 #include "InterfaceFunctions.hh"
-#include "GraphPlot.hh"
 
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"

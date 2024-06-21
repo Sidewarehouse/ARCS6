@@ -1,7 +1,7 @@
 //! @file ARCSscreen.hh
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/06/14
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -23,14 +23,14 @@ namespace ARCS {
 	class ARCSassert;
 	class ARCSprint;
 	class ARCSscrparams;
-	class GraphPlot;
+	class ARCSgraphics;
 }
 
 namespace ARCS {	// ARCS名前空間
 //! @brief ARCS画面描画クラス
 class ARCSscreen {
 	public:
-		ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, ARCSscrparams& Scrp, GraphPlot& Grph);	//!< 画面描画の初期化と準備を行う
+		ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, ARCSscrparams& Scrp, ARCSgraphics& Grph);	//!< 画面描画の初期化と準備を行う
 		~ARCSscreen();	//!< RCS画面表示の消去
 		
 		//! @brief フェーズ状態定義
@@ -137,7 +137,7 @@ class ARCSscreen {
 		ARCSassert& ARCSast;		//!< ARCSアサートへの参照
 		ARCSprint& ARCSprt;			//!< ARCSデバッグプリントへの参照
 		ARCSscrparams& ScrPara;		//!< 画面パラメータへの参照
-		GraphPlot& Graph;			//!< グラフプロットクラスへの参照
+		ARCSgraphics& Graph;			//!< グラフプロットクラスへの参照
 		
 		enum PhaseStatus CommandStatus;	//!< ARCS指令状態
 		enum PhaseStatus ActualStatus;	//!< ARCS実際の状態

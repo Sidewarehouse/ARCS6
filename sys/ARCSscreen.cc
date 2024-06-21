@@ -1,7 +1,7 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/06/14
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -17,7 +17,7 @@
 #include "ARCSprint.hh"
 #include "ARCSparams.hh"
 #include "ARCSscrparams.hh"
-#include "GraphPlot.hh"
+#include "ARCSgraphics.hh"
 
 using namespace ARCS;
 
@@ -27,7 +27,7 @@ using namespace ARCS;
 //! @param[in]	Prnt	ARCSプリントへの参照
 //! @param[in]	Scrp	ARCSスクリーンへの参照
 //! @param[in]	Grph	ARCSグラフへの参照
-ARCSscreen::ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, ARCSscrparams& Scrp, GraphPlot& Grph)
+ARCSscreen::ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, ARCSscrparams& Scrp, ARCSgraphics& Grph)
 	: ARCSlog(EvLog), ARCSast(Asrt), ARCSprt(Prnt), ScrPara(Scrp), Graph(Grph),
 	  CommandStatus(PHAS_INIT), ActualStatus(PHAS_NONE), CmdPosition(static_cast<int>(PHAS_NONE)),
 	  SetVarPosition(0), SetVarNowTyping(false), SetVarStrBuffer(""),

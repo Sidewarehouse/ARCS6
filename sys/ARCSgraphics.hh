@@ -1,16 +1,16 @@
-//! @file GraphPlot.cc
-//! @brief グラフプロットクラス
+//! @file ARCSgraphics.cc
+//! @brief グラフィッククラス
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/06/21
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
-#ifndef GRAPHPLOT
-#define GRAPHPLOT
+#ifndef ARCSGRAPHICS
+#define ARCSGRAPHICS
 
 #include <pthread.h>
 #include <cfloat>
@@ -19,11 +19,11 @@
 #include "Matrix.hh"
 
 namespace ARCS {	// ARCS名前空間
-//! @brief グラフプロットクラス
-class GraphPlot {
+//! @brief グラフィッククラス
+class ARCSgraphics {
 	public:
-		explicit GraphPlot(void);	//!< コンストラクタ
-		~GraphPlot();				//!< デストラクタ
+		explicit ARCSgraphics(void);	//!< コンストラクタ
+		~ARCSgraphics();				//!< デストラクタ
 		void DrawPlotPlane(void);	//!< プロット平面の描画
 		void DrawWaves(void);		//!< プロット波形の描画
 		void ResetWaves(void);		//!< プロットをリセットする関数
@@ -83,9 +83,9 @@ class GraphPlot {
 		void SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj);
 		
 	private:
-		GraphPlot(const GraphPlot&) = delete;					//!< コピーコンストラクタ使用禁止
-		const GraphPlot& operator=(const GraphPlot&) = delete;	//!< 代入演算子使用禁止
-		GraphPlot(GraphPlot&& r) = delete;						//!< ムーブコンストラクタ使用禁止
+		ARCSgraphics(const ARCSgraphics&) = delete;					//!< コピーコンストラクタ使用禁止
+		const ARCSgraphics& operator=(const ARCSgraphics&) = delete;	//!< 代入演算子使用禁止
+		ARCSgraphics(ARCSgraphics&& r) = delete;						//!< ムーブコンストラクタ使用禁止
 		
 		// フレームバッファとキュイプロット
 		FrameGraphics FG;						//!< フレームバッファ

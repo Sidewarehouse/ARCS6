@@ -1,6 +1,6 @@
 //! @file ControlFunctions.hh
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/06/21
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -19,7 +19,7 @@
 namespace ARCS{
 	class ARCSmemory;
 	class ARCSscrparams;
-	class GraphPlot;
+	class ARCSgraphics;
 }
 
 namespace ARCS {	// ARCS名前空間
@@ -35,15 +35,15 @@ class ControlFunctions {
 		};
 		
 		//! @brief コンストラクタ
-		ControlFunctions(ARCSscrparams& SP, GraphPlot& GP, ARCSmemory& DM)
+		ControlFunctions(ARCSscrparams& SP, ARCSgraphics& GP, ARCSmemory& DM)
 			: Screen(SP),			// 画面パラメータへの参照
-				Graph(GP),			// グラフプロットへの参照
+				Graph(GP),			// グラフィックスへの参照
 				Memory(DM),			// データメモリへの参照
 				Interface(),		// インターフェースクラスの初期化
 				UsrGraph(GP),		// ユーザカスタムプロットクラスの初期化
 				CmdFlag(CTRL_INIT),	// 動作モード設定フラグの初期化
 				CtrlFuncObj(),		// 各制御用周期実行関数の関数オブジェクト配列の初期化
-				count(0),				// ループカウンタの初期化
+				count(0),			// ループカウンタの初期化
 				NetworkLink(false),	// ネットワークリンクフラグの初期化
 				Initializing(false)	// ロボット初期化フラグの初期化
 		{
@@ -95,7 +95,7 @@ class ControlFunctions {
 		const ControlFunctions& operator=(const ControlFunctions&) = delete;//!< 代入演算子使用禁止
 		
 		ARCSscrparams& Screen;			//!< 画面パラメータへの参照
-		GraphPlot& Graph;				//!< グラフプロットへの参照
+		ARCSgraphics& Graph;			//!< グラフィックスへの参照
 		ARCSmemory& Memory;				//!< データメモリへの参照
 		InterfaceFunctions Interface;	//!< インターフェースクラス
 		UserPlot UsrGraph;				//!< ユーザカスタムプロットクラス

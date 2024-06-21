@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/05/06
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -23,14 +23,14 @@
 namespace ARCS {
 	class ARCSassert;
 	class ARCSscrparams;
-	class GraphPlot;
+	class ARCSgraphics;
 }
 
 namespace ARCS {	// ARCS名前空間
 	//! @brief ARCSリアルタイムスレッド管理クラス
 	class ARCSthread {
 		public:
-			ARCSthread(ARCSassert& ARCSast, ARCSscrparams& SP, GraphPlot& GP);	//!< コンストラクタ
+			ARCSthread(ARCSassert& ARCSast, ARCSscrparams& SP, ARCSgraphics& GP);	//!< コンストラクタ
 			~ARCSthread();					//!< デストラクタ
 			void Start(void);				//!< スレッドを開始する関数
 			void Stop(void);				//!< スレッドを停止する関数
@@ -43,7 +43,7 @@ namespace ARCS {	// ARCS名前空間
 			
 			ARCSassert& ARCSast;	//!< ARCSアサートへの参照
 			ARCSscrparams& ScrPara;	//!< 画面パラメータへの参照
-			GraphPlot& Graph;		//!< グラフプロットへの参照
+			ARCSgraphics& Graph;	//!< グラフィックスへの参照
 			ARCSmemory ExpDatMem;	//!< 実験データ保存メモリ
 			
 			ControlFunctions CtrlFuncs;								//!< 制御用周期実行関数群

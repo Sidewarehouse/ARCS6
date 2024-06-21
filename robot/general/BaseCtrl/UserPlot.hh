@@ -3,7 +3,7 @@
 //!
 //! ユーザが自由にカスタマイズできるグラフプロット描画クラス
 //!
-//! @date 2024/06/21
+//! @date 2024/06/22
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -18,7 +18,7 @@
 #include <functional>
 #include "ARCSassert.hh"
 #include "ARCSeventlog.hh"
-#include "GraphPlot.hh"
+#include "ARCSgraphics.hh"
 #include "CuiPlot.hh"
 
 namespace ARCS {	// ARCS名前空間
@@ -26,7 +26,7 @@ namespace ARCS {	// ARCS名前空間
 class UserPlot {
 	public:
 		//! @brief コンストラクタ
-		UserPlot(GraphPlot& GP)
+		UserPlot(ARCSgraphics& GP)
 			: // 以下でグラフ描画に使用するクラスと変数を初期化
 			  Plot(GP.GetFGrefs() , PLOT_LEFT, PLOT_TOP, PLOT_WIDTH, PLOT_HEIGHT),	// キュイプロットの設定（例）
 			  X1(0), Y1(0),	// プロット変数（例）
@@ -70,7 +70,7 @@ class UserPlot {
 		double X1, Y1;		//!< プロット変数（例）
 		
 		//! @brief ユーザカスタムプロット平面を描画する関数
-		//! （この関数はGraphPlotクラスの内部で関数オブジェクトを介して開始時に一度だけ実行される）
+		//! （この関数はARCSgraphicsクラスの内部で関数オブジェクトを介して開始時に一度だけ実行される）
 		void DrawPlotPlane(void){
 			// ユーザカスタムプロットのグラフパラメータの設定＆描画（例）
 			Plot.Visible(PLOT_VISIBLE);	// 可視化設定
@@ -90,7 +90,7 @@ class UserPlot {
 		}
 		
 		//! @brief ユーザカスタムプロットを描画する関数
-		//! （この関数はGraphPlotクラスの内部で関数オブジェクトを介して描画周期毎に実行される）
+		//! （この関数はARCSgraphicsクラスの内部で関数オブジェクトを介して描画周期毎に実行される）
 		void DrawPlot(void){
 			// ユーザカスタムプロットの描画動作（例）
 			//Plot.LoadPlaneFromBuffer();	// 背景のプロット平面をバッファから読み出す
@@ -112,7 +112,7 @@ class UserPlot {
 		UserPlot(const UserPlot&) = delete;					//!< コピーコンストラクタ使用禁止
 		UserPlot(UserPlot&&) = delete;						//!< ムーブコンストラクタ使用禁止
 		const UserPlot& operator=(const UserPlot&) = delete;//!< 代入演算子使用禁止
-		GraphPlot& Graph;									//!< グラフプロットへの参照
+		ARCSgraphics& Graph;									//!< グラフプロットへの参照
 		std::function<void(void)> DrawPlaneFobj;			//!< ユーザカスタムプロット平面描画関数の関数オブジェクト
 		std::function<void(void)> DrawPlotFobj;				//!< ユーザカスタムプロット描画関数の関数オブジェクト
 
