@@ -1,6 +1,6 @@
 //! @file ControlFunctions.hh
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/05/06
+//! @date 2024/06/21
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -13,6 +13,7 @@
 #include <functional>
 #include "ConstParams.hh"
 #include "InterfaceFunctions.hh"
+#include "UserPlot.hh"
 
 // 前方宣言
 namespace ARCS{
@@ -38,7 +39,8 @@ class ControlFunctions {
 			: Screen(SP),			// 画面パラメータへの参照
 				Graph(GP),			// グラフプロットへの参照
 				Memory(DM),			// データメモリへの参照
-				Interface(),			// インターフェースクラスの初期化
+				Interface(),		// インターフェースクラスの初期化
+				UsrGraph(GP),		// ユーザカスタムプロットクラスの初期化
 				CmdFlag(CTRL_INIT),	// 動作モード設定フラグの初期化
 				CtrlFuncObj(),		// 各制御用周期実行関数の関数オブジェクト配列の初期化
 				count(0),				// ループカウンタの初期化
@@ -96,6 +98,7 @@ class ControlFunctions {
 		GraphPlot& Graph;				//!< グラフプロットへの参照
 		ARCSmemory& Memory;				//!< データメモリへの参照
 		InterfaceFunctions Interface;	//!< インターフェースクラス
+		UserPlot UsrGraph;				//!< ユーザカスタムプロットクラス
 		CtrlFuncMode CmdFlag;			//!< 動作モード設定フラグ
 		std::array< std::function<bool(double,double,double)>, ConstParams::THREAD_MAX> CtrlFuncObj;	//!< 各制御用周期実行関数の関数オブジェクト配列
 		unsigned long count;			//!< [回]	ループカウンタ (ControlFunction1を基準とする)

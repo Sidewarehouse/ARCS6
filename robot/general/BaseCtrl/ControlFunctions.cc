@@ -1,6 +1,6 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/06/19
+//! @date 2024/06/21
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -15,7 +15,6 @@
 #include "ARCSscrparams.hh"
 #include "InterfaceFunctions.hh"
 #include "GraphPlot.hh"
-#include "CustomPlot.hh"
 
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"
@@ -62,6 +61,7 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 		Graph.SetVars(1, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(2, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(3, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット3 (グラフ番号, 変数0, ..., 変数7)
+		UsrGraph.SetVars(t, t);						// ユーザカスタムプロット（例）
 		Memory.SetData(Tact, t, 0, 0, 0, 0, 0, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		// リアルタイム制御ここまで
 	}

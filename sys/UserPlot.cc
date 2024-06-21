@@ -1,17 +1,17 @@
-//! @file CustomPlot.cc
-//! @brief クラステンプレート
+//! @file UserPlot.hh
+//! @brief ユーザカスタムプロットクラス
 //!
-//! クラス(テンプレート版)を追加する場合は，このクラステンプレートを基に作ってネ。
+//! ユーザが自由にカスタマイズできるグラフプロット描画クラス
 //!
-//! @date 20XX/XX/XX
+//! @date 2024/06/21
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-20XX Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // This program is free software;
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.
 
-#include "CustomPlot.hh"
+#include "UserPlot.hh"
 
 // テンプレートクラスのため，実体もヘッダ側に実装。
 

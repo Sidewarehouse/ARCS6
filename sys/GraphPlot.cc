@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/06/19
+//! @date 2024/06/21
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -21,7 +21,6 @@ GraphPlot::GraphPlot(void)
 	  Plot({nullptr}),
 	  PlotXY(FG, ConstParams::PLOTXY_LEFT, ConstParams::PLOTXY_TOP, ConstParams::PLOTXY_WIDTH, ConstParams::PLOTXY_HEIGHT),
 	  PlotXZ(FG, ConstParams::PLOTXZ_LEFT, ConstParams::PLOTXZ_TOP, ConstParams::PLOTXZ_WIDTH, ConstParams::PLOTXZ_HEIGHT),
-	  CtmPlot(FG),
 	  PlotVarsMutex(PTHREAD_MUTEX_INITIALIZER),
 	  StorageEnable(false),
 	  PlotNumBuf(0),
@@ -29,7 +28,9 @@ GraphPlot::GraphPlot(void)
 	  TimeRingBuf(),
 	  VarsRingBuf(),
 	  WorkspaceMutex(PTHREAD_MUTEX_INITIALIZER),
-	  AxisPos()
+	  AxisPos(),
+	  DrawUserPlaneFunc(),	
+	  DrawUserPlotFunc()
 {
 	PassedLog();
 	
@@ -72,18 +73,30 @@ void GraphPlot::SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, c
 	//pthread_mutex_unlock(&WorkspaceMutex);
 }
 
+//! @brief フレームバッファクラスへの参照を返す関数
+//! @return	FrameGraphicsへの参照
+FrameGraphics& GraphPlot::GetFGrefs(void){
+	return FG;
+}
+
+//! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
+void GraphPlot::SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj){
+	DrawUserPlaneFunc = DrawPlaneFobj;	// ユーザカスタムプロット平面描画関数の関数オブジェクトを格納
+	DrawUserPlotFunc  = DrawPlotFobj;	// ユーザカスタムプロット描画関数の関数オブジェクトを格納
+}
+
 //! @brief プロット平面の描画
 void GraphPlot::DrawPlotPlane(void){
 	DrawTimeSeriesPlotPlane();	// 時系列プロット平面の描画
 	DrawWorkSpacePlotPlane();	// 作業空間プロット平面の描画
-	DrawCustomPlotPlane();		// カスタムプロット平面の描画
+	DrawUserPlaneFunc(); 		// ユーザカスタムプロット平面の描画(関数オブジェクト経由で実行)
 }
 
 //! @brief プロット波形の描画
 void GraphPlot::DrawWaves(void){
 	DrawTimeSeriesPlot();		// 時系列プロットの描画
 	DrawWorkSpacePlot();		// 作業空間プロットの描画
-	DrawCustomPlot();			// カスタムプロットの描画
+	DrawUserPlotFunc();			// ユーザカスタムプロットの描画(関数オブジェクト経由で実行)
 }
 
 //! @brief 再開始後にプロットをリセットする関数
@@ -230,15 +243,5 @@ void GraphPlot::DrawWorkSpacePlot(void){
 	PlotXZ.DrawValue(ConstParams::PLOTXZ_VAL_XPOS, ConstParams::PLOTXZ_VAL_ZPOS - 0.2, "W = % 6.1f deg", AxisPos.at(5)[6]*180.0/M_PI);	// ヨー角数値表示
 	//pthread_mutex_unlock(&WorkspaceMutex);
 	PlotXZ.Disp();	// プロット平面＋プロットの描画
-}
-
-//! @brief カスタムプロット平面を描画する関数
-void GraphPlot::DrawCustomPlotPlane(void){
-	CtmPlot.DrawPlotPlane();
-}
-
-//! @brief カスタムプロットを描画する関数
-void GraphPlot::DrawCustomPlot(void){
-	CtmPlot.DrawPlot();
 }
 

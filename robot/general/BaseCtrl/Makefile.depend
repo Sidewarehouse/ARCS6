@@ -7,9 +7,9 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSprint.hh ../../../sys/ARCScommon.hh \
  ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
- ../../../lib/ArcsMatrix.hh ../../../sys/ARCSmemory.hh \
- ../../../sys/ARCSscrparams.hh ../../../sys/GraphPlot.hh CustomPlot.hh \
- CustomPlot.hh ../../../lib/ArcsMatrix.hh
+ ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../sys/GraphPlot.hh \
+ ../../../sys/ARCSmemory.hh ../../../sys/ARCSscrparams.hh \
+ ../../../lib/ArcsMatrix.hh
 ../equip/AddonTemplate.o: ../equip/AddonTemplate.cc \
  ../equip/AddonTemplate.hh
 ../equip/c/AddonFunction.o: ../equip/c/AddonFunction.c \
@@ -335,10 +335,11 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ../../../sys/ARCSthread.hh ../../../sys/ControlFunctions.hh \
  ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSprint.hh ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
- ../../../lib/ArcsMatrix.hh ../../../sys/ARCSmemory.hh \
- ../../../sys/ARCSeventlog.hh ../../../sys/ARCSassert.hh \
- ../../../sys/ARCSprint.hh ../../../sys/ARCSparams.hh \
- ../../../sys/ARCSscrparams.hh ../../../sys/GraphPlot.hh CustomPlot.hh
+ ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../sys/GraphPlot.hh \
+ ../../../sys/ARCSmemory.hh ../../../sys/ARCSeventlog.hh \
+ ../../../sys/ARCSassert.hh ../../../sys/ARCSprint.hh \
+ ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
+ ../../../sys/GraphPlot.hh
 ../../../sys/ARCSassert.o: ../../../sys/ARCSassert.cc \
  ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh
 ../../../sys/ARCScommon.o: ../../../sys/ARCScommon.cc \
@@ -381,7 +382,7 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ../../../sys/ARCScommon.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSprint.hh ../../../lib/Matrix.hh \
  ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
- ../../../sys/GraphPlot.hh CustomPlot.hh ../../../sys/ARCSeventlog.hh
+ ../../../sys/GraphPlot.hh
 ../../../sys/ARCSscrparams.o: ../../../sys/ARCSscrparams.cc \
  ../../../sys/ARCSscrparams.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
@@ -399,29 +400,23 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSprint.hh ../../../sys/ARCScommon.hh \
  ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
- ../../../lib/ArcsMatrix.hh ../../../sys/ARCSmemory.hh \
- ../../../sys/ARCSeventlog.hh ../../../sys/ARCSassert.hh \
- ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
- ../../../sys/GraphPlot.hh CustomPlot.hh
+ ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../sys/GraphPlot.hh \
+ ../../../sys/ARCSmemory.hh ../../../sys/ARCSeventlog.hh \
+ ../../../sys/ARCSassert.hh ../../../sys/ARCSparams.hh \
+ ../../../sys/ARCSscrparams.hh ../../../sys/GraphPlot.hh
 ../../../sys/ConstParams.o: ../../../sys/ConstParams.cc ConstParams.hh \
  ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
  ../../../lib/LinuxCommander.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/FrameFontSmall.hh ../../../lib/CuiPlot.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
  ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh
-../../../sys/CustomPlot.o: ../../../sys/CustomPlot.cc CustomPlot.hh \
- ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh \
- ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
- ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
- ../../../lib/RingBuffer.hh ../../../lib/Matrix.hh
 ../../../sys/GraphPlot.o: ../../../sys/GraphPlot.cc \
  ../../../sys/GraphPlot.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
  ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh CustomPlot.hh ../../../sys/ARCSeventlog.hh \
- ../../../lib/Matrix.hh
+ ../../../lib/Matrix.hh ../../../lib/Matrix.hh
 ../../../sys/InterfaceFunctions.o: ../../../sys/InterfaceFunctions.cc \
  ../equip/InterfaceFunctions.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
@@ -432,5 +427,12 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ControlFunctions.hh \
  ../../../sys/ARCSprint.hh ../../../sys/ARCScommon.hh \
  ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
  ../../../lib/ArcsMatrix.hh
+../../../sys/UserPlot.o: ../../../sys/UserPlot.cc UserPlot.hh \
+ ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh \
+ ../../../sys/GraphPlot.hh ConstParams.hh ../../../lib/SFthread.hh \
+ ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
+ ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
+ ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
+ ../../../lib/RingBuffer.hh ../../../lib/Matrix.hh ../../../lib/Matrix.hh
 OfflineFunction.o: OfflineFunction.cc ../../../lib/ArcsMatrix.hh \
  ../../../lib/CsvManipulator.hh ../../../lib/Matrix.hh

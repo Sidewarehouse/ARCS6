@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/06/19
+//! @date 2024/06/21
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -14,8 +14,8 @@
 
 #include <pthread.h>
 #include <cfloat>
+#include <functional>
 #include "ConstParams.hh"
-#include "CustomPlot.hh"
 #include "Matrix.hh"
 
 namespace ARCS {	// ARCS名前空間
@@ -77,24 +77,21 @@ class GraphPlot {
 		//! @brief 作業空間プロットに位置ベクトルを設定する関数（3軸個別版）
 		void SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, const Matrix<1,3>& Pos3);
 		
+		FrameGraphics& GetFGrefs(void);	//!< フレームバッファクラスへの参照を返す関数
+
+		//! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
+		void SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj);
+		
 	private:
 		GraphPlot(const GraphPlot&) = delete;					//!< コピーコンストラクタ使用禁止
 		const GraphPlot& operator=(const GraphPlot&) = delete;	//!< 代入演算子使用禁止
 		GraphPlot(GraphPlot&& r) = delete;						//!< ムーブコンストラクタ使用禁止
-		
-		void DrawTimeSeriesPlotPlane(void);		//!< 時系列プロット平面を描画する関数
-		void DrawTimeSeriesPlot(void);			//!< 時系列プロットを描画する関数
-		void DrawWorkSpacePlotPlane(void);		//!< 作業空間プロット平面を描画する関数
-		void DrawWorkSpacePlot(void);			//!< 作業空間プロットを描画する関数
-		void DrawCustomPlotPlane(void);			//!< カスタムプロット平面を描画する関数
-		void DrawCustomPlot(void);				//!< カスタムプロットを描画する関数
 		
 		// フレームバッファとキュイプロット
 		FrameGraphics FG;						//!< フレームバッファ
 		std::array<std::unique_ptr<CuiPlot>, ConstParams::PLOT_NUM> Plot;		//!< 時系列用キュイプロットへのスマートポインタのクラス配列
 		CuiPlot PlotXY;							//!< XY作業空間用キュイプロット
 		CuiPlot PlotXZ;							//!< XZ作業空間用キュイプロット
-		CustomPlot CtmPlot;						//!< カスタムプロット
 		
 		// 時系列プロット読み込み用変数
 		pthread_mutex_t PlotVarsMutex;	//!< プロット描画変数用のMutex
@@ -115,6 +112,16 @@ class GraphPlot {
 		// 作業空間用バッファ
 		pthread_mutex_t WorkspaceMutex;		//!< 作業空間用のMutex
 		std::array<Matrix<1,6>, 6> AxisPos;	//!< [m,m,m,0,0,0] XYZ--- 1軸～6軸の作業空間位置
+
+		// ユーザカスタムプロット
+		std::function<void(void)> DrawUserPlaneFunc;	//!< ユーザカスタムプロット平面描画関数の関数オブジェクト
+		std::function<void(void)> DrawUserPlotFunc;		//!< ユーザカスタムプロット描画関数の関数オブジェクト
+
+		// 実際の描画を実行する関数
+		void DrawTimeSeriesPlotPlane(void);		//!< 時系列プロット平面を描画する関数
+		void DrawTimeSeriesPlot(void);			//!< 時系列プロットを描画する関数
+		void DrawWorkSpacePlotPlane(void);		//!< 作業空間プロット平面を描画する関数
+		void DrawWorkSpacePlot(void);			//!< 作業空間プロットを描画する関数
 };
 }
 
