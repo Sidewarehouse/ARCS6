@@ -49,8 +49,8 @@ ARCSscreen::ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, A
 	PassedLog();				// イベントログにココを通過したことを記録
 	
 	// 画面解像度に従って最大値を設定
-	VERTICAL_MAX = ConstParams::SCR_VERTICAL_MAX;		// [文字] 画面の最大高さ
-	HORIZONTAL_MAX = ConstParams::SCR_HORIZONTAL_MAX;	// [文字] 画面の最大幅
+	VERTICAL_MAX = EquipParams::SCR_VERTICAL_MAX;		// [文字] 画面の最大高さ
+	HORIZONTAL_MAX = EquipParams::SCR_HORIZONTAL_MAX;	// [文字] 画面の最大幅
 	
 	// スレッド同期準備
 	pthread_mutex_init(&SyncMutex, nullptr);	// 同期用Mutexの初期化

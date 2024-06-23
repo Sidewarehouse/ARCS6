@@ -332,10 +332,11 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
  ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh ../../../lib/RingBuffer.hh \
- ../../../sys/ARCSthread.hh ../../../sys/ControlFunctions.hh \
- ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
- ../../../sys/ARCSprint.hh ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
+ ../../../lib/Matrix.hh ../equip/EquipParams.hh \
+ ../../../lib/RingBuffer.hh ../../../sys/ARCSthread.hh \
+ ../../../sys/ControlFunctions.hh ../equip/InterfaceFunctions.hh \
+ ../../../sys/ARCSeventlog.hh ../../../sys/ARCSprint.hh \
+ ../../../lib/Matrix.hh ../../../lib/Limiter.hh \
  ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../sys/ARCSgraphics.hh \
  ../../../sys/ARCSmemory.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSassert.hh ../../../sys/ARCSprint.hh \
@@ -353,8 +354,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
  ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh ../../../lib/RingBuffer.hh \
- ../../../sys/ARCSparams.hh
+ ../../../lib/Matrix.hh ../equip/EquipParams.hh \
+ ../../../lib/RingBuffer.hh ../../../sys/ARCSparams.hh
 ../../../sys/ARCSgraphics.o: ../../../sys/ARCSgraphics.cc \
  ../../../sys/ARCSgraphics.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
@@ -379,18 +380,18 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/FrameFontSmall.hh ../../../lib/CuiPlot.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
  ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh \
- ../../../lib/RingBuffer.hh
+ ../equip/EquipParams.hh ../../../lib/RingBuffer.hh
 ../../../sys/ARCSscreen.o: ../../../sys/ARCSscreen.cc \
  ../../../sys/ARCSscreen.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
  ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh ../../../lib/RingBuffer.hh \
- ../../../sys/ARCScommon.hh ../../../sys/ARCSeventlog.hh \
- ../../../sys/ARCSprint.hh ../../../lib/Matrix.hh \
- ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
- ../../../sys/ARCSgraphics.hh
+ ../../../lib/Matrix.hh ../equip/EquipParams.hh \
+ ../../../lib/RingBuffer.hh ../../../sys/ARCScommon.hh \
+ ../../../sys/ARCSeventlog.hh ../../../sys/ARCSprint.hh \
+ ../../../lib/Matrix.hh ../../../sys/ARCSparams.hh \
+ ../../../sys/ARCSscrparams.hh ../../../sys/ARCSgraphics.hh
 ../../../sys/ARCSscrparams.o: ../../../sys/ARCSscrparams.cc \
  ../../../sys/ARCSscrparams.hh ConstParams.hh ../../../lib/SFthread.hh \
  ../../../lib/CPUSettings.hh ../../../lib/LinuxCommander.hh \

@@ -15,6 +15,7 @@
 #include <array>
 #include <string>
 #include "ConstParams.hh"
+#include "EquipParams.hh"
 #include "RingBuffer.hh"
 
 // 前方宣言
@@ -63,23 +64,23 @@ class ARCSscreen {
 		// イベントログの定数
 		static constexpr unsigned int EVLOG_TOP   =  2;	//!< イベントログの縦位置
 		static constexpr unsigned int EVLOG_LEFT  = 68;	//!< イベントログの横位置
-		static constexpr unsigned int EVLOG_WIDTH = ConstParams::SCR_HORIZONTAL_MAX - 84;	//!< イベントログの幅
+		static constexpr unsigned int EVLOG_WIDTH = EquipParams::SCR_HORIZONTAL_MAX - 84;	//!< イベントログの幅
 		static constexpr unsigned int EVLOG_NUM   =  3;	//!< イベントログの行数
 		
 		// デバッグプリントの定数
 		static constexpr unsigned int DBPRNT_TOP   =  6;//!< デバッグプリントの縦位置
 		static constexpr unsigned int DBPRNT_LEFT  = 38;//!< デバッグプリントの横位置
-		static constexpr unsigned int DBPRNT_WIDTH = ConstParams::SCR_HORIZONTAL_MAX - 38;	//!< デバッグプリントの幅
-		static constexpr unsigned int DBPRNT_NUM   = ConstParams::SCR_VERTICAL_MAX - 8;		//!< デバッグプリントの行数
+		static constexpr unsigned int DBPRNT_WIDTH = EquipParams::SCR_HORIZONTAL_MAX - 38;	//!< デバッグプリントの幅
+		static constexpr unsigned int DBPRNT_NUM   = EquipParams::SCR_VERTICAL_MAX - 8;		//!< デバッグプリントの行数
 		
 		// デバッグインジケータの定数
 		static constexpr unsigned int DBINDC_TOP = 6;	//!< デバッグインジケータの縦位置
-		static constexpr unsigned int DBINDC_LEFT = ConstParams::SCR_HORIZONTAL_MAX - 23;	//!< デバッグインジケータの横位置
+		static constexpr unsigned int DBINDC_LEFT = EquipParams::SCR_HORIZONTAL_MAX - 23;	//!< デバッグインジケータの横位置
 		static constexpr unsigned int DBINDC_NUM = 16;	//!< デバッグインジケータの数
 		
 		// 非常停止ウィンドウの定数
 		static constexpr int EMWIN_LEFT = 0;								//!< 非常停止ウィンドウの左端
-		static constexpr int EMWIN_RIGHT = ConstParams::SCR_HORIZONTAL_MAX;	//!< 非常停止ウィンドウの右端
+		static constexpr int EMWIN_RIGHT = EquipParams::SCR_HORIZONTAL_MAX;	//!< 非常停止ウィンドウの右端
 		static constexpr int EMWIN_TOP = 1;									//!< 非常停止ウィンドウの上端
 		static constexpr int EMWIN_BOTTOM = 5;								//!< 非常停止ウィンドウの下端
 		
