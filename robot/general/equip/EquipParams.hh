@@ -46,14 +46,17 @@ class EquipParams {
 		
 		//! @brief 使用CPUコアの設定
 		//! CPU0番コアはOSとARCSシステム、CPU1番コアはARCS描画系が使用しているので、2番目以上が望ましい
-		static constexpr std::array<unsigned int, ARCSparams::THREAD_MAX> CPUCORE_NUMBER = {
+		static constexpr std::array<size_t, ARCSparams::THREAD_MAX> CPUCORE_NUMBER = {
 				3,	// [-] 制御用周期実行関数1 (スレッド1) 使用するCPUコア番号
 				2,	// [-] 制御用周期実行関数2 (スレッド2) 使用するCPUコア番号
 				1,	// [-] 制御用周期実行関数3 (スレッド3) 使用するCPUコア番号
 		};
 		
+		// 時系列グラフプロットの設定
+		static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";//!< フレームバッファ ファイルデスクリプタ
+		
 		// 実験機アクチュエータの設定
-		static constexpr unsigned int ACTUATOR_NUM = 1;		//!< [基] 実験装置のアクチュエータの総数
+		static constexpr size_t ACTUATOR_NUM = 1;			//!< [基] 実験装置のアクチュエータの総数
 		
 		//! @brief 実験機アクチュエータの種類の設定（リニアモータか回転モータかの設定）
 		//! 下記が使用可能

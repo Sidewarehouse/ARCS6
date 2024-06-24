@@ -20,10 +20,10 @@ namespace ARCS {	// ARCS名前空間
 class ARCSparams {
 	public:
 		// ARCS改訂番号(ARCS本体側システムコード改変時にちゃんと変えること)
-		static const std::string ARCS_REVISION;	//!< (16文字以内)
+		static constexpr char ARCS_REVISION[] = "AR6-REV.24062423";	//!< ARCS改訂番号(16文字以内)
 		
 		// イベントログの設定
-		static const std::string EVENTLOG_NAME;	//!< イベントログファイル名
+		static constexpr char EVENTLOG_NAME[] = "EventLog.txt";		//!< イベントログファイル名
 		
 		// ARCSシステムスレッドの設定
 		static constexpr int ARCS_POL_CMDI = SCHED_RR;	//!< 指令入力スレッドのポリシー
@@ -38,19 +38,19 @@ class ARCSparams {
 		static constexpr int ARCS_PRIO_GRPL = 35;		//!< グラフ表示スレッドの優先順位
 		static constexpr int ARCS_PRIO_INFO = 36;		//!< 情報取得スレッドの優先順位
 		static constexpr int ARCS_PRIO_MAIN = 37;		//!< main関数スレッドの優先順位
-		static constexpr unsigned int  ARCS_CPU_CMDI = 0;		//!< 指令入力スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-		static constexpr unsigned int  ARCS_CPU_DISP = 0;		//!< 表示スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-		static constexpr unsigned int  ARCS_CPU_EMER = 0;		//!< 緊急停止スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-		static constexpr unsigned int  ARCS_CPU_GRPL = 1;		//!< グラフ表示スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-		static constexpr unsigned int  ARCS_CPU_INFO = 0;		//!< 情報取得スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
-		static constexpr unsigned int  ARCS_CPU_MAIN = 0;		//!< main関数に割り当てるCPUコア番号（実時間スレッドとは別にすること）
+		static constexpr size_t  ARCS_CPU_CMDI = 0;		//!< 指令入力スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
+		static constexpr size_t  ARCS_CPU_DISP = 0;		//!< 表示スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
+		static constexpr size_t  ARCS_CPU_EMER = 0;		//!< 緊急停止スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
+		static constexpr size_t  ARCS_CPU_GRPL = 1;		//!< グラフ表示スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
+		static constexpr size_t  ARCS_CPU_INFO = 0;		//!< 情報取得スレッドに割り当てるCPUコア番号（実時間スレッドとは別にすること）
+		static constexpr size_t  ARCS_CPU_MAIN = 0;		//!< main関数に割り当てるCPUコア番号（実時間スレッドとは別にすること）
 		static constexpr unsigned long ARCS_TIME_DISP = 33333;	//!< [us] 表示の更新時間（ここの時間は厳密ではない）
 		static constexpr unsigned long ARCS_TIME_GRPL = 33333;	//!< [us] グラフ表示の更新時間（ここの時間は厳密ではない）
 		static constexpr unsigned long ARCS_TIME_INFO = 33333;	//!< [us] 情報取得の更新時間（ここの時間は厳密ではない）
-		static constexpr unsigned int THREAD_MAX = 3;	//!< リアルタイムスレッド最大数 (変更不可)
+		static constexpr size_t THREAD_MAX = 3;			//!< リアルタイムスレッド最大数 (変更不可)
 		
 		// 実験機アクチュエータの設定
-		static constexpr unsigned int ACTUATOR_MAX = 16;	//!< [基] ARCSが対応しているアクチュエータの最大数
+		static constexpr size_t ACTUATOR_MAX = 16;		//!< [基] ARCSが対応しているアクチュエータの最大数
 	
 		//! @brief アクチュエータタイプの定義
 		enum ActType {
@@ -66,10 +66,14 @@ class ARCSparams {
 		};
 
 		// 任意変数値表示の設定
-		static constexpr unsigned int INDICVARS_MAX = 16;	//!< 表示変数最大数 (変更不可)
+		static constexpr size_t INDICVARS_MAX = 16;	//!< 表示変数最大数 (変更不可)
 
 		// オンライン設定変数の設定
-		static constexpr unsigned int ONLINEVARS_MAX = 16;	//!< オンライン設定変数最大数 (変更不可)
+		static constexpr size_t ONLINEVARS_MAX = 16;//!< オンライン設定変数最大数 (変更不可)
+		
+		// 時系列グラフプロットの設定		
+		static constexpr size_t PLOT_MAX = 16;		//!< [-] グラフプロットの最大数 (変更不可)
+		static constexpr size_t PLOT_VAR_MAX = 8;	//!< [-] プロット可能な変数の最大数 (変更不可)
 
 	private:
 		ARCSparams() = delete;	//!< コンストラクタ

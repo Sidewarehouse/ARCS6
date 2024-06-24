@@ -28,10 +28,10 @@ class ConstParams {
 		static constexpr double DATA_START =  0;		//!< [s] 保存開始時刻
 		static constexpr double DATA_END   = 10;		//!< [s] 保存終了時刻
 		static constexpr double DATA_RESO  = 0.001;		//!< [s] データの時間分解能
-		static constexpr unsigned int DATA_NUM  =  10;	//!< [-] 保存する変数の数
+		static constexpr size_t DATA_NUM  =  10;		//!< [-] 保存する変数の数
 
 		// SCHED_FIFOリアルタイムスレッドの設定
-		static constexpr unsigned int THREAD_NUM = 1;	//!< 動作させるスレッドの数 (最大数は ARCSparams::THREAD_NUM_MAX 個まで)
+		static constexpr size_t THREAD_NUM = 1;			//!< 動作させるスレッドの数 (最大数は ARCSparams::THREAD_NUM_MAX 個まで)
 		
 		//! @brief 制御周期の設定
 		static constexpr std::array<unsigned long, ARCSparams::THREAD_MAX> SAMPLING_TIME = {
@@ -46,7 +46,7 @@ class ConstParams {
 		static constexpr bool DEBUG_INDIC_VISIBLE = false;	//!< デバッグインジケータ表示の有効/無効設定
 		
 		// 任意変数値表示の設定
-		static constexpr unsigned int INDICVARS_NUM = 10;	//!< 表示したい変数の数 (最大数 INDICVARS_MAX まで)
+		static constexpr size_t INDICVARS_NUM = 10;			//!< 表示したい変数の数 (最大数 INDICVARS_MAX まで)
 		
 		//! @brief 任意に表示したい変数値の表示形式 (printfの書式と同一)
 		static constexpr std::array<char[15], ARCSparams::INDICVARS_MAX> INDICVARS_FORMS = {
@@ -69,23 +69,20 @@ class ConstParams {
 		};
 		
 		// オンライン設定変数の設定
-		static constexpr unsigned int ONLINEVARS_NUM = 10;	//!< オンライン設定変数の数 (最大数 ONLINEVARS_MAX まで)
+		static constexpr size_t ONLINEVARS_NUM = 10;	//!< オンライン設定変数の数 (最大数 ONLINEVARS_MAX まで)
 		
 		// 時系列グラフプロットの共通設定
-		static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";		//!< フレームバッファ ファイルデスクリプタ
 		static constexpr char PLOT_PNGFILENAME[] = "Screenshot.png";//!< スクリーンショットのPNGファイル名
-		static constexpr size_t PLOT_MAX = 16;						//!< [-] グラフプロットの最大数 (変更不可)
 		static constexpr size_t PLOT_NUM =  4;						//!< [-] グラフプロットの数
 		static constexpr double PLOT_TIMESPAN = 10;					//!< [s] プロットの時間幅
 		static constexpr double PLOT_TIMERESO = 0.01;				//!< [s] プロットの時間分解能
 		static constexpr size_t PLOT_RINGBUFF = 1024;				//!< [-] プロット用リングバッファの要素数
-		static constexpr unsigned int PLOT_TGRID_NUM = 10;			//!< [-] 時間軸グリッドの分割数
-		static constexpr unsigned int PLOT_VAR_MAX = 8;				//!< [-] プロット可能な変数の最大数 (変更不可)
+		static constexpr size_t PLOT_TGRID_NUM = 10;				//!< [-] 時間軸グリッドの分割数
 		static constexpr char PLOT_TFORMAT[] = "%3.1f";				//!< 時間軸書式
 		static constexpr char PLOT_TLABEL[] = "Time [s]";			//!< 時間軸ラベル
 		
 		//! @brief 縦軸ラベル
-		static constexpr std::array<char[31], PLOT_MAX> PLOT_FLABEL = {
+		static constexpr std::array<char[31], ARCSparams::PLOT_MAX> PLOT_FLABEL = {
 			"---------- [-]",	// グラフプロット0
 			"---------- [-]",	// グラフプロット1
 			"---------- [-]",	// グラフプロット2
@@ -105,7 +102,7 @@ class ConstParams {
 		};
 		
 		//! @brief 縦軸書式
-		static constexpr std::array<char[15], PLOT_MAX> PLOT_FFORMAT = {
+		static constexpr std::array<char[15], ARCSparams::PLOT_MAX> PLOT_FFORMAT = {
 			"%6.1f",	// グラフプロット0
 			"%6.1f",	// グラフプロット1
 			"%6.1f",	// グラフプロット2
@@ -126,7 +123,7 @@ class ConstParams {
 		
 		//! @brief プロット変数の名前
 		static constexpr std::array<
-			std::array<char[15], PLOT_VAR_MAX>, PLOT_MAX
+			std::array<char[15], ARCSparams::PLOT_VAR_MAX>, ARCSparams::PLOT_MAX
 		> PLOT_VAR_NAMES = {{
 			{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット0
 			{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット1
@@ -153,7 +150,7 @@ class ConstParams {
 		static constexpr FGcolors PLOT_CURS_COLOR = FGcolors::GRAY50;	//!< 時刻カーソルの色
 		
 		//! @brief 時系列グラフ描画の有効/無効設定
-		static constexpr std::array<bool, ConstParams::PLOT_MAX> PLOT_VISIBLE = {
+		static constexpr std::array<bool, ARCSparams::PLOT_MAX> PLOT_VISIBLE = {
 			true,	// プロット0
 			true,	// プロット1
 			true,	// プロット2
@@ -173,7 +170,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの変数ごとの線の色
-		static constexpr std::array<FGcolors, PLOT_VAR_MAX> PLOT_VAR_COLORS = {
+		static constexpr std::array<FGcolors, ARCSparams::PLOT_VAR_MAX> PLOT_VAR_COLORS = {
 			FGcolors::RED,
 			FGcolors::GREEN,
 			FGcolors::CYAN,
@@ -185,7 +182,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットする変数の数 (≦PLOT_VAR_MAX)
-		static constexpr std::array<unsigned int, PLOT_MAX> PLOT_VAR_NUM = {
+		static constexpr std::array<size_t, ARCSparams::PLOT_MAX> PLOT_VAR_NUM = {
 			1,	// プロット0
 			1,	// プロット1
 			1,	// プロット2
@@ -205,7 +202,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの縦軸最大値
-		static constexpr std::array<double, PLOT_MAX> PLOT_FMAX	= {
+		static constexpr std::array<double, ARCSparams::PLOT_MAX> PLOT_FMAX	= {
 			1.0,	// プロット0
 			1.0,	// プロット1
 			1.0,	// プロット2
@@ -225,7 +222,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの縦軸最小値
-		static constexpr std::array<double, PLOT_MAX> PLOT_FMIN = {
+		static constexpr std::array<double, ARCSparams::PLOT_MAX> PLOT_FMIN = {
 			-1.0,	// プロット0
 			-1.0,	// プロット1
 			-1.0,	// プロット2
@@ -245,7 +242,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの縦軸グリッドの分割数
-		static constexpr std::array<unsigned int, PLOT_MAX> PLOT_FGRID_NUM = {
+		static constexpr std::array<size_t, ARCSparams::PLOT_MAX> PLOT_FGRID_NUM = {
 			4,	// プロット0
 			4,	// プロット1
 			4,	// プロット2
@@ -265,7 +262,7 @@ class ConstParams {
 		};
 		
 		//! @brief [px] 時系列プロットの左位置
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_LEFT = {
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_LEFT = {
 			305,	// プロット0
 			305,	// プロット1
 			305,	// プロット2
@@ -278,34 +275,34 @@ class ConstParams {
 			1015,	// プロット9
 			1015,	// プロット10
 			1015,	// プロット11
-				0,	// プロット12
-				0,	// プロット13
-				0,	// プロット14
-				0,	// プロット15
+			   0,	// プロット12
+			   0,	// プロット13
+			   0,	// プロット14
+			   0,	// プロット15
 		};
 		
 		//! @brief [px] 時系列プロットの上位置
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_TOP = {
-				97,	// プロット0
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_TOP = {
+			 97,	// プロット0
 			250,	// プロット1
 			403,	// プロット2
 			556,	// プロット3
 			709,	// プロット4
 			862,	// プロット5
-				97,	// プロット6
+			 97,	// プロット6
 			250,	// プロット7
 			403,	// プロット8
 			556,	// プロット9
 			709,	// プロット10
 			862,	// プロット11
-				0,	// プロット12
-				0,	// プロット13
-				0,	// プロット14
-				0,	// プロット15
+			  0,	// プロット12
+			  0,	// プロット13
+			  0,	// プロット14
+			  0,	// プロット15
 		};
 		
 		//! @brief [px] 時系列プロットの幅
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_WIDTH = {
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_WIDTH = {
 			710,	// プロット0
 			710,	// プロット1
 			710,	// プロット2
@@ -325,7 +322,7 @@ class ConstParams {
 		};
 		
 		//! @brief [px] 時系列プロットの高さ
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_HEIGHT = {
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_HEIGHT = {
 			153,	// プロット0
 			153,	// プロット1
 			153,	// プロット2
@@ -354,7 +351,9 @@ class ConstParams {
 		//!	PLOT_STAIRS		階段プロット
 		//!	PLOT_BOLDSTAIRS	太線階段プロット
 		//!	PLOT_LINEANDDOT	線と点の複合プロット
-		static constexpr std::array<std::array<CuiPlotTypes, PLOT_VAR_MAX>, PLOT_MAX> PLOT_TYPE = {{
+		static constexpr std::array<
+			std::array<CuiPlotTypes, ARCSparams::PLOT_VAR_MAX>, ARCSparams::PLOT_MAX
+		> PLOT_TYPE = {{
 			{CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE,
 				CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE,},	// プロット0
 				
@@ -416,8 +415,8 @@ class ConstParams {
 		static constexpr double PLOTXY_XMIN = -0.5;		//!< [m] X軸最小値
 		static constexpr double PLOTXY_YMAX =  1.0;		//!< [m] Y軸最大値
 		static constexpr double PLOTXY_YMIN = -1.0;		//!< [m] Y軸最小値
-		static constexpr unsigned int PLOTXY_XGRID = 4;	//!< X軸グリッドの分割数
-		static constexpr unsigned int PLOTXY_YGRID = 4;	//!< Y軸グリッドの分割数
+		static constexpr size_t PLOTXY_XGRID = 4;		//!< X軸グリッドの分割数
+		static constexpr size_t PLOTXY_YGRID = 4;		//!< Y軸グリッドの分割数
 		static constexpr double PLOTXY_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXY_VAL_YPOS =  0.9;	//!< 数値表示の上位置
 		
@@ -433,8 +432,8 @@ class ConstParams {
 		static constexpr double PLOTXZ_XMIN = -0.5;		//!< [m] X軸最小値
 		static constexpr double PLOTXZ_ZMAX =  2.0;		//!< [m] Z軸最大値
 		static constexpr double PLOTXZ_ZMIN =  0.0;		//!< [m] Z軸最小値
-		static constexpr unsigned int PLOTXZ_XGRID = 4;	//!< X軸グリッドの分割数
-		static constexpr unsigned int PLOTXZ_ZGRID = 4;	//!< Z軸グリッドの分割数
+		static constexpr size_t PLOTXZ_XGRID = 4;		//!< X軸グリッドの分割数
+		static constexpr size_t PLOTXZ_ZGRID = 4;		//!< Z軸グリッドの分割数
 		static constexpr double PLOTXZ_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXZ_VAL_ZPOS =  1.9;	//!< 数値表示の上位置
 		

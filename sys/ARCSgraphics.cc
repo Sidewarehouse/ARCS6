@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/06/22
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -12,12 +12,13 @@
 #include <memory>
 #include <cmath>
 #include "ARCSgraphics.hh"
+#include "EquipParams.hh"
 
 using namespace ARCS;
 
 //! @brief コンストラクタ
 ARCSgraphics::ARCSgraphics(void)
-	: FG(ConstParams::PLOT_FRAMEBUFF),
+	: FG(EquipParams::PLOT_FRAMEBUFF),
 	  Plot({nullptr}),
 	  PlotXY(FG, ConstParams::PLOTXY_LEFT, ConstParams::PLOTXY_TOP, ConstParams::PLOTXY_WIDTH, ConstParams::PLOTXY_HEIGHT),
 	  PlotXZ(FG, ConstParams::PLOTXZ_LEFT, ConstParams::PLOTXZ_TOP, ConstParams::PLOTXZ_WIDTH, ConstParams::PLOTXZ_HEIGHT),
@@ -139,8 +140,8 @@ void ARCSgraphics::DrawTimeSeriesPlotPlane(void){
 		Plot.at(j)->DrawAxis();				// 軸の描画
 		
 		// プロット変数名の char[] を std::string に変換
-		std::array<std::string, ConstParams::PLOT_VAR_MAX> VarNameBuff;
-		for(size_t i = 0; i < ConstParams::PLOT_VAR_MAX; ++i) VarNameBuff.at(i) = ConstParams::PLOT_VAR_NAMES.at(j).at(i);
+		std::array<std::string, ARCSparams::PLOT_VAR_MAX> VarNameBuff;
+		for(size_t i = 0; i < ARCSparams::PLOT_VAR_MAX; ++i) VarNameBuff.at(i) = ConstParams::PLOT_VAR_NAMES.at(j).at(i);
 		
 		Plot.at(j)->DrawLegends(VarNameBuff, ConstParams::PLOT_VAR_COLORS, ConstParams::PLOT_VAR_NUM.at(j));	// 凡例の設定＆描画
 		Plot.at(j)->StorePlaneInBuffer();	// プロット平面の描画データをバッファに保存しておく

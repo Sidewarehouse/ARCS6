@@ -104,7 +104,7 @@ class ARCSgraphics {
 		std::array<
 			std::array<
 				RingBuffer<double, ConstParams::PLOT_RINGBUFF, false>,
-				ConstParams::PLOT_VAR_MAX
+				ARCSparams::PLOT_VAR_MAX
 			>,
 			ConstParams::PLOT_NUM
 		> VarsRingBuf;		//!< 変数値リングバッファの2次元配列
