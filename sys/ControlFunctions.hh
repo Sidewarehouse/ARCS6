@@ -85,7 +85,7 @@ class ControlFunctions {
 		
 		//! @brief 制御用周期実行関数の関数オブジェクト配列を返す関数
 		//! @return 制御用周期実行関数の関数オブジェクト配列
-		std::array<std::function<bool(double,double,double)>, ConstParams::THREAD_MAX>
+		std::array<std::function<bool(double,double,double)>, ARCSparams::THREAD_MAX>
 		GetCtrlFuncObject(void) const{
 			return CtrlFuncObj;
 		}
@@ -100,7 +100,7 @@ class ControlFunctions {
 		InterfaceFunctions Interface;	//!< インターフェースクラス
 		UserPlot UsrGraph;				//!< ユーザカスタムプロットクラス
 		CtrlFuncMode CmdFlag;			//!< 動作モード設定フラグ
-		std::array< std::function<bool(double,double,double)>, ConstParams::THREAD_MAX> CtrlFuncObj;	//!< 各制御用周期実行関数の関数オブジェクト配列
+		std::array< std::function<bool(double,double,double)>, ARCSparams::THREAD_MAX> CtrlFuncObj;	//!< 各制御用周期実行関数の関数オブジェクト配列
 		unsigned long count;			//!< [回]	ループカウンタ (ControlFunction1を基準とする)
 		bool NetworkLink;				//!< ネットワークリンクフラグ
 		bool Initializing;				//!< ロボット初期化フラグ

@@ -1,7 +1,7 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/06/22
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -779,11 +779,11 @@ void ARCSscreen::DispBaseScreen(void){
 	mvwaddstr(MainScreen,  5,0," ACTUATOR STATUS                     | PLOT/PRINT AREA ");
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLUE));
 	mvwaddstr(MainScreen,  6,0," AX  STATUS | REFERENCE |ENC POSITION|");
-	for(unsigned int i = 0; i < ConstParams::ACTUATOR_MAX; ++i) mvwprintw(MainScreen, 7+i, 0," %02d ", i+1);
+	for(unsigned int i = 0; i < ARCSparams::ACTUATOR_MAX; ++i) mvwprintw(MainScreen, 7+i, 0," %02d ", i+1);
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLACK));
-	for(unsigned int i = 0; i < ConstParams::ACTUATOR_MAX; ++i) mvwaddstr(MainScreen, 7+i,12,"|           |            |");
+	for(unsigned int i = 0; i < ARCSparams::ACTUATOR_MAX; ++i) mvwaddstr(MainScreen, 7+i,12,"|           |            |");
 	wattrset(MainScreen, COLOR_PAIR(BLUE_BLACK));
-	for(unsigned int i = 0; i < ConstParams::ACTUATOR_MAX; ++i) mvwaddstr(MainScreen, 7+i, 4,"INACTIVE");
+	for(unsigned int i = 0; i < ARCSparams::ACTUATOR_MAX; ++i) mvwaddstr(MainScreen, 7+i, 4,"INACTIVE");
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLUE));
 	mvwaddstr(MainScreen, 23,0," VARIABLE INDICATOR AND SETTINGS     |");
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLUE));
@@ -805,18 +805,18 @@ void ARCSscreen::DispBaseScreen(void){
 	
 	// 単位の表示
 	wattrset(MainScreen, COLOR_PAIR(WHITE_BLACK));	// 文字色を基本に戻す
-	for(unsigned int i = 0; i < ConstParams::ACTUATOR_NUM; ++i){
+	for(unsigned int i = 0; i < EquipParams::ACTUATOR_NUM; ++i){
 		// 指令の単位
-		switch(ConstParams::ACT_REFUNIT[i]){
-			case ConstParams::ActRefUnit::AMPERE:
+		switch(EquipParams::ACT_REFUNIT[i]){
+			case ARCSparams::ActRefUnit::AMPERE:
 				// アンペア単位の場合
 				mvwprintw(MainScreen, 7 + i, 22, "A");
 				break;
-			case ConstParams::ActRefUnit::NEWTON:
+			case ARCSparams::ActRefUnit::NEWTON:
 				// ニュートン単位の場合
 				mvwprintw(MainScreen, 7 + i, 22, "N");
 				break;
-			case ConstParams::ActRefUnit::NEWTON_METER:
+			case ARCSparams::ActRefUnit::NEWTON_METER:
 				// ニュートンメートル単位の場合
 				mvwprintw(MainScreen, 7 + i, 22, "Nm");
 				break;
@@ -825,7 +825,7 @@ void ARCSscreen::DispBaseScreen(void){
 		}
 		
 		// エンコーダの単位
-		if(ConstParams::ACT_TYPE[i] == ConstParams::LINEAR_MOTOR){
+		if(EquipParams::ACT_TYPE[i] == ARCSparams::ActType::LINEAR_MOTOR){
 			// リニアモータの場合
 			mvwprintw(MainScreen, 7 + i, 34, "mm");
 		}else{
@@ -865,7 +865,7 @@ void ARCSscreen::DispParameters(void){
 	}
 	
 	// 各スレッドにおける制御周期と消費時間，最大制御周期，最小制御周期の表示
-	std::array<double, ConstParams::THREAD_MAX> PeriodicTime, ComputationTime, MaxTime, MinTime;
+	std::array<double, ARCSparams::THREAD_MAX> PeriodicTime, ComputationTime, MaxTime, MinTime;
 	ScrPara.GetTimeVars(PeriodicTime, ComputationTime, MaxTime, MinTime);	// 時刻情報取得
 	for(unsigned int i = 0; i < ConstParams::THREAD_NUM; ++i){
 		mvwprintw(MainScreen, 2 + i, 32, "%5.0f", PeriodicTime.at(i)*1e6);
@@ -879,20 +879,20 @@ void ARCSscreen::DispParameters(void){
 	ShowInitIndic(ScrPara.GetInitializing());	// ロボット初期化ランプ
 	
 	// モータパラメータ表示
-	std::array<double, ConstParams::ACTUATOR_NUM> Current, Position;
+	std::array<double, EquipParams::ACTUATOR_NUM> Current, Position;
 	ScrPara.GetCurrentAndPosition(Current, Position);				// パラメータ取得
-	for(unsigned int i = 0; i < ConstParams::ACTUATOR_NUM; ++i){
+	for(unsigned int i = 0; i < EquipParams::ACTUATOR_NUM; ++i){
 		// モータ状態表示
-		switch(ConstParams::ACT_REFUNIT[i]){
+		switch(EquipParams::ACT_REFUNIT[i]){
 			// 指令単位によって閾値を変更する
-			case ConstParams::ActRefUnit::AMPERE:
-				ShowStatusIndic(7 + i, 4 , Current.at(i), ConstParams::ACT_RATED_CURRENT[i], ConstParams::ACT_MAX_CURRENT[i]);
+			case ARCSparams::ActRefUnit::AMPERE:
+				ShowStatusIndic(7 + i, 4 , Current.at(i), EquipParams::ACT_RATED_CURRENT[i], EquipParams::ACT_MAX_CURRENT[i]);
 				break;
-			case ConstParams::ActRefUnit::NEWTON:
-				ShowStatusIndic(7 + i, 4 , Current.at(i), ConstParams::ACT_RATED_TORQUE[i], ConstParams::ACT_MAX_TORQUE[i]);
+			case ARCSparams::ActRefUnit::NEWTON:
+				ShowStatusIndic(7 + i, 4 , Current.at(i), EquipParams::ACT_RATED_TORQUE[i], EquipParams::ACT_MAX_TORQUE[i]);
 				break;
-			case ConstParams::ActRefUnit::NEWTON_METER:
-				ShowStatusIndic(7 + i, 4 , Current.at(i), ConstParams::ACT_RATED_TORQUE[i], ConstParams::ACT_MAX_TORQUE[i]);
+			case ARCSparams::ActRefUnit::NEWTON_METER:
+				ShowStatusIndic(7 + i, 4 , Current.at(i), EquipParams::ACT_RATED_TORQUE[i], EquipParams::ACT_MAX_TORQUE[i]);
 				break;
 			default:
 				arcs_assert(false);	// ここには来ない
@@ -903,7 +903,7 @@ void ARCSscreen::DispParameters(void){
 		mvwprintw(MainScreen, 7 + i, 13, "% 8.2f", Current.at(i));
 		
 		// 位置応答値の表示
-		if(ConstParams::ACT_TYPE[i] == ConstParams::LINEAR_MOTOR){
+		if(EquipParams::ACT_TYPE[i] == ARCSparams::ActType::LINEAR_MOTOR){
 			// リニアモータのときは 1000倍 して mm 表示にする
 			mvwprintw(MainScreen, 7 + i, 25, "% 8.2f", Position.at(i)*1e3);
 		}else{
@@ -913,7 +913,7 @@ void ARCSscreen::DispParameters(void){
 	}
 	
 	// 任意変数インジケータ表示
-	std::array<double, ConstParams::INDICVARS_MAX> VarIndicator;
+	std::array<double, ARCSparams::INDICVARS_MAX> VarIndicator;
 	ScrPara.GetVarIndicator(VarIndicator);
 	for(unsigned int i = 0; i < ConstParams::INDICVARS_NUM; ++i){
 		mvwprintw(MainScreen, 24+i, 4, ConstParams::INDICVARS_FORMS.at(i), VarIndicator.at(i));
@@ -977,7 +977,7 @@ void ARCSscreen::DispEmergencyWindow(void){
 void ARCSscreen::DispOnlineSetVarCursor(void){
 	// オンライン設定変数値の表示
 	wattrset(MainScreen, COLOR_PAIR(CYAN_BLACK));						// 色をシアン黒に設定
-	std::array<double, ConstParams::ONLINEVARS_MAX> OnlineSetVar;
+	std::array<double, ARCSparams::ONLINEVARS_MAX> OnlineSetVar;
 	ScrPara.GetOnlineSetVars(OnlineSetVar);								// オンライン設定変数を取得
 	for(unsigned int i = 0; i < ConstParams::ONLINEVARS_NUM; ++i){
 		mvwprintw(MainScreen, 24 + i, 22, "               ");				// 背景の表示

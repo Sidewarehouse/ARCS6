@@ -47,10 +47,10 @@ namespace ARCS {	// ARCS名前空間
 			ARCSmemory ExpDatMem;	//!< 実験データ保存メモリ
 			
 			ControlFunctions CtrlFuncs;								//!< 制御用周期実行関数群
-			std::array<std::function<bool(double,double,double)>, ConstParams::THREAD_MAX> CtrlFuncObj;			//!< 制御用周期実行関数の関数オブジェクト配列
+			std::array<std::function<bool(double,double,double)>, ARCSparams::THREAD_MAX> CtrlFuncObj;			//!< 制御用周期実行関数の関数オブジェクト配列
 			std::array<
-				std::unique_ptr< SFthread<ConstParams::THREAD_TYPE, ConstParams::THREAD_KP> >
-			, ConstParams::THREAD_MAX> RTthreads;					//!< リアルタイムマルチスレッドへのスマートポインタ配列
+				std::unique_ptr< SFthread<EquipParams::THREAD_TYPE, EquipParams::THREAD_KP> >
+			, ARCSparams::THREAD_MAX> RTthreads;					//!< リアルタイムマルチスレッドへのスマートポインタ配列
 			
 			//! @brief スレッド状態の定義
 			enum InfoThreadState {

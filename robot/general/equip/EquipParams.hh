@@ -1,7 +1,7 @@
 //! @file EquipParams.hh
 //! @brief 実験装置用定数値格納用クラス
 //!        ARCSに必要な実験装置に特有な定数値を格納します。
-//! @date 2024/06/22
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -11,9 +11,8 @@
 #define EQUIPPARAMS
 
 #include <cmath>
+#include "ARCSparams.hh"
 #include "SFthread.hh"
-#include "FrameGraphics.hh"
-#include "CuiPlot.hh"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief 実験装置用定数値格納用クラス
@@ -35,8 +34,6 @@ class EquipParams {
 		// それ以外の解像度の場合は各自で値を探すこと
 		
 		// SCHED_FIFOリアルタイムスレッドの設定
-		static constexpr unsigned int THREAD_MAX = 3;	//!< スレッド最大数（これ変えても ControlFunctions.cc は追随しないので注意）
-		static constexpr unsigned int THREAD_NUM = 1;	//!< 動作させるスレッドの数 (最大数は THREAD_NUM_MAX 個まで)
 		static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
 		// 上記を INSERT_ZEROSLEEP にすると安定性が増すがリアルタイム性は落ちる。遅い処理系の場合に推奨。
 		// WITHOUT_ZEROSLEEP にするとリアルタイム性が向上するが，一時的に操作不能になる可能性が残る。高速な処理系の場合に選択可。
@@ -48,71 +45,65 @@ class EquipParams {
 		);	//!< CFSとPREEMPTの設定を併用する場合の例
 		
 		//! @brief 使用CPUコアの設定
-		static constexpr std::array<unsigned int, THREAD_MAX> CPUCORE_NUMBER = {
+		//! CPU0番コアはOSとARCSシステム、CPU1番コアはARCS描画系が使用しているので、2番目以上が望ましい
+		static constexpr std::array<unsigned int, ARCSparams::THREAD_MAX> CPUCORE_NUMBER = {
 				3,	// [-] 制御用周期実行関数1 (スレッド1) 使用するCPUコア番号
 				2,	// [-] 制御用周期実行関数2 (スレッド2) 使用するCPUコア番号
 				1,	// [-] 制御用周期実行関数3 (スレッド3) 使用するCPUコア番号
 		};
 		
 		// 実験機アクチュエータの設定
-		static constexpr unsigned int ACTUATOR_MAX = 16;	//!< [基] ARCSが対応しているアクチュエータの最大数
 		static constexpr unsigned int ACTUATOR_NUM = 1;		//!< [基] 実験装置のアクチュエータの総数
 		
-		//! @brief アクチュエータタイプの定義
-		enum ActType {
-			LINEAR_MOTOR,	//!< リニアモータ
-			ROTARY_MOTOR	//!< 回転モータ
-		};
-		
 		//! @brief 実験機アクチュエータの種類の設定（リニアモータか回転モータかの設定）
-		static constexpr std::array<ActType, ACTUATOR_MAX> ACT_TYPE = {
-			ROTARY_MOTOR,	//  1番 アクチュエータ
-			ROTARY_MOTOR,	//  2番 アクチュエータ
-			ROTARY_MOTOR,	//  3番 アクチュエータ
-			ROTARY_MOTOR,	//  4番 アクチュエータ
-			ROTARY_MOTOR,	//  5番 アクチュエータ
-			ROTARY_MOTOR,	//  6番 アクチュエータ
-			ROTARY_MOTOR,	//  7番 アクチュエータ
-			ROTARY_MOTOR,	//  8番 アクチュエータ
-			ROTARY_MOTOR,	//  9番 アクチュエータ
-			ROTARY_MOTOR,	// 10番 アクチュエータ
-			ROTARY_MOTOR,	// 11番 アクチュエータ
-			ROTARY_MOTOR,	// 12番 アクチュエータ
-			ROTARY_MOTOR,	// 13番 アクチュエータ
-			ROTARY_MOTOR,	// 14番 アクチュエータ
-			ROTARY_MOTOR,	// 15番 アクチュエータ
-			ROTARY_MOTOR,	// 16番 アクチュエータ
-		};
-		
-		//! @brief アクチュエータ指令単位の定義
-		enum ActRefUnit {
-			AMPERE,			//!< アンペア単位
-			NEWTON,			//!< ニュートン単位
-			NEWTON_METER	//!< ニュートンメートル単位
+		//! 下記が使用可能
+		//! LINEAR_MOTOR = リニアモータ
+		//!	ROTARY_MOTOR = 回転モータ
+		static constexpr std::array<ARCSparams::ActType, ARCSparams::ACTUATOR_MAX> ACT_TYPE = {
+			ARCSparams::ActType::ROTARY_MOTOR,	//  1番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  2番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  3番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  4番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  5番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  6番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  7番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  8番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	//  9番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 10番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 11番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 12番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 13番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 14番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 15番 アクチュエータ
+			ARCSparams::ActType::ROTARY_MOTOR,	// 16番 アクチュエータ
 		};
 		
 		//! @brief 実験機アクチュエータの指令単位の設定（電流なのか推力なのかトルクなのかの設定）
-		static constexpr std::array<ActRefUnit, ACTUATOR_MAX> ACT_REFUNIT = {
-			AMPERE,	//  1番 アクチュエータ
-			AMPERE,	//  2番 アクチュエータ
-			AMPERE,	//  3番 アクチュエータ
-			AMPERE,	//  4番 アクチュエータ
-			AMPERE,	//  5番 アクチュエータ
-			AMPERE,	//  6番 アクチュエータ
-			AMPERE,	//  7番 アクチュエータ
-			AMPERE,	//  8番 アクチュエータ
-			AMPERE,	//  9番 アクチュエータ
-			AMPERE,	// 10番 アクチュエータ
-			AMPERE,	// 11番 アクチュエータ
-			AMPERE,	// 12番 アクチュエータ
-			AMPERE,	// 13番 アクチュエータ
-			AMPERE,	// 14番 アクチュエータ
-			AMPERE,	// 15番 アクチュエータ
-			AMPERE,	// 16番 アクチュエータ
+		//! 下記が使用可能
+		//!	AMPERE = アンペア単位
+		//!	NEWTON = ニュートン単位
+		//!	NEWTON_METER = ニュートンメートル単位
+		static constexpr std::array<ARCSparams::ActRefUnit, ARCSparams::ACTUATOR_MAX> ACT_REFUNIT = {
+			ARCSparams::ActRefUnit::AMPERE,	//  1番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  2番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  3番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  4番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  5番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  6番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  7番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  8番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	//  9番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 10番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 11番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 12番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 13番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 14番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 15番 アクチュエータ
+			ARCSparams::ActRefUnit::AMPERE,	// 16番 アクチュエータ
 		};
 		
 		//! @brief トルク/推力定数の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_FORCE_TORQUE_CONST = {
+		static constexpr std::array<double, ARCSparams::ACTUATOR_MAX> ACT_FORCE_TORQUE_CONST = {
 			1,	// [N/A]/[Nm/A]  1番 アクチュエータ
 			1,	// [N/A]/[Nm/A]  2番 アクチュエータ
 			1,	// [N/A]/[Nm/A]  3番 アクチュエータ
@@ -132,7 +123,7 @@ class EquipParams {
 		};
 		
 		//! @brief 定格電流値の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_RATED_CURRENT = {
+		static constexpr std::array<double, ARCSparams::ACTUATOR_MAX> ACT_RATED_CURRENT = {
 			1,	// [A]  1番 アクチュエータ
 			1,	// [A]  2番 アクチュエータ
 			1,	// [A]  3番 アクチュエータ
@@ -152,7 +143,7 @@ class EquipParams {
 		};
 		
 		//! @brief 瞬時最大許容電流値の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_MAX_CURRENT = {
+		static constexpr std::array<double, ARCSparams::ACTUATOR_MAX> ACT_MAX_CURRENT = {
 			3,	// [A]  1番 アクチュエータ
 			3,	// [A]  2番 アクチュエータ
 			3,	// [A]  3番 アクチュエータ
@@ -172,7 +163,7 @@ class EquipParams {
 		};
 		
 		//! @brief 定格トルクの設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_RATED_TORQUE = {
+		static constexpr std::array<double, ARCSparams::ACTUATOR_MAX> ACT_RATED_TORQUE = {
 			1,	// [Nm]  1番 アクチュエータ
 			1,	// [Nm]  2番 アクチュエータ
 			1,	// [Nm]  3番 アクチュエータ
@@ -192,7 +183,7 @@ class EquipParams {
 		};
 		
 		//! @brief 瞬時最大トルクの設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_MAX_TORQUE = {
+		static constexpr std::array<double, ARCSparams::ACTUATOR_MAX> ACT_MAX_TORQUE = {
 			3,	// [Nm]  1番 アクチュエータ
 			3,	// [Nm]  2番 アクチュエータ
 			3,	// [Nm]  3番 アクチュエータ
@@ -212,7 +203,7 @@ class EquipParams {
 		};
 		
 		//! @brief 初期位置の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_INITPOS = {
+		static constexpr std::array<double, ARCSparams::ACTUATOR_MAX> ACT_INITPOS = {
 			0,	// [rad]  1軸 アクチュエータ
 			0,	// [rad]  2軸 アクチュエータ
 			0,	// [rad]  3軸 アクチュエータ

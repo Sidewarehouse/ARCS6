@@ -1,7 +1,7 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/06/19
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -11,6 +11,7 @@
 #define CONSTPARAMS
 
 #include <cmath>
+#include "ARCSparams.hh"
 #include "SFthread.hh"
 #include "FrameGraphics.hh"
 #include "CuiPlot.hh"
@@ -28,9 +29,12 @@ class ConstParams {
 		static constexpr double DATA_END   = 10;		//!< [s] 保存終了時刻
 		static constexpr double DATA_RESO  = 0.001;		//!< [s] データの時間分解能
 		static constexpr unsigned int DATA_NUM  =  10;	//!< [-] 保存する変数の数
+
+		// SCHED_FIFOリアルタイムスレッドの設定
+		static constexpr unsigned int THREAD_NUM = 1;	//!< 動作させるスレッドの数 (最大数は ARCSparams::THREAD_NUM_MAX 個まで)
 		
 		//! @brief 制御周期の設定
-		static constexpr std::array<unsigned long, THREAD_MAX> SAMPLING_TIME = {
+		static constexpr std::array<unsigned long, ARCSparams::THREAD_MAX> SAMPLING_TIME = {
 		//   s  m  u  n	制御周期は Ts[0] ≦ Ts[1] ≦ … ≦ Ts[THREAD_MAX] になるようにすること
 				 100000,	// [ns] 制御用周期実行関数1 (スレッド1) 制御周期
 				1000000,	// [ns] 制御用周期実行関数2 (スレッド2) 制御周期
@@ -42,11 +46,10 @@ class ConstParams {
 		static constexpr bool DEBUG_INDIC_VISIBLE = false;	//!< デバッグインジケータ表示の有効/無効設定
 		
 		// 任意変数値表示の設定
-		static constexpr unsigned int INDICVARS_MAX = 16;	//!< 表示変数最大数 (変更不可)
 		static constexpr unsigned int INDICVARS_NUM = 10;	//!< 表示したい変数の数 (最大数 INDICVARS_MAX まで)
 		
 		//! @brief 任意に表示したい変数値の表示形式 (printfの書式と同一)
-		static constexpr std::array<char[15], INDICVARS_MAX> INDICVARS_FORMS = {
+		static constexpr std::array<char[15], ARCSparams::INDICVARS_MAX> INDICVARS_FORMS = {
 			"% 13.4f",	// 変数 0
 			"% 13.4f",	// 変数 1
 			"% 13.4f",	// 変数 2
@@ -66,7 +69,6 @@ class ConstParams {
 		};
 		
 		// オンライン設定変数の設定
-		static constexpr unsigned int ONLINEVARS_MAX = 16;	//!< オンライン設定変数最大数 (変更不可)
 		static constexpr unsigned int ONLINEVARS_NUM = 10;	//!< オンライン設定変数の数 (最大数 ONLINEVARS_MAX まで)
 		
 		// 時系列グラフプロットの共通設定

@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/06/22
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -16,8 +16,9 @@
 #include "ARCSassert.hh"
 #include "ARCSparams.hh"
 #include "ARCSscrparams.hh"
-#include "ConstParams.hh"
 #include "ARCSgraphics.hh"
+#include "EquipParams.hh"
+#include "ConstParams.hh"
 
 using namespace ARCS;
 
@@ -40,8 +41,8 @@ ARCSthread::ARCSthread(ARCSassert& Asrt, ARCSscrparams& SP, ARCSgraphics& GP) :
 	pthread_cond_init(&InfoCond, nullptr);	// 情報取得スレッド同期用条件初期化
 	CtrlFuncObj = CtrlFuncs.GetCtrlFuncObject();				// 制御用周期実行関数の関数オブジェクトを取得
 	for(size_t i = 0; i < ConstParams::THREAD_NUM; ++i){
-		RTthreads.at(i) = std::make_unique< SFthread<ConstParams::THREAD_TYPE, ConstParams::THREAD_KP> >(
-			ConstParams::SAMPLING_TIME.at(i), ConstParams::CPUCORE_NUMBER.at(i)
+		RTthreads.at(i) = std::make_unique< SFthread<EquipParams::THREAD_TYPE, EquipParams::THREAD_KP> >(
+			ConstParams::SAMPLING_TIME.at(i), EquipParams::CPUCORE_NUMBER.at(i)
 		);	// リアルタイムスレッドの生成
 		RTthreads.at(i)->SetRealtimeFunction(CtrlFuncObj[i]);	// 関数オブジェクトをリアルタイムスレッドとして設定
 	}
@@ -120,10 +121,10 @@ void ARCSthread::SaveDataFiles(void){
 //! @param[in]	p	クラスメンバアクセス用ポインタ
 void ARCSthread::InfoGetThread(ARCSthread* const p){
 	double Time = 0;													// [s] 時刻 (一番速いスレッド RTthreads[0] の時刻)
-	std::array<double, ConstParams::THREAD_MAX> PeriodicTime = {0};		// [s] 計測された制御周期
-	std::array<double, ConstParams::THREAD_MAX> ComputationTime = {0};	// [s] 計測された消費時間
-	std::array<double, ConstParams::THREAD_MAX> MaxTime = {0};			// [s] 計測された制御周期の最大値
-	std::array<double, ConstParams::THREAD_MAX> MinTime = {0};			// [s] 計測された制御周期の最小値
+	std::array<double, ARCSparams::THREAD_MAX> PeriodicTime = {0};		// [s] 計測された制御周期
+	std::array<double, ARCSparams::THREAD_MAX> ComputationTime = {0};	// [s] 計測された消費時間
+	std::array<double, ARCSparams::THREAD_MAX> MaxTime = {0};			// [s] 計測された制御周期の最大値
+	std::array<double, ARCSparams::THREAD_MAX> MinTime = {0};			// [s] 計測された制御周期の最小値
 	
 	// 動作状態が「開始」か「破棄」に設定されるまで待機
 	EventLog("Waiting for ITS_START,ITS_DSTRCT...");

@@ -15,6 +15,7 @@
 #include "ARCSeventlog.hh"
 #include "ARCSassert.hh"
 #include "ARCSprint.hh"
+#include "EquipParams.hh"
 
 // 追加のARCSライブラリをここに記述
 #include "Limiter.hh"
@@ -62,7 +63,7 @@ class InterfaceFunctions {
 		
 		//! @brief 位置応答を取得する関数
 		//! @param[out]	PositionRes	位置応答 [rad]
-		void GetPosition(std::array<double, ConstParams::ACTUATOR_NUM>& PositionRes){
+		void GetPosition(std::array<double, EquipParams::ACTUATOR_NUM>& PositionRes){
 			// ここにエンコーダとPosition配列との関係を列記する
 			
 		}
@@ -71,8 +72,8 @@ class InterfaceFunctions {
 		//! @param[out]	PositionRes	位置応答 [rad]
 		//! @param[out]	VelocityRes	速度応答 [rad/s]
 		void GetPositionAndVelocity(
-			std::array<double, ConstParams::ACTUATOR_NUM>& PositionRes,
-			std::array<double, ConstParams::ACTUATOR_NUM>& VelocityRes
+			std::array<double, EquipParams::ACTUATOR_NUM>& PositionRes,
+			std::array<double, EquipParams::ACTUATOR_NUM>& VelocityRes
 		){
 			// ここにエンコーダ，速度演算結果とPositionRes配列，VelocityRes配列との関係を列記する
 			
@@ -82,8 +83,8 @@ class InterfaceFunctions {
 		//! @param[out]	ElectAngle	電気角 [rad]
 		//! @param[out]	MechaAngle	機械角 [rad]
 		void GetElectricAndMechanicalAngle(
-			std::array<double, ConstParams::ACTUATOR_NUM>& ElectAngle,
-			std::array<double, ConstParams::ACTUATOR_NUM>& MechaAngle
+			std::array<double, EquipParams::ACTUATOR_NUM>& ElectAngle,
+			std::array<double, EquipParams::ACTUATOR_NUM>& MechaAngle
 		){
 			// ここにモータ電気角，機械角とElePosition配列，MecPosition配列との関係を列記する
 			
@@ -91,14 +92,14 @@ class InterfaceFunctions {
 		
 		//! @brief トルク応答を取得する関数
 		//! @param[out]	Torque	トルク応答 [Nm]
-		void GetTorque(std::array<double, ConstParams::ACTUATOR_NUM>& Torque){
+		void GetTorque(std::array<double, EquipParams::ACTUATOR_NUM>& Torque){
 			// ここにトルクセンサとTorque配列との関係を列記する
 			
 		}
 		
 		//! @brief 加速度応答を取得する関数
 		//! @param[out]	Acceleration	加速度応答 [rad/s^2]
-		void GetAcceleration(std::array<double, ConstParams::ACTUATOR_NUM>& Acceleration){
+		void GetAcceleration(std::array<double, EquipParams::ACTUATOR_NUM>& Acceleration){
 			// ここに加速度センサとAcceleration配列との関係を列記する
 			
 		}
@@ -107,8 +108,8 @@ class InterfaceFunctions {
 		//! @param[out]	Torque	トルク応答 [Nm]
 		//! @param[out]	Acceleration	加速度応答 [rad/s^2]
 		void GetTorqueAndAcceleration(
-			std::array<double, ConstParams::ACTUATOR_NUM>& Torque,
-			std::array<double, ConstParams::ACTUATOR_NUM>& Acceleration
+			std::array<double, EquipParams::ACTUATOR_NUM>& Torque,
+			std::array<double, EquipParams::ACTUATOR_NUM>& Acceleration
 		){
 			// ここにトルクセンサとTorque配列との関係，加速度センサとAcceleration配列との関係を列記する
 			
@@ -116,21 +117,21 @@ class InterfaceFunctions {
 		
 		//! @brief 電流応答を取得する関数
 		//! @param[out]	Current	電流応答 [A]
-		void GetCurrent(std::array<double, ConstParams::ACTUATOR_NUM>& Current){
+		void GetCurrent(std::array<double, EquipParams::ACTUATOR_NUM>& Current){
 			// ここに電流センサとCurrent配列との関係を列記する
 			
 		}
 		
 		//! @brief 電流指令を設定する関数
 		//! @param[in]	Current	電流指令 [A]
-		void SetCurrent(const std::array<double, ConstParams::ACTUATOR_NUM>& Current){
+		void SetCurrent(const std::array<double, EquipParams::ACTUATOR_NUM>& Current){
 			// ここにCurrent配列とサーボアンプの関係を列記する
 			
 		}
 		
 		//! @brief トルク指令を設定する関数
 		//! @param[in]	Torque	トルク指令 [Nm]
-		void SetTorque(const std::array<double, ConstParams::ACTUATOR_NUM>& Torque){
+		void SetTorque(const std::array<double, EquipParams::ACTUATOR_NUM>& Torque){
 			// ここにTorque配列とサーボアンプの関係を列記する
 			
 		}

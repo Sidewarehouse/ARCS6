@@ -24,8 +24,8 @@ using namespace ARCS;
 //! @brief スレッド間通信用グローバル変数の無名名前空間
 namespace {
 	// スレッド間で共有したい変数をここに記述
-	std::array<double, ConstParams::ACTUATOR_NUM> PositionRes = {0};	//!< [rad] 位置応答
-	std::array<double, ConstParams::ACTUATOR_NUM> CurrentRef = {0};		//!< [Nm]  電流指令
+	std::array<double, EquipParams::ACTUATOR_NUM> PositionRes = {0};	//!< [rad] 位置応答
+	std::array<double, EquipParams::ACTUATOR_NUM> CurrentRef = {0};		//!< [Nm]  電流指令
 }
 
 //! @brief 制御用周期実行関数1

@@ -1,7 +1,7 @@
 //! @file ARCSscrparams.cc
 //! @brief ARCS画面パラメータ格納クラス
 //!        ARCS用画面に表示する各種パラメータを格納します。
-//! @date 2024/05/06
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -87,10 +87,10 @@ std::tuple<double, double, double, double> ARCSscrparams::GetTimeVars(const unsi
 //! @param[out]	Max	制御周期の最大値の配列
 //! @param[out]	Min	制御周期の最小値の配列
 void ARCSscrparams::GetTimeVars(
-	std::array<double, ConstParams::THREAD_MAX>& PT,
-	std::array<double, ConstParams::THREAD_MAX>& CT,
-	std::array<double, ConstParams::THREAD_MAX>& Max,
-	std::array<double, ConstParams::THREAD_MAX>& Min
+	std::array<double, ARCSparams::THREAD_MAX>& PT,
+	std::array<double, ARCSparams::THREAD_MAX>& CT,
+	std::array<double, ARCSparams::THREAD_MAX>& Max,
+	std::array<double, ARCSparams::THREAD_MAX>& Min
 ){
 	pthread_mutex_lock(&TimeMutex);
 	PT  = PeriodicTime;
@@ -106,10 +106,10 @@ void ARCSscrparams::GetTimeVars(
 //! @param[in]	Max	制御周期の最大値の配列
 //! @param[in]	Min	制御周期の最小値の配列
 void ARCSscrparams::SetTimeVars(
-	const std::array<double, ConstParams::THREAD_MAX>& PT,
-	const std::array<double, ConstParams::THREAD_MAX>& CT,
-	const std::array<double, ConstParams::THREAD_MAX>& Max,
-	const std::array<double, ConstParams::THREAD_MAX>& Min
+	const std::array<double, ARCSparams::THREAD_MAX>& PT,
+	const std::array<double, ARCSparams::THREAD_MAX>& CT,
+	const std::array<double, ARCSparams::THREAD_MAX>& Max,
+	const std::array<double, ARCSparams::THREAD_MAX>& Min
 ){
 	pthread_mutex_lock(&TimeMutex);
 	PeriodicTime = PT;
@@ -159,8 +159,8 @@ std::tuple<double, double> ARCSscrparams::GetCurrentAndPosition(const unsigned i
 //! @param[in]	Current	電流指令の配列
 //! @param[in]	Position	位置応答の配列
 void ARCSscrparams::GetCurrentAndPosition(
-	std::array<double, ConstParams::ACTUATOR_NUM>& Current,
-	std::array<double, ConstParams::ACTUATOR_NUM>& Position
+	std::array<double, EquipParams::ACTUATOR_NUM>& Current,
+	std::array<double, EquipParams::ACTUATOR_NUM>& Position
 ){
 	pthread_mutex_lock(&ActMutex);
 	Current  = CurrentRef;
@@ -172,8 +172,8 @@ void ARCSscrparams::GetCurrentAndPosition(
 //! @param[in]	Current		電流指令
 //! @param[in]	Position	位置応答
 void ARCSscrparams::SetCurrentAndPosition(
-	const std::array<double, ConstParams::ACTUATOR_NUM>& Current,
-	const std::array<double, ConstParams::ACTUATOR_NUM>& Position
+	const std::array<double, EquipParams::ACTUATOR_NUM>& Current,
+	const std::array<double, EquipParams::ACTUATOR_NUM>& Position
 ){
 	pthread_mutex_lock(&ActMutex);
 	CurrentRef  = Current;
@@ -183,7 +183,7 @@ void ARCSscrparams::SetCurrentAndPosition(
 
 //! @brief 任意変数インジケータの配列を返す関数
 //! @param[out]	Vars	任意変数値の配列
-void ARCSscrparams::GetVarIndicator(std::array<double, ConstParams::INDICVARS_MAX>& Vars){
+void ARCSscrparams::GetVarIndicator(std::array<double, ARCSparams::INDICVARS_MAX>& Vars){
 	pthread_mutex_lock(&IndicMutex);
 	Vars = VarIndicator;
 	pthread_mutex_unlock(&IndicMutex);
@@ -191,7 +191,7 @@ void ARCSscrparams::GetVarIndicator(std::array<double, ConstParams::INDICVARS_MA
 
 //! @brief 任意変数インジケータの配列を設定する関数
 //! @param[in]	Vars	任意変数値の配列
-void ARCSscrparams::SetVarIndicator(const std::array<double, ConstParams::INDICVARS_MAX>& Vars){
+void ARCSscrparams::SetVarIndicator(const std::array<double, ARCSparams::INDICVARS_MAX>& Vars){
 	pthread_mutex_lock(&IndicMutex);
 	VarIndicator = Vars;
 	pthread_mutex_unlock(&IndicMutex);
@@ -199,7 +199,7 @@ void ARCSscrparams::SetVarIndicator(const std::array<double, ConstParams::INDICV
 
 //! @brief オンライン設定変数の配列を返す関数
 //! @param[out]	Vars	オンライン設定変数値の配列
-void ARCSscrparams::GetOnlineSetVars(std::array<double, ConstParams::ONLINEVARS_MAX>& Vars){
+void ARCSscrparams::GetOnlineSetVars(std::array<double, ARCSparams::ONLINEVARS_MAX>& Vars){
 	pthread_mutex_lock(&OnsetMutex);
 	Vars = OnlineSetVar;
 	pthread_mutex_unlock(&OnsetMutex);
@@ -207,7 +207,7 @@ void ARCSscrparams::GetOnlineSetVars(std::array<double, ConstParams::ONLINEVARS_
 
 //! @brief オンライン設定変数の配列を設定する関数
 //! @param[in]	Vars	オンライン設定変数値の配列
-void ARCSscrparams::SetOnlineSetVars(const std::array<double, ConstParams::ONLINEVARS_MAX>& Vars){
+void ARCSscrparams::SetOnlineSetVars(const std::array<double, ARCSparams::ONLINEVARS_MAX>& Vars){
 	pthread_mutex_lock(&OnsetMutex);
 	OnlineSetVar = Vars;
 	pthread_mutex_unlock(&OnsetMutex);
