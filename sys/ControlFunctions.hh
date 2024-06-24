@@ -67,7 +67,7 @@ class ControlFunctions {
 			PassedLog();		// イベントログにココを通過したことを記録
 			// 初期化モードでの各制御用周期実行関数の実行
 			CmdFlag = CTRL_INIT;// フラグを初期化モードに設定して，
-			for(unsigned int i = 0; i < ConstParams::THREAD_NUM; ++i) CtrlFuncObj[i](0, 0, 0);	// 各々の制御関数(関数の配列)を実行
+			for(size_t i = 0; i < ConstParams::THREAD_NUM; ++i) CtrlFuncObj[i](0, 0, 0);	// 各々の制御関数(関数の配列)を実行
 			CmdFlag = CTRL_LOOP;// フラグを周期モードに設定
 			PassedLog();		// イベントログにココを通過したことを記録
 		}
@@ -77,7 +77,7 @@ class ControlFunctions {
 			PassedLog();		// イベントログにココを通過したことを記録
 			// 終了処理モードでの各制御用周期実行関数の実行
 			CmdFlag = CTRL_EXIT;// フラグを終了処理モードに設定して，
-			for(unsigned int i = 0; i < ConstParams::THREAD_NUM; ++i) CtrlFuncObj[i](0, 0, 0);	// 各々の制御関数(関数の配列)を実行
+			for(size_t i = 0; i < ConstParams::THREAD_NUM; ++i) CtrlFuncObj[i](0, 0, 0);	// 各々の制御関数(関数の配列)を実行
 			PassedLog();		// イベントログにココを通過したことを記録
 		}
 		

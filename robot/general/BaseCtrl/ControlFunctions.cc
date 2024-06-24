@@ -1,6 +1,6 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/06/22
+//! @date 2024/06/25
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -24,8 +24,8 @@ using namespace ARCS;
 //! @brief スレッド間通信用グローバル変数の無名名前空間
 namespace {
 	// スレッド間で共有したい変数をここに記述
-	std::array<double, EquipParams::ACTUATOR_NUM> PositionRes = {0};	//!< [rad] 位置応答
-	std::array<double, EquipParams::ACTUATOR_NUM> CurrentRef = {0};		//!< [Nm]  電流指令
+	ArcsMat<EquipParams::ACTUATOR_NUM, 1> Position = {0};	//!< [rad]  位置ベクトル
+	ArcsMat<EquipParams::ACTUATOR_NUM, 1> CurrentRef = {0};	//!< [A,Nm] 電流指令,トルク指令ベクトル
 }
 
 //! @brief 制御用周期実行関数1
@@ -49,12 +49,12 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 	if(CmdFlag == CTRL_LOOP){
 		// 周期モード (ここは制御周期 SAMPLING_TIME[0] 毎に呼び出される(リアルタイム空間なので処理は制御周期内に収めること))
 		// リアルタイム制御ここから
-		Interface.GetPosition(PositionRes);	// [rad] 位置応答の取得
+		Interface.GetPosition(Position);	// [rad] 位置ベクトルの取得
 		Screen.GetOnlineSetVar();			// オンライン設定変数の読み込み
 		
 		// ここに制御アルゴリズムを記述する
 		
-		Interface.SetCurrent(CurrentRef);	// [A] 電流指令の出力
+		Interface.SetCurrent(CurrentRef);	// [A] 電流指令ベクトルの出力
 		Screen.SetVarIndicator(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
 		Graph.SetTime(Tact, t);									// [s] グラフ描画用の周期と時刻のセット
 		Graph.SetVars(0, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット0 (グラフ番号, 変数0, ..., 変数7)
@@ -130,8 +130,8 @@ bool ControlFunctions::ControlFunction3(double t, double Tact, double Tcmp){
 //! @brief 制御用変数値を更新する関数
 void ControlFunctions::UpdateControlValue(void){
 	// ARCS画面パラメータに値を書き込む
-	Screen.SetNetworkLink(NetworkLink);						// ネットワークリンクフラグを書き込む
-	Screen.SetInitializing(Initializing);					// ロボット初期化フラグを書き込む
-	Screen.SetCurrentAndPosition(CurrentRef, PositionRes);	// 電流指令と位置応答を書き込む
+	Screen.SetNetworkLink(NetworkLink);					// ネットワークリンクフラグを書き込む
+	Screen.SetInitializing(Initializing);				// ロボット初期化フラグを書き込む
+	Screen.SetCurrentAndPosition(CurrentRef, Position);	// 電流指令と位置を書き込む
 }
 

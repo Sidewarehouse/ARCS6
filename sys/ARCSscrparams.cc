@@ -169,15 +169,15 @@ void ARCSscrparams::GetCurrentAndPosition(
 }
 
 //! @brief 電流と位置の配列を設定する関数
-//! @param[in]	Current		電流指令
-//! @param[in]	Position	位置応答
+//! @param[in]	Current		電流指令ベクトル
+//! @param[in]	Position	位置ベクトル
 void ARCSscrparams::SetCurrentAndPosition(
-	const std::array<double, EquipParams::ACTUATOR_NUM>& Current,
-	const std::array<double, EquipParams::ACTUATOR_NUM>& Position
+	const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Current,
+	const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Position
 ){
 	pthread_mutex_lock(&ActMutex);
-	CurrentRef  = Current;
-	PositionRes = Position;
+	Current.StoreArray(CurrentRef);
+	Position.StoreArray(PositionRes);
 	pthread_mutex_unlock(&ActMutex);
 }
 

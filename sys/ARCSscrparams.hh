@@ -15,6 +15,7 @@
 #include "ARCSparams.hh"
 #include "EquipParams.hh"
 #include "ConstParams.hh"
+#include "ArcsMatrix.hh"
 
 namespace ARCS {	// ARCS名前空間
 	//! @brief ARCS画面パラメータ格納クラス
@@ -55,8 +56,8 @@ namespace ARCS {	// ARCS名前空間
 				std::array<double, EquipParams::ACTUATOR_NUM>& Position
 			);	//!< 電流と位置の配列を取得する関数
 			void SetCurrentAndPosition(
-				const std::array<double, EquipParams::ACTUATOR_NUM>& Current,
-				const std::array<double, EquipParams::ACTUATOR_NUM>& Position
+				const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Current,
+				const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Position
 			);	//!< 電流と位置の配列を設定する関数
 			
 			// 任意変数インジケータ関連の関数

@@ -1,6 +1,6 @@
 //! @file InterfaceFunctions.hh
 //! @brief インターフェースクラス
-//! @date 2020/04/09
+//! @date 2024/06/25
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2023 Yokokura, Yuki
@@ -18,6 +18,7 @@
 #include "EquipParams.hh"
 
 // 追加のARCSライブラリをここに記述
+#include "ArcsMatrix.hh"
 #include "Limiter.hh"
 
 namespace ARCS {	// ARCS名前空間
@@ -61,10 +62,10 @@ class InterfaceFunctions {
 			
 		}
 		
-		//! @brief 位置応答を取得する関数
-		//! @param[out]	PositionRes	位置応答 [rad]
-		void GetPosition(std::array<double, EquipParams::ACTUATOR_NUM>& PositionRes){
-			// ここにエンコーダとPosition配列との関係を列記する
+		//! @brief 位置ベクトルを取得する関数
+		//! @param[out]	Position	位置ベクトル [rad]
+		void GetPosition(ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Position){
+			// ここにエンコーダとPositionベクトルとの関係を列記する
 			
 		}
 		
@@ -123,9 +124,9 @@ class InterfaceFunctions {
 		}
 		
 		//! @brief 電流指令を設定する関数
-		//! @param[in]	Current	電流指令 [A]
-		void SetCurrent(const std::array<double, EquipParams::ACTUATOR_NUM>& Current){
-			// ここにCurrent配列とサーボアンプの関係を列記する
+		//! @param[in]	CurrentRef	電流指令ベクトル [A]
+		void SetCurrent(const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& CurrentRef){
+			// ここにCurrentベクトルとサーボアンプの関係を列記する
 			
 		}
 		
