@@ -81,7 +81,7 @@ FrameGraphics& ARCSgraphics::GetFGrefs(void){
 }
 
 //! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
-void ARCSgraphics::SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj){
+void ARCSgraphics::SetUserPlotFuncs(const std::function<void(void)>& DrawPlaneFobj, const std::function<void(void)>& DrawPlotFobj){
 	DrawUserPlaneFunc = DrawPlaneFobj;	// ユーザカスタムプロット平面描画関数の関数オブジェクトを格納
 	DrawUserPlotFunc  = DrawPlotFobj;	// ユーザカスタムプロット描画関数の関数オブジェクトを格納
 }
@@ -90,6 +90,11 @@ void ARCSgraphics::SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std
 void ARCSgraphics::DrawPlotPlane(void){
 	DrawTimeSeriesPlotPlane();	// 時系列プロット平面の描画
 	DrawWorkSpacePlotPlane();	// 作業空間プロット平面の描画
+
+	// 関数オブジェクトが準備完了するまで待機（同期機構を入れるべきだが暫定措置）
+	while(!DrawUserPlaneFunc){
+		usleep(ARCSparams::ARCS_TIME_GRPL);
+	}
 	DrawUserPlaneFunc(); 		// ユーザカスタムプロット平面の描画(関数オブジェクト経由で実行)
 }
 

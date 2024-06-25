@@ -80,7 +80,7 @@ class ARCSgraphics {
 		FrameGraphics& GetFGrefs(void);	//!< フレームバッファクラスへの参照を返す関数
 
 		//! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
-		void SetUserPlotFuncs(std::function<void(void)> DrawPlaneFobj, std::function<void(void)> DrawPlotFobj);
+		void SetUserPlotFuncs(const std::function<void(void)>& DrawPlaneFobj, const std::function<void(void)>& DrawPlotFobj);
 		
 	private:
 		ARCSgraphics(const ARCSgraphics&) = delete;					//!< コピーコンストラクタ使用禁止

@@ -3,7 +3,7 @@
 //!
 //! ユーザが自由にカスタマイズできるグラフプロット描画クラス
 //!
-//! @date 2024/06/22
+//! @date 2024/06/25
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -112,7 +112,7 @@ class UserPlot {
 		UserPlot(const UserPlot&) = delete;					//!< コピーコンストラクタ使用禁止
 		UserPlot(UserPlot&&) = delete;						//!< ムーブコンストラクタ使用禁止
 		const UserPlot& operator=(const UserPlot&) = delete;//!< 代入演算子使用禁止
-		ARCSgraphics& Graph;									//!< グラフプロットへの参照
+		ARCSgraphics& Graph;								//!< グラフプロットへの参照
 		std::function<void(void)> DrawPlaneFobj;			//!< ユーザカスタムプロット平面描画関数の関数オブジェクト
 		std::function<void(void)> DrawPlotFobj;				//!< ユーザカスタムプロット描画関数の関数オブジェクト
 
