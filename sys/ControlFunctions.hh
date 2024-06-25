@@ -1,6 +1,6 @@
 //! @file ControlFunctions.hh
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/06/22
+//! @date 2024/06/25
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -50,9 +50,9 @@ class ControlFunctions {
 			PassedLog();	// イベントログにココを通過したことを記録
 			
 			// 各制御用周期実行関数の関数オブジェクトを格納 (実時間スレッド生成に必要な作業)
-			CtrlFuncObj[0] = [&](double t, double Tact, double Tcmp){ return ControlFunction1(t, Tact, Tcmp); };	// ラムダ式でメンバ関数を返す
-			CtrlFuncObj[1] = [&](double t, double Tact, double Tcmp){ return ControlFunction2(t, Tact, Tcmp); };	// ラムダ式でメンバ関数を返す
-			CtrlFuncObj[2] = [&](double t, double Tact, double Tcmp){ return ControlFunction3(t, Tact, Tcmp); };	// ラムダ式でメンバ関数を返す
+			CtrlFuncObj[0] = [&](const double t, const double Tact, const double Tcmp){ return ControlFunction1(t, Tact, Tcmp); };	// ラムダ式でメンバ関数を返す
+			CtrlFuncObj[1] = [&](const double t, const double Tact, const double Tcmp){ return ControlFunction2(t, Tact, Tcmp); };	// ラムダ式でメンバ関数を返す
+			CtrlFuncObj[2] = [&](const double t, const double Tact, const double Tcmp){ return ControlFunction3(t, Tact, Tcmp); };	// ラムダ式でメンバ関数を返す
 			
 			PassedLog();	// イベントログにココを通過したことを記録
 		}
@@ -85,7 +85,7 @@ class ControlFunctions {
 		
 		//! @brief 制御用周期実行関数の関数オブジェクト配列を返す関数
 		//! @return 制御用周期実行関数の関数オブジェクト配列
-		std::array<std::function<bool(double,double,double)>, ARCSparams::THREAD_MAX>
+		std::array<std::function<bool(const double, const double, const double)>, ARCSparams::THREAD_MAX>
 		GetCtrlFuncObject(void) const{
 			return CtrlFuncObj;
 		}
@@ -100,7 +100,7 @@ class ControlFunctions {
 		InterfaceFunctions Interface;	//!< インターフェースクラス
 		UserPlot UsrGraph;				//!< ユーザカスタムプロットクラス
 		CtrlFuncMode CmdFlag;			//!< 動作モード設定フラグ
-		std::array< std::function<bool(double,double,double)>, ARCSparams::THREAD_MAX> CtrlFuncObj;	//!< 各制御用周期実行関数の関数オブジェクト配列
+		std::array< std::function<bool(const double, double, const double)>, ARCSparams::THREAD_MAX> CtrlFuncObj;	//!< 各制御用周期実行関数の関数オブジェクト配列
 		unsigned long count;			//!< [回]	ループカウンタ (ControlFunction1を基準とする)
 		bool NetworkLink;				//!< ネットワークリンクフラグ
 		bool Initializing;				//!< ロボット初期化フラグ
@@ -108,9 +108,9 @@ class ControlFunctions {
 		// 制御用周期実行関数群
 		// 以下の関数は初期化モード若しくは終了処理モードのときに非実時間空間上で動作する
 		// 周期モードのときは実時間スレッド( SFthread.cc の RealTimeThread関数 ) から関数ポインタを経由して，以下の関数が呼ばれる
-		bool ControlFunction1(double t, double Tact, double Tcmp);	//!< 制御用周期実行関数1
-		bool ControlFunction2(double t, double Tact, double Tcmp);	//!< 制御用周期実行関数2
-		bool ControlFunction3(double t, double Tact, double Tcmp);	//!< 制御用周期実行関数3
+		bool ControlFunction1(const double t, const double Tact, const double Tcmp);	//!< 制御用周期実行関数1
+		bool ControlFunction2(const double t, const double Tact, const double Tcmp);	//!< 制御用周期実行関数2
+		bool ControlFunction3(const double t, const double Tact, const double Tcmp);	//!< 制御用周期実行関数3
 };
 }
 

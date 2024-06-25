@@ -33,7 +33,7 @@ namespace {
 //! @param[in]	Tact	計測周期 [s]
 //! @param[in]	Tcmp	消費時間 [s]
 //! @return		クロックオーバーライドフラグ (true = リアルタイムループ, false = 非リアルタイムループ)
-bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
+bool ControlFunctions::ControlFunction1(const double t, const double Tact, const double Tcmp){
 	// 制御用定数設定
 	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[0]*1e-9;	// [s]	制御周期
 	
@@ -61,7 +61,7 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 		Graph.SetVars(1, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(2, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(3, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット3 (グラフ番号, 変数0, ..., 変数7)
-		UsrGraph.SetVars(t, t);						// ユーザカスタムプロット（例）
+		UsrGraph.SetVars(0, 0);						// ユーザカスタムプロット（例）
 		Memory.SetData(Tact, t, 0, 0, 0, 0, 0, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		// リアルタイム制御ここまで
 	}
@@ -78,7 +78,7 @@ bool ControlFunctions::ControlFunction1(double t, double Tact, double Tcmp){
 //! @param[in]	Tact	計測周期 [s]
 //! @param[in]	Tcmp	消費時間 [s]
 //! @return		クロックオーバーライドフラグ (true = リアルタイムループ, false = 非リアルタイムループ)
-bool ControlFunctions::ControlFunction2(double t, double Tact, double Tcmp){
+bool ControlFunctions::ControlFunction2(const double t, const double Tact, const double Tcmp){
 	// 制御用定数宣言
 	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[1]*1e-9;	// [s]	制御周期
 	
@@ -106,7 +106,7 @@ bool ControlFunctions::ControlFunction2(double t, double Tact, double Tcmp){
 //! @param[in]	Tact	計測周期 [s]
 //! @param[in]	Tcmp	消費時間 [s]
 //! @return		クロックオーバーライドフラグ (true = リアルタイムループ, false = 非リアルタイムループ)
-bool ControlFunctions::ControlFunction3(double t, double Tact, double Tcmp){
+bool ControlFunctions::ControlFunction3(const double t, const double Tact, const double Tcmp){
 	// 制御用定数宣言
 	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[2]*1e-9;	// [s]	制御周期
 	
