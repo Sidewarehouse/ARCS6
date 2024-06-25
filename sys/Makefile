@@ -68,10 +68,10 @@ SYSDEP=$(SYS:.cc=)
 
 # 通常モード
 all: ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS.o
-	$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
+	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
 # 制御コードのコンパイル＆リンク（通常モード）
 ARCS_CTRL.o: $(CTRLOBJ)
-	$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o $(CTRLOBJ)
+	@$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o $(CTRLOBJ)
 %.o: %.cc
 	@echo -n "ARCS6-ctrl: "
 	$(CC) $(OPTIMLV) $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
@@ -95,7 +95,7 @@ $(LIBPATH)/%.o: $(LIBPATH)/%.cc
 	$(CC) $(OPTIMLV) $(CFLAGS) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 # ARCSシステムファイルのコンパイル＆リンク（通常モード）
 ARCS_SYS.o: $(SYSOBJ)
-	$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS.o $(SYSOBJ)
+	@$(LD1) $(LD1FLAGS) -r -o $(SYSPATH)/ARCS_SYS.o $(SYSOBJ)
 $(SYSPATH)/%.o: $(SYSPATH)/%.cc
 	@echo -n "ARCS6-sys: "
 	$(CC) $(OPTIMLV) $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
