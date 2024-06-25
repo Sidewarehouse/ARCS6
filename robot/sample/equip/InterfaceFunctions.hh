@@ -1,9 +1,9 @@
 //! @file InterfaceFunctions.hh
 //! @brief インターフェースクラス
-//! @date 2020/04/09
+//! @date 2024/06/25
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
+// Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef INTERFACEFUNCTIONS
@@ -15,8 +15,10 @@
 #include "ARCSeventlog.hh"
 #include "ARCSassert.hh"
 #include "ARCSprint.hh"
+#include "EquipParams.hh"
 
 // 追加のARCSライブラリをここに記述
+#include "ArcsMatrix.hh"
 #include "Limiter.hh"
 
 namespace ARCS {	// ARCS名前空間
@@ -60,86 +62,74 @@ class InterfaceFunctions {
 			
 		}
 		
-		//! @brief 位置応答を取得する関数
-		//! @param[out]	PositionRes	位置応答 [rad]
-		void GetPosition(std::array<double, ConstParams::ACTUATOR_NUM>& PositionRes){
-			// ここにエンコーダとPosition配列との関係を列記する
+		//! @brief 位置ベクトルを取得する関数
+		//! @param[out]	Position	位置ベクトル [rad]
+		void GetPosition(ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Position){
+			// ここにエンコーダとPositionベクトルとの関係を列記する
 			
 		}
 		
-		//! @brief 位置応答と速度応答を取得する関数
-		//! @param[out]	PositionRes	位置応答 [rad]
-		//! @param[out]	VelocityRes	速度応答 [rad/s]
+		//! @brief 位置と速度ベクトルを取得する関数
+		//! @param[out]	Position	位置ベクトル [rad]
+		//! @param[out]	Velocity	速度ベクトル [rad/s]
 		void GetPositionAndVelocity(
-			std::array<double, ConstParams::ACTUATOR_NUM>& PositionRes,
-			std::array<double, ConstParams::ACTUATOR_NUM>& VelocityRes
+			ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Position,
+			ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Velocity
 		){
-			// ここにエンコーダ，速度演算結果とPositionRes配列，VelocityRes配列との関係を列記する
+			// ここにエンコーダ，速度演算結果とPosition，Velocityベクトルとの関係を列記する
 			
 		}
 		
-		//! @brief モータ電気角と機械角を取得する関数
-		//! @param[out]	ElectAngle	電気角 [rad]
-		//! @param[out]	MechaAngle	機械角 [rad]
+		//! @brief モータ電気角と機械角ベクトルを取得する関数
+		//! @param[out]	ElectAngle	電気角ベクトル [rad]
+		//! @param[out]	MechaAngle	機械角ベクトル [rad]
 		void GetElectricAndMechanicalAngle(
-			std::array<double, ConstParams::ACTUATOR_NUM>& ElectAngle,
-			std::array<double, ConstParams::ACTUATOR_NUM>& MechaAngle
+			ArcsMat<EquipParams::ACTUATOR_NUM, 1>& ElectAngle,
+			ArcsMat<EquipParams::ACTUATOR_NUM, 1>& MechaAngle
 		){
-			// ここにモータ電気角，機械角とElePosition配列，MecPosition配列との関係を列記する
+			// ここにモータ電気角，機械角とElecAngle，MechaAngleベクトルとの関係を列記する
 			
 		}
 		
-		//! @brief トルク応答を取得する関数
-		//! @param[out]	Torque	トルク応答 [Nm]
-		void GetTorque(std::array<double, ConstParams::ACTUATOR_NUM>& Torque){
-			// ここにトルクセンサとTorque配列との関係を列記する
+		//! @brief トルクベクトルを取得する関数
+		//! @param[out]	Torque	トルクベクトル [Nm]
+		void GetTorque(ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Torque){
+			// ここにトルクセンサとTorqueベクトルとの関係を列記する
 			
 		}
 		
 		//! @brief 加速度応答を取得する関数
-		//! @param[out]	Acceleration	加速度応答 [rad/s^2]
-		void GetAcceleration(std::array<double, ConstParams::ACTUATOR_NUM>& Acceleration){
-			// ここに加速度センサとAcceleration配列との関係を列記する
+		//! @param[out]	Acceleration	加速度ベクトル [rad/s^2]
+		void GetAcceleration(ArcsMat<3,1>& Acceleration){
+			// ここに加速度センサとAccelerationベクトルとの関係を列記する
 			
 		}
 		
-		//! @brief トルク応答と加速度応答を取得する関数
-		//! @param[out]	Torque	トルク応答 [Nm]
-		//! @param[out]	Acceleration	加速度応答 [rad/s^2]
-		void GetTorqueAndAcceleration(
-			std::array<double, ConstParams::ACTUATOR_NUM>& Torque,
-			std::array<double, ConstParams::ACTUATOR_NUM>& Acceleration
-		){
-			// ここにトルクセンサとTorque配列との関係，加速度センサとAcceleration配列との関係を列記する
+		//! @brief 電流ベクトルを取得する関数
+		//! @param[out]	Current	電流ベクトル [A]
+		void GetCurrent(ArcsMat<EquipParams::ACTUATOR_NUM, 1>& Current){
+			// ここに電流センサとCurrentベクトルとの関係を列記する
 			
 		}
 		
-		//! @brief 電流応答を取得する関数
-		//! @param[out]	Current	電流応答 [A]
-		void GetCurrent(std::array<double, ConstParams::ACTUATOR_NUM>& Current){
-			// ここに電流センサとCurrent配列との関係を列記する
+		//! @brief 電流指令ベクトルを設定する関数
+		//! @param[in]	CurrentRef	電流指令ベクトル [A]
+		void SetCurrent(const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& CurrentRef){
+			// ここにCurrentRefベクトルとサーボアンプの関係を列記する
 			
 		}
 		
-		//! @brief 電流指令を設定する関数
-		//! @param[in]	Current	電流指令 [A]
-		void SetCurrent(const std::array<double, ConstParams::ACTUATOR_NUM>& Current){
-			// ここにCurrent配列とサーボアンプの関係を列記する
-			
-		}
-		
-		//! @brief トルク指令を設定する関数
-		//! @param[in]	Torque	トルク指令 [Nm]
-		void SetTorque(const std::array<double, ConstParams::ACTUATOR_NUM>& Torque){
-			// ここにTorque配列とサーボアンプの関係を列記する
+		//! @brief トルク指令ベクトルを設定する関数
+		//! @param[in]	TorqueRef	トルク指令ベクトル [Nm]
+		void SetTorque(const ArcsMat<EquipParams::ACTUATOR_NUM, 1>& TorqueRef){
+			// ここにTorqueRefベクトルとサーボアンプの関係を列記する
 			
 		}
 		
 		//! @brief 6軸力覚センサ応答を取得する関数
-		//! @param[out]	Fx-Fy 各軸の並進力 [N]
-		//! @param[out]	Mx-My 各軸のトルク [Nm]
-		void Get6axisForce(double& Fx, double& Fy, double& Fz, double& Mx, double& My, double& Mz){
-			// ここに6軸力覚センサと各変数との関係を列記する
+		//! @param[out]	ForceTorque [ XYZ軸並進力[N], rpw軸トルク[Nm] ]^T のベクトル
+		void Get6axisForce(ArcsMat<6,1>& ForceTorque){
+			// ここに6軸力覚センサと力/トルクベクトルとの関係を列記する
 			
 		}
 		

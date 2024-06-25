@@ -1,7 +1,7 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/06/14
+//! @date 2024/06/24
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -11,6 +11,7 @@
 #define CONSTPARAMS
 
 #include <cmath>
+#include "ARCSparams.hh"
 #include "SFthread.hh"
 #include "FrameGraphics.hh"
 #include "CuiPlot.hh"
@@ -22,231 +23,22 @@ class ConstParams {
 		// タイトルに表示させる制御系の名前(識別用に好きな名前を入力)
 		static constexpr char CTRLNAME[] = "<TITLE: NOTITLE >";	//!< (画面に入る文字数以内)
 		
-		// 画面サイズの設定 (モニタ解像度に合うように設定すること)
-		// 1024×600(WSVGA) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 36;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 127;	//!< [文字] 画面の最大幅文字数
-		// 1024×768(XGA) の場合に下記をアンコメントすること
-		static constexpr int SCR_VERTICAL_MAX = 47;			//!< [文字] 画面の最大高さ文字数
-		static constexpr int SCR_HORIZONTAL_MAX = 127;		//!< [文字] 画面の最大幅文字数
-		// 1280×1024(SXGA) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 63;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 159;	//!< [文字] 画面の最大幅文字数
-		// 1920×1080(Full HD) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 66;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 239;	//!< [文字] 画面の最大幅文字数
-		// それ以外の解像度の場合は各自で値を探すこと
-		
 		// 実験データCSVファイルの設定
 		static constexpr char DATA_NAME[] = "DATA.csv";	//!< CSVファイル名
 		static constexpr double DATA_START =  0;		//!< [s] 保存開始時刻
 		static constexpr double DATA_END   = 10;		//!< [s] 保存終了時刻
 		static constexpr double DATA_RESO  = 0.001;		//!< [s] データの時間分解能
-		static constexpr unsigned int DATA_NUM  =  10;	//!< [-] 保存する変数の数
-		
+		static constexpr size_t DATA_NUM  =  10;		//!< [-] 保存する変数の数
+
 		// SCHED_FIFOリアルタイムスレッドの設定
-		static constexpr unsigned int THREAD_MAX = 3;	//!< スレッド最大数（これ変えても ControlFunctions.cc は追随しないので注意）
-		static constexpr unsigned int THREAD_NUM = 1;	//!< 動作させるスレッドの数 (最大数は THREAD_NUM_MAX 個まで)
-		static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
-		// 上記を INSERT_ZEROSLEEP にすると安定性が増すがリアルタイム性は落ちる。遅い処理系の場合に推奨。
-		// WITHOUT_ZEROSLEEP にするとリアルタイム性が向上するが，一時的に操作不能になる可能性が残る。高速な処理系の場合に選択可。
-		// 下記はカーネルパラメータの設定
-		// NO_SETTINGS もしくは CFS_DISABLED と PREEMPT_DYNFULL が併用可。詳細はSFthreadクラスのコメント欄を参照のこと。
-		//static constexpr SFkernelparam THREAD_KP = SFkernelparam::CFS_DISABLED;		//!< CFSをリアルタイム用に設定
-		static constexpr SFkernelparam THREAD_KP = static_cast<SFkernelparam>(
-			static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) | static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL)
-		);	//!< CFSとPREEMPTの設定を併用する場合の例
+		static constexpr size_t THREAD_NUM = 1;			//!< 動作させるスレッドの数 (最大数は ARCSparams::THREAD_NUM_MAX 個まで)
 		
 		//! @brief 制御周期の設定
-		static constexpr std::array<unsigned long, THREAD_MAX> SAMPLING_TIME = {
+		static constexpr std::array<unsigned long, ARCSparams::THREAD_MAX> SAMPLING_TIME = {
 		//   s  m  u  n	制御周期は Ts[0] ≦ Ts[1] ≦ … ≦ Ts[THREAD_MAX] になるようにすること
 				 100000,	// [ns] 制御用周期実行関数1 (スレッド1) 制御周期
 				1000000,	// [ns] 制御用周期実行関数2 (スレッド2) 制御周期
 				1000000,	// [ns] 制御用周期実行関数3 (スレッド3) 制御周期
-		};
-		
-		//! @brief 使用CPUコアの設定
-		static constexpr std::array<unsigned int, THREAD_MAX> CPUCORE_NUMBER = {
-				3,	// [-] 制御用周期実行関数1 (スレッド1) 使用するCPUコア番号
-				2,	// [-] 制御用周期実行関数2 (スレッド2) 使用するCPUコア番号
-				1,	// [-] 制御用周期実行関数3 (スレッド3) 使用するCPUコア番号
-		};
-		
-		// 実験機アクチュエータの設定
-		static constexpr unsigned int ACTUATOR_MAX = 16;	//!< [基] ARCSが対応しているアクチュエータの最大数
-		static constexpr unsigned int ACTUATOR_NUM = 1;		//!< [基] 実験装置のアクチュエータの総数
-		
-		//! @brief アクチュエータタイプの定義
-		enum ActType {
-			LINEAR_MOTOR,	//!< リニアモータ
-			ROTARY_MOTOR	//!< 回転モータ
-		};
-		
-		//! @brief 実験機アクチュエータの種類の設定（リニアモータか回転モータかの設定）
-		static constexpr std::array<ActType, ACTUATOR_MAX> ACT_TYPE = {
-			ROTARY_MOTOR,	//  1番 アクチュエータ
-			ROTARY_MOTOR,	//  2番 アクチュエータ
-			ROTARY_MOTOR,	//  3番 アクチュエータ
-			ROTARY_MOTOR,	//  4番 アクチュエータ
-			ROTARY_MOTOR,	//  5番 アクチュエータ
-			ROTARY_MOTOR,	//  6番 アクチュエータ
-			ROTARY_MOTOR,	//  7番 アクチュエータ
-			ROTARY_MOTOR,	//  8番 アクチュエータ
-			ROTARY_MOTOR,	//  9番 アクチュエータ
-			ROTARY_MOTOR,	// 10番 アクチュエータ
-			ROTARY_MOTOR,	// 11番 アクチュエータ
-			ROTARY_MOTOR,	// 12番 アクチュエータ
-			ROTARY_MOTOR,	// 13番 アクチュエータ
-			ROTARY_MOTOR,	// 14番 アクチュエータ
-			ROTARY_MOTOR,	// 15番 アクチュエータ
-			ROTARY_MOTOR,	// 16番 アクチュエータ
-		};
-		
-		//! @brief アクチュエータ指令単位の定義
-		enum ActRefUnit {
-			AMPERE,			//!< アンペア単位
-			NEWTON,			//!< ニュートン単位
-			NEWTON_METER	//!< ニュートンメートル単位
-		};
-		
-		//! @brief 実験機アクチュエータの指令単位の設定（電流なのか推力なのかトルクなのかの設定）
-		static constexpr std::array<ActRefUnit, ACTUATOR_MAX> ACT_REFUNIT = {
-			AMPERE,	//  1番 アクチュエータ
-			AMPERE,	//  2番 アクチュエータ
-			AMPERE,	//  3番 アクチュエータ
-			AMPERE,	//  4番 アクチュエータ
-			AMPERE,	//  5番 アクチュエータ
-			AMPERE,	//  6番 アクチュエータ
-			AMPERE,	//  7番 アクチュエータ
-			AMPERE,	//  8番 アクチュエータ
-			AMPERE,	//  9番 アクチュエータ
-			AMPERE,	// 10番 アクチュエータ
-			AMPERE,	// 11番 アクチュエータ
-			AMPERE,	// 12番 アクチュエータ
-			AMPERE,	// 13番 アクチュエータ
-			AMPERE,	// 14番 アクチュエータ
-			AMPERE,	// 15番 アクチュエータ
-			AMPERE,	// 16番 アクチュエータ
-		};
-		
-		//! @brief トルク/推力定数の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_FORCE_TORQUE_CONST = {
-			1,	// [N/A]/[Nm/A]  1番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  2番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  3番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  4番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  5番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  6番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  7番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  8番 アクチュエータ
-			1,	// [N/A]/[Nm/A]  9番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 10番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 11番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 12番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 13番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 14番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 15番 アクチュエータ
-			1,	// [N/A]/[Nm/A] 16番 アクチュエータ
-		};
-		
-		//! @brief 定格電流値の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_RATED_CURRENT = {
-			1,	// [A]  1番 アクチュエータ
-			1,	// [A]  2番 アクチュエータ
-			1,	// [A]  3番 アクチュエータ
-			1,	// [A]  4番 アクチュエータ
-			1,	// [A]  5番 アクチュエータ
-			1,	// [A]  6番 アクチュエータ
-			1,	// [A]  7番 アクチュエータ
-			1,	// [A]  8番 アクチュエータ
-			1,	// [A]  9番 アクチュエータ
-			1,	// [A] 10番 アクチュエータ
-			1,	// [A] 11番 アクチュエータ
-			1,	// [A] 12番 アクチュエータ
-			1,	// [A] 13番 アクチュエータ
-			1,	// [A] 14番 アクチュエータ
-			1,	// [A] 15番 アクチュエータ
-			1,	// [A] 16番 アクチュエータ
-		};
-		
-		//! @brief 瞬時最大許容電流値の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_MAX_CURRENT = {
-			3,	// [A]  1番 アクチュエータ
-			3,	// [A]  2番 アクチュエータ
-			3,	// [A]  3番 アクチュエータ
-			3,	// [A]  4番 アクチュエータ
-			3,	// [A]  5番 アクチュエータ
-			3,	// [A]  6番 アクチュエータ
-			3,	// [A]  7番 アクチュエータ
-			3,	// [A]  8番 アクチュエータ
-			3,	// [A]  9番 アクチュエータ
-			3,	// [A] 10番 アクチュエータ
-			3,	// [A] 11番 アクチュエータ
-			3,	// [A] 12番 アクチュエータ
-			3,	// [A] 13番 アクチュエータ
-			3,	// [A] 14番 アクチュエータ
-			3,	// [A] 15番 アクチュエータ
-			3,	// [A] 16番 アクチュエータ
-		};
-		
-		//! @brief 定格トルクの設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_RATED_TORQUE = {
-			1,	// [Nm]  1番 アクチュエータ
-			1,	// [Nm]  2番 アクチュエータ
-			1,	// [Nm]  3番 アクチュエータ
-			1,	// [Nm]  4番 アクチュエータ
-			1,	// [Nm]  5番 アクチュエータ
-			1,	// [Nm]  6番 アクチュエータ
-			1,	// [Nm]  7番 アクチュエータ
-			1,	// [Nm]  8番 アクチュエータ
-			1,	// [Nm]  9番 アクチュエータ
-			1,	// [Nm] 10番 アクチュエータ
-			1,	// [Nm] 11番 アクチュエータ
-			1,	// [Nm] 12番 アクチュエータ
-			1,	// [Nm] 13番 アクチュエータ
-			1,	// [Nm] 14番 アクチュエータ
-			1,	// [Nm] 15番 アクチュエータ
-			1,	// [Nm] 16番 アクチュエータ
-		};
-		
-		//! @brief 瞬時最大トルクの設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_MAX_TORQUE = {
-			3,	// [Nm]  1番 アクチュエータ
-			3,	// [Nm]  2番 アクチュエータ
-			3,	// [Nm]  3番 アクチュエータ
-			3,	// [Nm]  4番 アクチュエータ
-			3,	// [Nm]  5番 アクチュエータ
-			3,	// [Nm]  6番 アクチュエータ
-			3,	// [Nm]  7番 アクチュエータ
-			3,	// [Nm]  8番 アクチュエータ
-			3,	// [Nm]  9番 アクチュエータ
-			3,	// [Nm] 10番 アクチュエータ
-			3,	// [Nm] 11番 アクチュエータ
-			3,	// [Nm] 12番 アクチュエータ
-			3,	// [Nm] 13番 アクチュエータ
-			3,	// [Nm] 14番 アクチュエータ
-			3,	// [Nm] 15番 アクチュエータ
-			3,	// [Nm] 16番 アクチュエータ
-		};
-		
-		//! @brief 初期位置の設定
-		static constexpr std::array<double, ACTUATOR_MAX> ACT_INITPOS = {
-			0,	// [rad]  1軸 アクチュエータ
-			0,	// [rad]  2軸 アクチュエータ
-			0,	// [rad]  3軸 アクチュエータ
-			0,	// [rad]  4軸 アクチュエータ
-			0,	// [rad]  5軸 アクチュエータ
-			0,	// [rad]  6軸 アクチュエータ 
-			0,	// [rad]  7番 アクチュエータ
-			0,	// [rad]  8番 アクチュエータ
-			0,	// [rad]  9番 アクチュエータ
-			0,	// [rad] 10番 アクチュエータ
-			0,	// [rad] 11番 アクチュエータ
-			0,	// [rad] 12番 アクチュエータ
-			0,	// [rad] 13番 アクチュエータ
-			0,	// [rad] 14番 アクチュエータ
-			0,	// [rad] 15番 アクチュエータ
-			0,	// [rad] 16番 アクチュエータ
 		};
 		
 		// デバッグプリントとデバッグインジケータの設定
@@ -254,11 +46,10 @@ class ConstParams {
 		static constexpr bool DEBUG_INDIC_VISIBLE = false;	//!< デバッグインジケータ表示の有効/無効設定
 		
 		// 任意変数値表示の設定
-		static constexpr unsigned int INDICVARS_MAX = 16;	//!< 表示変数最大数 (変更不可)
-		static constexpr unsigned int INDICVARS_NUM = 10;	//!< 表示したい変数の数 (最大数 INDICVARS_MAX まで)
+		static constexpr size_t INDICVARS_NUM = 10;			//!< 表示したい変数の数 (最大数 INDICVARS_MAX まで)
 		
 		//! @brief 任意に表示したい変数値の表示形式 (printfの書式と同一)
-		static constexpr std::array<char[15], INDICVARS_MAX> INDICVARS_FORMS = {
+		static constexpr std::array<char[15], ARCSparams::INDICVARS_MAX> INDICVARS_FORMS = {
 			"% 13.4f",	// 変数 0
 			"% 13.4f",	// 変数 1
 			"% 13.4f",	// 変数 2
@@ -278,24 +69,20 @@ class ConstParams {
 		};
 		
 		// オンライン設定変数の設定
-		static constexpr unsigned int ONLINEVARS_MAX = 16;	//!< オンライン設定変数最大数 (変更不可)
-		static constexpr unsigned int ONLINEVARS_NUM = 10;	//!< オンライン設定変数の数 (最大数 ONLINEVARS_MAX まで)
+		static constexpr size_t ONLINEVARS_NUM = 10;	//!< オンライン設定変数の数 (最大数 ONLINEVARS_MAX まで)
 		
 		// 時系列グラフプロットの共通設定
-		static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";		//!< フレームバッファ ファイルデスクリプタ
 		static constexpr char PLOT_PNGFILENAME[] = "Screenshot.png";//!< スクリーンショットのPNGファイル名
-		static constexpr size_t PLOT_MAX = 16;						//!< [-] グラフプロットの最大数 (変更不可)
 		static constexpr size_t PLOT_NUM =  4;						//!< [-] グラフプロットの数
 		static constexpr double PLOT_TIMESPAN = 10;					//!< [s] プロットの時間幅
 		static constexpr double PLOT_TIMERESO = 0.01;				//!< [s] プロットの時間分解能
 		static constexpr size_t PLOT_RINGBUFF = 1024;				//!< [-] プロット用リングバッファの要素数
-		static constexpr unsigned int PLOT_TGRID_NUM = 10;			//!< [-] 時間軸グリッドの分割数
-		static constexpr unsigned int PLOT_VAR_MAX = 8;				//!< [-] プロット可能な変数の最大数 (変更不可)
+		static constexpr size_t PLOT_TGRID_NUM = 10;				//!< [-] 時間軸グリッドの分割数
 		static constexpr char PLOT_TFORMAT[] = "%3.1f";				//!< 時間軸書式
 		static constexpr char PLOT_TLABEL[] = "Time [s]";			//!< 時間軸ラベル
 		
 		//! @brief 縦軸ラベル
-		static constexpr std::array<char[31], PLOT_MAX> PLOT_FLABEL = {
+		static constexpr std::array<char[31], ARCSparams::PLOT_MAX> PLOT_FLABEL = {
 			"---------- [-]",	// グラフプロット0
 			"---------- [-]",	// グラフプロット1
 			"---------- [-]",	// グラフプロット2
@@ -315,7 +102,7 @@ class ConstParams {
 		};
 		
 		//! @brief 縦軸書式
-		static constexpr std::array<char[15], PLOT_MAX> PLOT_FFORMAT = {
+		static constexpr std::array<char[15], ARCSparams::PLOT_MAX> PLOT_FFORMAT = {
 			"%6.1f",	// グラフプロット0
 			"%6.1f",	// グラフプロット1
 			"%6.1f",	// グラフプロット2
@@ -336,7 +123,7 @@ class ConstParams {
 		
 		//! @brief プロット変数の名前
 		static constexpr std::array<
-			std::array<char[15], PLOT_VAR_MAX>, PLOT_MAX
+			std::array<char[15], ARCSparams::PLOT_VAR_MAX>, ARCSparams::PLOT_MAX
 		> PLOT_VAR_NAMES = {{
 			{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット0
 			{"VAR-00", "VAR-01", "VAR-02", "VAR-03", "VAR-04", "VAR-05", "VAR-06", "VAR-07",},	// プロット1
@@ -363,7 +150,7 @@ class ConstParams {
 		static constexpr FGcolors PLOT_CURS_COLOR = FGcolors::GRAY50;	//!< 時刻カーソルの色
 		
 		//! @brief 時系列グラフ描画の有効/無効設定
-		static constexpr std::array<bool, ConstParams::PLOT_MAX> PLOT_VISIBLE = {
+		static constexpr std::array<bool, ARCSparams::PLOT_MAX> PLOT_VISIBLE = {
 			true,	// プロット0
 			true,	// プロット1
 			true,	// プロット2
@@ -383,7 +170,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの変数ごとの線の色
-		static constexpr std::array<FGcolors, PLOT_VAR_MAX> PLOT_VAR_COLORS = {
+		static constexpr std::array<FGcolors, ARCSparams::PLOT_VAR_MAX> PLOT_VAR_COLORS = {
 			FGcolors::RED,
 			FGcolors::GREEN,
 			FGcolors::CYAN,
@@ -395,7 +182,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットする変数の数 (≦PLOT_VAR_MAX)
-		static constexpr std::array<unsigned int, PLOT_MAX> PLOT_VAR_NUM = {
+		static constexpr std::array<size_t, ARCSparams::PLOT_MAX> PLOT_VAR_NUM = {
 			1,	// プロット0
 			1,	// プロット1
 			1,	// プロット2
@@ -415,7 +202,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの縦軸最大値
-		static constexpr std::array<double, PLOT_MAX> PLOT_FMAX	= {
+		static constexpr std::array<double, ARCSparams::PLOT_MAX> PLOT_FMAX	= {
 			1.0,	// プロット0
 			1.0,	// プロット1
 			1.0,	// プロット2
@@ -435,7 +222,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの縦軸最小値
-		static constexpr std::array<double, PLOT_MAX> PLOT_FMIN = {
+		static constexpr std::array<double, ARCSparams::PLOT_MAX> PLOT_FMIN = {
 			-1.0,	// プロット0
 			-1.0,	// プロット1
 			-1.0,	// プロット2
@@ -455,7 +242,7 @@ class ConstParams {
 		};
 		
 		//! @brief 時系列プロットの縦軸グリッドの分割数
-		static constexpr std::array<unsigned int, PLOT_MAX> PLOT_FGRID_NUM = {
+		static constexpr std::array<size_t, ARCSparams::PLOT_MAX> PLOT_FGRID_NUM = {
 			4,	// プロット0
 			4,	// プロット1
 			4,	// プロット2
@@ -475,7 +262,7 @@ class ConstParams {
 		};
 		
 		//! @brief [px] 時系列プロットの左位置
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_LEFT = {
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_LEFT = {
 			305,	// プロット0
 			305,	// プロット1
 			305,	// プロット2
@@ -488,34 +275,34 @@ class ConstParams {
 			1015,	// プロット9
 			1015,	// プロット10
 			1015,	// プロット11
-				0,	// プロット12
-				0,	// プロット13
-				0,	// プロット14
-				0,	// プロット15
+			   0,	// プロット12
+			   0,	// プロット13
+			   0,	// プロット14
+			   0,	// プロット15
 		};
 		
 		//! @brief [px] 時系列プロットの上位置
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_TOP = {
-				97,	// プロット0
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_TOP = {
+			 97,	// プロット0
 			250,	// プロット1
 			403,	// プロット2
 			556,	// プロット3
 			709,	// プロット4
 			862,	// プロット5
-				97,	// プロット6
+			 97,	// プロット6
 			250,	// プロット7
 			403,	// プロット8
 			556,	// プロット9
 			709,	// プロット10
 			862,	// プロット11
-				0,	// プロット12
-				0,	// プロット13
-				0,	// プロット14
-				0,	// プロット15
+			  0,	// プロット12
+			  0,	// プロット13
+			  0,	// プロット14
+			  0,	// プロット15
 		};
 		
 		//! @brief [px] 時系列プロットの幅
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_WIDTH = {
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_WIDTH = {
 			710,	// プロット0
 			710,	// プロット1
 			710,	// プロット2
@@ -535,7 +322,7 @@ class ConstParams {
 		};
 		
 		//! @brief [px] 時系列プロットの高さ
-		static constexpr std::array<int, ConstParams::PLOT_MAX> PLOT_HEIGHT = {
+		static constexpr std::array<int, ARCSparams::PLOT_MAX> PLOT_HEIGHT = {
 			153,	// プロット0
 			153,	// プロット1
 			153,	// プロット2
@@ -564,7 +351,9 @@ class ConstParams {
 		//!	PLOT_STAIRS		階段プロット
 		//!	PLOT_BOLDSTAIRS	太線階段プロット
 		//!	PLOT_LINEANDDOT	線と点の複合プロット
-		static constexpr std::array<std::array<CuiPlotTypes, PLOT_VAR_MAX>, PLOT_MAX> PLOT_TYPE = {{
+		static constexpr std::array<
+			std::array<CuiPlotTypes, ARCSparams::PLOT_VAR_MAX>, ARCSparams::PLOT_MAX
+		> PLOT_TYPE = {{
 			{CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE,
 				CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE,},	// プロット0
 				
@@ -626,8 +415,8 @@ class ConstParams {
 		static constexpr double PLOTXY_XMIN = -0.5;		//!< [m] X軸最小値
 		static constexpr double PLOTXY_YMAX =  1.0;		//!< [m] Y軸最大値
 		static constexpr double PLOTXY_YMIN = -1.0;		//!< [m] Y軸最小値
-		static constexpr unsigned int PLOTXY_XGRID = 4;	//!< X軸グリッドの分割数
-		static constexpr unsigned int PLOTXY_YGRID = 4;	//!< Y軸グリッドの分割数
+		static constexpr size_t PLOTXY_XGRID = 4;		//!< X軸グリッドの分割数
+		static constexpr size_t PLOTXY_YGRID = 4;		//!< Y軸グリッドの分割数
 		static constexpr double PLOTXY_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXY_VAL_YPOS =  0.9;	//!< 数値表示の上位置
 		
@@ -643,25 +432,10 @@ class ConstParams {
 		static constexpr double PLOTXZ_XMIN = -0.5;		//!< [m] X軸最小値
 		static constexpr double PLOTXZ_ZMAX =  2.0;		//!< [m] Z軸最大値
 		static constexpr double PLOTXZ_ZMIN =  0.0;		//!< [m] Z軸最小値
-		static constexpr unsigned int PLOTXZ_XGRID = 4;	//!< X軸グリッドの分割数
-		static constexpr unsigned int PLOTXZ_ZGRID = 4;	//!< Z軸グリッドの分割数
+		static constexpr size_t PLOTXZ_XGRID = 4;		//!< X軸グリッドの分割数
+		static constexpr size_t PLOTXZ_ZGRID = 4;		//!< Z軸グリッドの分割数
 		static constexpr double PLOTXZ_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXZ_VAL_ZPOS =  1.9;	//!< 数値表示の上位置
-		
-		//! @brief ユーザプロットの設定
-		static constexpr bool PLOTUS_VISIBLE = false;	//!< プロット可視/不可視設定
-		static constexpr int PLOTUS_LEFT = 905;			//!< [px] 左位置
-		static constexpr int PLOTUS_TOP = 709;			//!< [px] 上位置
-		static constexpr int PLOTUS_WIDTH = 300;		//!< [px] 幅
-		static constexpr int PLOTUS_HEIGHT = 270;		//!< [px] 高さ
-		static constexpr char PLOTUS_XLABEL[] = "X AXIS [-]";		//!< X軸ラベル
-		static constexpr char PLOTUS_YLABEL[] = "Y AXIS [-]";		//!< Y軸ラベル
-		static constexpr double PLOTUS_XMAX =  10;		//!< [mm] X軸最大値
-		static constexpr double PLOTUS_XMIN = -10;		//!< [mm] X軸最小値
-		static constexpr double PLOTUS_YMAX =  20;		//!< [mm] Y軸最大値
-		static constexpr double PLOTUS_YMIN =   0;		//!< [mm] Y軸最小値
-		static constexpr unsigned int PLOTUS_XGRID = 4;	//!< X軸グリッドの分割数
-		static constexpr unsigned int PLOTUS_YGRID = 4;	//!< Y軸グリッドの分割数
 		
 	private:
 		ConstParams() = delete;	//!< コンストラクタ使用禁止

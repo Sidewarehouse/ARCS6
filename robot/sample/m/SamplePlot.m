@@ -4,7 +4,7 @@ clc;
 clear;
 
 % CSVファイルから読み込み
-FileName = '../BaseCtrl/DATA.csv';	% CSVファイル名設定
+FileName = '../001_空の基本コード/DATA.csv';	% CSVファイル名設定
 import MultiPlot.LoadCsvFile;		% LoadCsvFile関数インポート
 [t, x1, x2, x3, x4, x5, x6, x7, x8, x9] = LoadCsvFile(FileName);	% 変数値読み込み
 

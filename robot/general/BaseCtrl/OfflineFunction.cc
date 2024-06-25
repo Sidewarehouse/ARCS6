@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/06/18
+//! @date 2024/06/25
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -13,11 +13,12 @@
 // MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
-#include <stdio.h>
+#include <cstdio>
 #include <cstdlib>
 #include <cassert>
-#include <array>
+#include <cmath>
 #include <complex>
+#include <array>
 
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"

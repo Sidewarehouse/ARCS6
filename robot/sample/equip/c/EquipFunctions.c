@@ -1,5 +1,5 @@
-//! @file AddonFunction.c
-//! @brief 関数群のベースコード
+//! @file EquipFunctions.c
+//! @brief 関数群のC言語ベースコード
 //!
 //! クラスにまとめるまでもない関数群を追加する場合は，この関数ベースコードを基に作ってネ。
 //!
@@ -12,12 +12,12 @@
 // For details, see the License.txt file.
 
 #include <assert.h>
-#include "AddonFunction.h"
+#include "EquipFunctions.h"
 
 //! @brief 関数のベース
 //! @param[in]	u	入力
 //! @return	出力
-double AddonFunction(double u){
+double EquipFunctions(double u){
 	return u;
 }
 
