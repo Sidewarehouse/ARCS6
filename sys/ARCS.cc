@@ -1,6 +1,6 @@
 //! @file ARCS.cc
 //! @brief Advanced Robot Control System V6, ARCS6
-//! @date 2024/06/22
+//! @date 2024/06/26
 //! @author Yokokura, Yuki
 //!
 //! @par コーディングの信条
@@ -57,10 +57,10 @@ int main(void){
 	// main関数のCPUコアとポリシーの設定
 	ARCScommon::SetCPUandPolicy(pthread_self(), ARCSparams::ARCS_CPU_MAIN, ARCSparams::ARCS_POL_MAIN, ARCSparams::ARCS_PRIO_MAIN);
 	
-	ARCSscrparams ScrPara;	// 画面パラメータの生成
-	ARCSgraphics Grph;		// グラフプロットの生成
-	ARCSscreen ARCSscr(ARCSlog, ARCSast, ARCSprt, ScrPara, Grph);	// ARCS画面初期化＆初期画面描画
-	ARCSthread ARCSthd(ARCSast, ScrPara, Grph);						// リアルタイムスレッドの生成
+	ARCSscrparams ARCSscrpar;	// ARCS画面パラメータの生成
+	ARCSgraphics ARCSgrph;		// ARCSグラフプロットの生成
+	ARCSscreen ARCSscr(ARCSlog, ARCSast, ARCSprt, ARCSscrpar, ARCSgrph);// ARCS画面初期化＆初期画面描画
+	ARCSthread ARCSthd(ARCSast, ARCSscrpar, ARCSgrph);					// リアルタイムスレッドの生成
 	
 	// 開始 or 終了指令入力の待機
 	if(ARCSscr.WaitStartOrExit() == ARCSscreen::PHAS_EXIT){		// 「EXIT」が押された場合は，
