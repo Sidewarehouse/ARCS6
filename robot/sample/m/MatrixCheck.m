@@ -118,54 +118,36 @@ A = [
 	 5, -1,  5
 ]
 [L, U, P] = lu(A)
-Acomp1 = [
-	4 + 6i,  1 - 3i,  5 + 2i ;
-	8 - 5i, -7 - 6i,  7 - 1i ;
-	9 + 9i, -7 - 5i, -5 - 3i
-]
-[L, U, P] = lu(Acomp1)
 Ax = [
 	 5,  6,  7 ;
 	 8,  9,  0 ;
 	 1,  2,  3
 ]
 [L, U] = lu(Ax)
+Acomp1 = [
+	4 + 6i,  1 - 3i,  5 + 2i ;
+	8 - 5i, -7 - 6i,  7 - 1i ;
+	9 + 9i, -7 - 5i, -5 - 3i
+]
+[L, U, P] = lu(Acomp1)
 
-
-%{
+fprintf('\n');
 disp 'Åö QRï™âä÷òAÇÃä÷êî'
-A = magic(5)
-[Q, R] = qr(A)
-
-% QRï™â
-Aqr = [
-	12, -51,   4;
-	 6, 167, -68;
-	-4,  24, -41;
-];
-[Qqr, Rqr] = qr(Aqr)
-
-Aqr = [
+Aqr1 = magic(5)
+[Qqr1, Rqr1] = qr(Aqr1)
+fprintf('norm(Aqr1 - Qqr1*Rqr1) = %e\n\n', norm(Aqr1 - Qqr1*Rqr1) );
+Aqr2 = [
 	12, -51,   4, 39;
 	 6, 167, -68, 22;
 	-4,  24, -41  11;
-];
-[Qqr, Rqr] = qr(Aqr)
-[Qqr, Rqr] = qr(Aqr.')
+]
+[Qqr2, Rqr2] = qr(Aqr2)
+[Qx2, Rx2] = qr(Aqr2')
+Acomp1
+[Qqr3, Rqr3] = qr(Acomp1)
 
-Aqr = [
-	10, -8,  5;
-	-8,  9,  6;
-	-1,-10,  7;
-];
-[Qqr, Rqr] = qr(Aqr)
 
-Acomp3 = [
-  4 + 6i,  1 - 3i,  5 + 2*i ;
-  8 - 5i, -7 - 6i,  7 - 1*i ;
-  9 + 9i, -7 - 5i, -5 - 3*i ;
-];
-inv(Acomp3)
+%{
 
 % Schurï™â
 Asr1 = [

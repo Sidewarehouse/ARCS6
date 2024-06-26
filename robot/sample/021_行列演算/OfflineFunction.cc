@@ -899,7 +899,7 @@ int main(void){
 	dispf(Ucomp, "% 8.3f");
 	dispf(Pcomp, "% 8.3f");
 	dispf(~Pcomp*Lcomp*Ucomp, "% 5.2f");		// もとに戻るかチェック
-/*
+
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
 	ArcsMat<5,5> Aqr1 = {
@@ -914,9 +914,9 @@ int main(void){
 	dispf(Aqr1, "% 8.4f");
 	dispf(Qqr1, "% 8.4f");
 	dispf(Rqr1, "% 8.4f");
-	dispf(Qqr1*~Qqr1, "% 8.4f");	// Qが直交行列かチェック
-	dispf(Qqr1*Rqr1, "% 8.4f");	// 元に戻るかチェック
-	printf("norm<L2>(A - Q*R) = %e\n", norm<NormType::AMT_L2>(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
+	dispf(Qqr1*~Qqr1, "% 8.4f");		// Qが直交行列かチェック
+	dispf(Qqr1*Rqr1, "% 8.4f");			// 元に戻るかチェック
+	printf("norm<L2>(Aqr1 - Qqr1*Rqr1) = %e\n\n", norm<NormType::AMT_L2>(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
 	constexpr ArcsMat<3,4> Aqr2 = {
 		12, -51,   4, 39,
 		 6, 167, -68, 22,
@@ -926,23 +926,23 @@ int main(void){
 	dispf(Aqr2, "% 5.0f");
 	dispf(Qqr2, "% 7.2f");
 	dispf(Rqr2, "% 7.2f");
-	dispf(Qqr2*~Qqr2, "% 7.2f");	// Qが直交行列かチェック
-	dispf(Qqr2*Rqr2, "% 7.2f");	// 元に戻るかチェック
+	dispf(Qqr2*~Qqr2, "% 7.2f");		// Qが直交行列かチェック
+	dispf(Qqr2*Rqr2, "% 7.2f");			// 元に戻るかチェック
 	constexpr auto QRx2 = QR(~Aqr2);					// コンパイル時にQR分解を計算
 	constexpr auto Qx2 = std::get<0>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
 	constexpr auto Rx2 = std::get<1>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
 	dispf(~Aqr2, "% 5.0f");
 	dispf(Qx2, "% 7.3f");
 	dispf(Rx2, "% 8.3f");
-	dispf(Qx2*~Qx2, "% 7.3f");		// Qが直交行列かチェック
-	dispf(Qx2*Rx2, "% 8.3f");		// 元に戻るかチェック
+	dispf(Qx2*~Qx2, "% 7.3f");			// Qが直交行列かチェック
+	dispf(Qx2*Rx2, "% 8.3f");			// 元に戻るかチェック
 	auto [Qqr3, Rqr3] = QR(Acomp1);		// 複素数QR分解を計算 (タプル返し版)
 	dispf(Acomp1, "% 2.0f");
 	dispf(Qqr3, "% 7.3f");
 	dispf(Rqr3, "% 7.3f");
-	dispf(Qqr3*~Qqr3, "% 3.1f");	// Qが直交行列かチェック
-	dispf(Qqr3*Rqr3, "% 3.1f");	// 元に戻るかチェック
-	
+	dispf(Qqr3*~Qqr3, "% 3.1f");		// Qが直交行列かチェック
+	dispf(Qqr3*Rqr3, "% 3.1f");			// 元に戻るかチェック
+	/*
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
 	constexpr ArcsMat<4,2> As1 = {
