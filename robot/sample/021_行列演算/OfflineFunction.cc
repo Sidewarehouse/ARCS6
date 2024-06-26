@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/06/25
+//! @date 2024/06/26
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -57,13 +57,13 @@ int main(void){
 
 	// 行列の表示
 	printf("\n★★★★★★★ 行列の表示\n");
-	dispsize(A);				// 行列Aのサイズを表示
-	dispmat(A);					// 行列Aを表示
-	dispmat(B);					// 行列Bを表示
-	dispmatfmt(C, "% 6.4f");	// 表示の書式指定をして表示する場合
-	dispmatfmt(Pi, "% 16.15f");	// 行列Piを書式指定して表示
-	dispmat(Aint);				// 整数行列Aintを表示
-	A.DispAddress();			// 行列Aのメモリアドレスを表示
+	dispsize(A);			// 行列Aのサイズを表示
+	disp(A);				// 行列Aを表示
+	disp(B);				// 行列Bを表示
+	dispf(C, "% 6.4f");		// 表示の書式指定をして表示する場合
+	dispf(Pi, "% 16.15f");	// 行列Piを書式指定して表示
+	disp(Aint);				// 整数行列Aintを表示
+	A.DispAddress();		// 行列Aのメモリアドレスを表示
 
 	// 行列のサイズの取得
 	printf("H = %zu, W = %zu\n", A.GetHeight(), A.GetWidth());
@@ -89,7 +89,7 @@ int main(void){
 			    2,     3,    -2,
 			    3,    -1, i + 1
 		);
-		dispmat(J[i]);
+		disp(J[i]);
 	}
 	
 	// 行列のstd::array配列
@@ -101,7 +101,7 @@ int main(void){
 			    2,     3,    -2,
 			    3,    -1, i + 1
 		);
-		dispmat(K.at(i));
+		disp(K.at(i));
 	}
 	
 	// 定数行列，コンパイル時定数行列と初期化
@@ -115,8 +115,8 @@ int main(void){
 		8, 9, 0,
 		1, 2, 3
 	};
-	dispmat(Alpha);
-	dispmat(Ax);
+	disp(Alpha);
+	disp(Ax);
 	
 	// 縦ベクトルの[]オペレータによる要素アクセス
 	printf("\n★★★★★★★ 縦ベクトルの[]オペレータによる要素アクセス\n");
@@ -128,10 +128,10 @@ int main(void){
 		5
 	};
 	dispsize(alpha);
-	dispmat(alpha);
+	disp(alpha);
 	printf("alpha[3] = % g\n", alpha[3]);	// 縦ベクトルの3番目を表示
 	alpha[3] = 6;			// 縦ベクトルの3番目に 6 を書き込む
-	dispmat(alpha);			// 縦ベクトルの3番目が変わっている
+	disp(alpha);			// 縦ベクトルの3番目が変わっている
 	
 	// 行列の()オペレータによる要素アクセス(サイズチェック無し版)
 	printf("\n★★★★★★★ 行列の()オペレータによる要素アクセス(サイズチェック無し版)\n");
@@ -145,9 +145,9 @@ int main(void){
 	printf("B(3,2) = % g\n", B(3,2));
 	printf("B(3,3) = % g\n", B(3,3));
 	B(2,3) = 0;	// 2行3列目に 0 を書き込む
-	dispmat(B);	// 変わっている
+	disp(B);	// 変わっている
 	B(2,3) = 7;	// 2行3列目に 7 を書き込む
-	dispmat(B);	// 元に戻っている
+	disp(B);	// 元に戻っている
 	
 	// 行列の()オペレータによる要素アクセス(サイズチェック可能版)
 	printf("\n★★★★★★★ 行列の()オペレータによる要素アクセス(サイズチェック可能版)\n");
@@ -155,95 +155,95 @@ int main(void){
 	//printf("B(2,4,true) = % g\n", B(2,4,true));	// ←サイズエラー！
 	//printf("B(2,4,true) = % g\n", B(2,4,false));	// ←運が悪いとSIGSEGV (falseにするとサイズチェック無し)
 	B(2,3,true) = 0;	// 2行3列目に 0 を書き込む
-	dispmat(B);			// 変わっている
+	disp(B);			// 変わっている
 	B(2,3,true) = 7;	// 2行3列目に 7 を書き込む
-	dispmat(B);			// 元に戻っている
+	disp(B);			// 元に戻っている
 	//B(2,4,true) = 7;	// ←サイズエラー！
 	//B(2,4,false) = 7;	// ←運が悪いとSIGSEGV
 	
 	// 代入演算子
 	printf("\n★★★★★★★ 代入演算子\n");
 	C = B;
-	dispmat(C);
+	disp(C);
 	//C = Alpha;	// ←サイズエラー！
 	
 	// 演算子
 	printf("\n★★★★★★★ 演算子\n");
 	C = +A;					// 単項加算
 	printf("C = +A \n");
-	dispmat(C);
+	disp(C);
 	C = -A;					// 単項減算
 	printf("C = -A\n");
-	dispmat(C);
+	disp(C);
 	C = A + B;				// 行列加算
 	printf("C = A + B\n");
-	dispmat(C);
+	disp(C);
 	C = A + 3;				// 行列スカラー加算
 	printf("C = A + 3\n");
-	dispmat(C);
+	disp(C);
 	C = A - 3;				// 行列スカラー減算
 	printf("C = A - 3\n");
-	dispmat(C);
+	disp(C);
 	C = A - B;				// 行列減算
 	printf("C = A - B\n");
-	dispmat(C);
+	disp(C);
 	C = A*B;				// 行列乗算
 	printf("C = A*B\n");
-	dispmat(C);
+	disp(C);
 	C = A*2;				// 行列スカラー乗算
 	printf("C = A*2\n");
-	dispmat(C);
+	disp(C);
 	C = A/2;				// 行列スカラー除算
 	printf("C = A/2\n");
-	dispmat(C);
+	disp(C);
 	C += A;					// 行列加算代入
 	printf("C += A\n");
-	dispmat(C);
+	disp(C);
 	C += 2;					// 行列スカラー加算代入
 	printf("C += 2\n");
-	dispmat(C);
+	disp(C);
 	C -= A;					// 行列減算代入
 	printf("C -= A\n");
-	dispmat(C);
+	disp(C);
 	C -= 1;					// 行列スカラー減算代入
 	printf("C -= 1\n");
-	dispmat(C);
+	disp(C);
 	C *= A;					// 正方行列乗算代入
 	printf("C *= A\n");
-	dispmat(C);
+	disp(C);
 	C *= 2;					// 行列スカラー乗算代入
 	printf("C *= 2\n");
-	dispmat(C);
+	disp(C);
 	C /= 2;					// 行列スカラー除算代入
 	printf("C /= 2\n");
-	dispmat(C);
+	disp(C);
 	C = A^0;				// 正方行列の0のべき乗
 	printf("C = A^0\n");
-	dispmat(C);
+	disp(C);
 	C = A^1;				// 正方行列の1のべき乗
 	printf("C = A^1\n");
-	dispmat(C);
+	disp(C);
 	C = A^2;				// 正方行列の2のべき乗
 	printf("C = A^2\n");
-	dispmat(C);
+	disp(C);
 	C = A^3;				// 正方行列の3のべき乗
 	printf("C = A^3\n");
-	dispmat(C);
+	disp(C);
 	C = A & B;				// アダマール積
 	printf("C = A & B\n");
-	dispmat(C);
-	C = A % B;				// アダマール除算
+	disp(C);
+	C = A % B;				// 要素ごとの除算
 	printf("C = A %% B\n");
-	dispmat(C);
+	disp(C);
 	C = 3 + A;				// スカラー行列加算
 	printf("C = 3 + A\n");
-	dispmat(C);
+	disp(C);
 	C = 3 - A;				// スカラー行列減算
 	printf("C = 3 - A\n");
-	dispmat(C);
+	disp(C);
 	C = 2*A;				// スカラー行列乗算
 	printf("C = 2*A\n");
-	dispmat(C);
+	disp(C);
 	
 	// 下記はサイズエラー等の場合(アンコメントするとAssertion Failed)
 	//C = A + Alpha;	// ←サイズエラー！
@@ -262,9 +262,9 @@ int main(void){
 	// すべての要素を埋める
 	printf("\n★★★★★★★ すべての要素を埋める\n");
 	C.FillAll(3.9);	// すべての要素を3.9で埋める
-	dispmat(C);
+	disp(C);
 	C.FillAllZero();// すべての要素をゼロで埋める
-	dispmat(C);
+	disp(C);
 	C = B;
 	
 	// 1次元std::array配列との相互変換
@@ -272,7 +272,7 @@ int main(void){
 	std::array<double, 10> v10array = {100,200,300,400,500,600,700,800,900,1000};
 	ArcsMat<10,1> v10;
 	v10.LoadArray(v10array);	// std::arrayから読み込む
-	dispmat(v10);
+	disp(v10);
 	v10[10] = 3939;
 	v10.StoreArray(v10array);	// std::arrayに書き込む
 	printf("v10array = ");
@@ -290,7 +290,7 @@ int main(void){
 	}};
 	ArcsMat<3,2> D;
 	D.LoadArray(D32array);		// std::arrayから読み込む(ただし転置した状態となる)
-	dispmat(D);
+	disp(D);
 	D(3,2) = 39;
 	D.StoreArray(D32array);		// std::arrayに書き込む(ただし転置した状態となる)
 	printf("D32array:1 = ");
@@ -303,21 +303,21 @@ int main(void){
 	
 	// ベクトルの抜き出し
 	printf("\n★★★★★★★ ベクトルの抜き出し\n");
-	dispmat(C);
+	disp(C);
 	ArcsMat<2,1> v2;
 	C.GetVerticalVec(v2,2,3);			// 2行3列目を先頭として高さ2の縦ベクトルを抜き出す (引数渡し版)
-	dispmat(v2);
-	dispmat(C.GetVerticalVec<2>(2,3));	// 2行3列目を先頭として高さ2の縦ベクトルを抜き出す (戻り値渡し版)
+	disp(v2);
+	disp(C.GetVerticalVec<2>(2,3));		// 2行3列目を先頭として高さ2の縦ベクトルを抜き出す (戻り値渡し版)
 	ArcsMat<1,2> w2;
 	C.GetHorizontalVec(w2,2,2);			// 2行2列目を先頭として幅2の横ベクトルを抜き出す (引数渡し版)
-	dispmat(w2);	
-	dispmat(C.GetHorizontalVec<2>(2,2));	// 2行2列目を先頭として幅2の横ベクトルを抜き出す (戻り値渡し版)
-	//dispmat(C.GetVerticalVec<2>(3,3));	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
-	//dispmat(C.GetHorizontalVec<2>(2,3));	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
+	disp(w2);	
+	disp(C.GetHorizontalVec<2>(2,2));	// 2行2列目を先頭として幅2の横ベクトルを抜き出す (戻り値渡し版)
+	//disp(C.GetVerticalVec<2>(3,3));	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
+	//disp(C.GetHorizontalVec<2>(2,3));	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
 	constexpr auto v2x = Ax.GetVerticalVec<2>(1,3);		// コンパイル時に抜き出す
 	constexpr auto w2x = Ax.GetHorizontalVec<2>(3,1);	// コンパイル時に抜き出す
-	dispmat(v2x);
-	dispmat(w2x);
+	disp(v2x);
+	disp(w2x);
 	
 	// ベクトルの埋め込み
 	printf("\n★★★★★★★ ベクトルの埋め込み\n");
@@ -326,10 +326,10 @@ int main(void){
 		93
 	);
 	C.SetVerticalVec(v2,2,3);		// 2行3列目を先頭として縦ベクトルを埋め込む
-	dispmat(C);
+	disp(C);
 	w2.Set(39, 93);
 	C.SetHorizontalVec(w2,2,1);		// 2行1列目を先頭として横ベクトルを埋め込む
-	dispmat(C);
+	disp(C);
 	//C.SetVerticalVec(v2,3,1);		// ←はみ出るエラー！(アンコメントするとAssertion Failed)
 	//C.SetHorizontalVec(w2,1,3);	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
 
@@ -338,34 +338,34 @@ int main(void){
 	auto O = zeros<5,5>();	// 零行列
 	auto l = ones<5,5>();	// 1行列
 	auto I = eye<5,5>();	// 単位行列
-	dispmat(O);
-	dispmat(l);
-	dispmat(I);
+	disp(O);
+	disp(l);
+	disp(I);
 	constexpr auto Ox = zeros<3,5>();	// コンパイル時に零行列を生成
 	constexpr auto lx = ones<3,5>();	// コンパイル時に1行列を生成
 	constexpr auto Ix = eye<3,3>();		// コンパイル時に単位行列を生成
-	dispmat(Ox);
-	dispmat(lx);
-	dispmat(Ix);
+	disp(Ox);
+	disp(lx);
+	disp(Ix);
 	
 	// 単調増加ベクトル
 	printf("\n★★★★★★★ 単調増加ベクトル\n");
 	auto r = ramp<5,1>();				// 単調増加ベクトル
 	constexpr auto rx = ramp<5,1>();	// コンパイル時に単調増加ベクトルを生成
-	dispmat(r);
-	dispmat(rx);
+	disp(r);
+	disp(rx);
 	
 	// 列操作関連の関数
 	printf("\n★★★★★★★ 列操作関連の関数\n");
 	ArcsMat<3,1> vd;
 	getcolumn(D, vd, 2);			// 行列Dの2列目を縦ベクトルとして抽出 (引数渡し版)
-	dispmat(vd);
-	dispmat(getcolumn(D, 1));		// 行列Dの1列目を縦ベクトルとして抽出 (戻り値渡し版)
+	disp(vd);
+	disp(getcolumn(D, 1));			// 行列Dの1列目を縦ベクトルとして抽出 (戻り値渡し版)
 	constexpr auto vax = getcolumn(Ax, 2);				// コンパイル時に縦ベクトルを抽出
-	dispmat(vax);
+	disp(vax);
 	setcolumn(D, vax, 1);			// 行列Dの1列目に縦ベクトルを埋め込む (引数渡し版)
-	dispmat(D);
-	dispmat(setcolumn(vd, 2, D));	// 行列Dの2列目に縦ベクトルを埋め込む (戻り値渡し版)
+	disp(D);
+	disp(setcolumn(vd, 2, D));		// 行列Dの2列目に縦ベクトルを埋め込む (戻り値渡し版)
 	constexpr ArcsMat<3,4> Ex = {
 		0, 1, 2, 3,
 		4, 5, 6, 7,
@@ -376,52 +376,52 @@ int main(void){
 		39,
 		24
 	};
-	dispmat(Ex);
-	dispmat(vex);
+	disp(Ex);
+	disp(vex);
 	constexpr auto Ex2 = setcolumn(vex, 3, Ex);			// コンパイル時に縦ベクトルを埋め込む
-	dispmat(Ex2);
+	disp(Ex2);
 	ArcsMat<3,4> E = Ex;
-	dispmat(E);
+	disp(E);
 	swapcolumn(E, 1, 3);				// 行列Eの1列目と3列目を入れ替える (引数渡し版)
-	dispmat(E);
-	dispmat(swapcolumn(1, 3, E));		// 行列Eの1列目と3列目を入れ替える (戻り値渡し版)
+	disp(E);
+	disp(swapcolumn(1, 3, E));			// 行列Eの1列目と3列目を入れ替える (戻り値渡し版)
 	constexpr auto Ex3 = swapcolumn(1, 3, Ex2);			// コンパイル時に列を入れ替える
-	dispmat(Ex3);
+	disp(Ex3);
 	fillcolumn(E, 39, 4, 2, 3);			// 行列Eの4列目2行目～3行目を39で埋める (引数渡し版)
-	dispmat(E);
-	dispmat(fillcolumn(1, 4, 2, 3, E));	// 行列Eの4列目2行目～3行目を1で埋める (戻り値渡し版)
+	disp(E);
+	disp(fillcolumn(1, 4, 2, 3, E));	// 行列Eの4列目2行目～3行目を1で埋める (戻り値渡し版)
 	constexpr auto Ex4 = fillcolumn(39, 3, 1, 2, Ex3);	// コンパイル時に指定列を値で埋める
-	dispmat(Ex4);
+	disp(Ex4);
 	ArcsMat<1,4,size_t> wor = {2, 1, 4, 3};
-	dispmat(wor);
+	disp(wor);
 	E = ordercolumn(E, wor);		// 行列Eをworが昇順になるように列を並び替える (戻り値渡し版のみ)
-	dispmat(E);
+	disp(E);
 	E = ordercolumn(E, wor);		// 2回やると元に戻る
-	dispmat(E);
+	disp(E);
 	ordercolumn_and_vec(E, wor);	// 行列Eをworが昇順になるようにEとworの両方の列を並び替える (引数渡し版のみ)
-	dispmat(E);
-	dispmat(wor);
+	disp(E);
+	disp(wor);
 	constexpr ArcsMat<1,4,size_t> worx = {2, 1, 4, 3};
 	constexpr auto Ex5 = ordercolumn(Ex, worx);			// コンパイル時に並び替える
-	dispmat(Ex5);
+	disp(Ex5);
 	ArcsMat<1,4> e5;	
 	sumcolumn(Ex5, e5);				// 各列の総和を計算する (引数渡し版)
-	dispmat(e5);
-	dispmat(sumcolumn(Ex5));		// 各列の総和を計算する (戻り値渡し版)
+	disp(e5);
+	disp(sumcolumn(Ex5));			// 各列の総和を計算する (戻り値渡し版)
 	constexpr auto ex5 = sumcolumn(Ex5);				// コンパイル時に総和を計算する
-	dispmat(ex5);
+	disp(ex5);
 	
 	// 行操作関連の関数
 	printf("\n★★★★★★★ 行操作関連の関数\n");
 	ArcsMat<1,2> wd;
 	getrow(D, wd, 2);				// 行列Dの2行目を横ベクトルとして抽出 (引数渡し版)
-	dispmat(wd);
-	dispmat(getrow(D, 3));			// 行列Dの3行目を横ベクトルとして抽出 (戻り値渡し版)
+	disp(wd);
+	disp(getrow(D, 3));				// 行列Dの3行目を横ベクトルとして抽出 (戻り値渡し版)
 	constexpr auto wax = getrow(Ax, 3);					// コンパイル時に横ベクトルを抽出
-	dispmat(wax);
+	disp(wax);
 	setrow(D, wd, 1);				// 行列Dの1行目に横ベクトルを埋め込む (引数渡し版)
-	dispmat(D);
-	dispmat(setrow(wd, 2, D));		// 行列Dの2行目に横ベクトルを埋め込む (戻り値渡し版)
+	disp(D);
+	disp(setrow(wd, 2, D));			// 行列Dの2行目に横ベクトルを埋め込む (戻り値渡し版)
 	constexpr ArcsMat<4,3> Etx = {
 		0, 1, 2,
 		3, 4, 5,
@@ -429,34 +429,34 @@ int main(void){
 		9, 0, 1
 	};
 	constexpr ArcsMat<1,3> wetx = {39, 39, 24};
-	dispmat(Etx);
-	dispmat(wetx);
+	disp(Etx);
+	disp(wetx);
 	constexpr auto Etx2 = setrow(wetx, 3, Etx);			// コンパイル時に横ベクトルを埋め込む
-	dispmat(Etx2);
+	disp(Etx2);
 	ArcsMat<4,3> Et = Etx;
-	dispmat(Et);
+	disp(Et);
 	swaprow(Et, 1, 3);					// 行列Etの1行目と3行目を入れ替える (引数渡し版)
-	dispmat(Et);
-	dispmat(swaprow(1, 3, Et));			// 行列Etの1行目と3行目を入れ替える (戻り値渡し版)
+	disp(Et);
+	disp(swaprow(1, 3, Et));			// 行列Etの1行目と3行目を入れ替える (戻り値渡し版)
 	constexpr auto Etx3 = swaprow(1, 3, Etx2);			// コンパイル時に行を入れ替える
-	dispmat(Etx3);
+	disp(Etx3);
 	fillrow(Et, 39, 4, 2, 3);			// 行列Etの4行目2列目～3列目を39で埋める (引数渡し版)
-	dispmat(Et);
-	dispmat(fillrow(1, 4, 2, 3, Et));	// 行列Etの4行目2列目～3列目を1で埋める (戻り値渡し版)
+	disp(Et);
+	disp(fillrow(1, 4, 2, 3, Et));		// 行列Etの4行目2列目～3列目を1で埋める (戻り値渡し版)
 	constexpr auto Etx4 = fillrow(39, 3, 1, 2, Etx3);	// コンパイル時に指定行を値で埋める
-	dispmat(Etx4);
+	disp(Etx4);
 	ArcsMat<4,1,size_t> vor = {
 		2,
 		1,
 		4,
 		3
 	};
-	dispmat(vor);
-	dispmat(orderrow(Et, vor));			// 行列Etをvorが昇順になるように行を並び替える (戻り値渡し版のみ)
-	dispmat(orderrow(Et, vor));			// 2回やると元に戻る
+	disp(vor);
+	disp(orderrow(Et, vor));			// 行列Etをvorが昇順になるように行を並び替える (戻り値渡し版のみ)
+	disp(orderrow(Et, vor));			// 2回やると元に戻る
 	orderrow_and_vec(Et, vor);			// 行列Etをvorが昇順になるようにEtとvorの両方の行を並び替える (引数渡し版のみ)
-	dispmat(Et);
-	dispmat(vor);
+	disp(Et);
+	disp(vor);
 	constexpr ArcsMat<4,1,size_t> vorx = {
 		2,
 		1,
@@ -464,13 +464,13 @@ int main(void){
 		3
 	};
 	constexpr auto Etx5 = orderrow(Etx, vorx);			// コンパイル時に並び替える
-	dispmat(Etx5);
+	disp(Etx5);
 	ArcsMat<4,1> et5;
 	sumrow(Etx5, et5);				// 各々の行の総和を計算する (引数渡し版)
-	dispmat(et5);
-	dispmat(sumrow(Etx5));			// 各々の行の総和を計算する (戻り値渡し版)
+	disp(et5);
+	disp(sumrow(Etx5));				// 各々の行の総和を計算する (戻り値渡し版)
 	constexpr auto etx5 = sumrow(Etx5);					// コンパイル時に総和を計算する
-	dispmat(etx5);
+	disp(etx5);
 	
 	// 小行列操作関連の関数
 	printf("\n★★★★★★★ 小行列操作関連の関数\n");
@@ -484,7 +484,7 @@ int main(void){
 		37, 38, 39, 40, 41, 42
 	};
 	auto F = Fx;
-	dispmat(F);
+	disp(F);
 	constexpr ArcsMat<4,1> vfx = {
 		99,
 		88,
@@ -494,34 +494,34 @@ int main(void){
 	auto vf = vfx;
 	ArcsMat<3,1> vfg;
 	getvvector(F, vfg, 3, 2);			// 行列Fの先頭位置(3,2)から縦ベクトルを抽出する (引数渡し版)
-	dispmat(vfg);
-	dispmat(getvvector<3>(F, 2, 3));	// 行列Fの先頭位置(2,3)から縦ベクトルを抽出する (戻り値渡し版)
+	disp(vfg);
+	disp(getvvector<3>(F, 2, 3));		// 行列Fの先頭位置(2,3)から縦ベクトルを抽出する (戻り値渡し版)
 	constexpr auto vfgx = getvvector<5>(Fx, 2, 5);		// コンパイル時に縦ベクトルを抽出
-	dispmat(vfgx);
+	disp(vfgx);
 	setvvector(F, vf, 3, 5);			// 行列Fの先頭位置(3,5)に縦ベクトルvfを上書きする (引数渡し版)
-	dispmat(F);
-	dispmat(setvvector(vf, 3, 4, F));	// 行列Fの先頭位置(3,4)に縦ベクトルvfを上書きする (戻り値渡し版)
+	disp(F);
+	disp(setvvector(vf, 3, 4, F));		// 行列Fの先頭位置(3,4)に縦ベクトルvfを上書きする (戻り値渡し版)
 	constexpr auto Fx2 = setvvector(vfx, 3, 4, Fx);		// コンパイル時に縦ベクトルを上書き
-	dispmat(Fx2);
+	disp(Fx2);
 	constexpr ArcsMat<1,4> wfx = { 55, 44, 33, 22 };
 	auto wf = wfx;
 	ArcsMat<1,3> wfg;
 	gethvector(F, wfg, 2, 1);			// 行列Fの先頭位置(2,1)から横ベクトルを抽出する (引数渡し版)
-	dispmat(wfg);
-	dispmat(gethvector<3>(F, 5, 2));	// 行列Fの先頭位置(5,2)から3列の横ベクトルを抽出する (戻り値渡し版)
+	disp(wfg);
+	disp(gethvector<3>(F, 5, 2));		// 行列Fの先頭位置(5,2)から3列の横ベクトルを抽出する (戻り値渡し版)
 	constexpr auto wfgx = gethvector<5>(Fx, 6, 2);		// コンパイル時に横ベクトルを抽出
-	dispmat(wfgx);
+	disp(wfgx);
 	sethvector(F, wf, 2, 3);			// 行列Fの先頭位置(2,3)に横ベクトルwfを上書きする (引数渡し版)
-	dispmat(F);
-	dispmat(sethvector(wf, 1, 3, F));	// 行列Fの先頭位置(1,3)に横ベクトルwfを上書きする (戻り値渡し版)
+	disp(F);
+	disp(sethvector(wf, 1, 3, F));		// 行列Fの先頭位置(1,3)に横ベクトルwfを上書きする (戻り値渡し版)
 	constexpr auto Fx4 = sethvector(wfx, 2, 3, Fx2);	// コンパイル時に横ベクトルを上書き
-	dispmat(Fx4);
+	disp(Fx4);
 	ArcsMat<4,3> F43;
 	getsubmatrix(F, F43, 2, 1);			// 行列Fの左上位置(2,1)から4×3の小行列を抽出する (引数渡し版)
-	dispmat(F43);
-	dispmat(( getsubmatrix<4,3>(F, 2, 2) ));	// 行列Fの左上位置(2,2)から4×3の小行列を抽出する (戻り値渡し版)
+	disp(F43);
+	disp(( getsubmatrix<4,3>(F, 2, 2) ));	// 行列Fの左上位置(2,2)から4×3の小行列を抽出する (戻り値渡し版)
 	constexpr auto Fx5 = getsubmatrix<2,3>(Fx4, 3, 3);	// コンパイル時に小行列を抽出する
-	dispmat(Fx5);
+	disp(Fx5);
 	F43.Set(
 		1, 2, 3,
 		4, 5, 6,
@@ -529,58 +529,58 @@ int main(void){
 		0, 1, 2
 	);
 	setsubmatrix(F, F43, 2, 4);			// 行列Fの左上位置(2,4)に4×3の行列を書き込む (引数渡し版)
-	dispmat(F);
-	dispmat(setsubmatrix(F43, 2, 1, F));// 行列Fの左上位置(2,1)に4×3の行列を書き込む (戻り値渡し版)
+	disp(F);
+	disp(setsubmatrix(F43, 2, 1, F));	// 行列Fの左上位置(2,1)に4×3の行列を書き込む (戻り値渡し版)
 	constexpr ArcsMat<2,3> F23x = {
 		100, 200, 300,
 		400, 500, 600
 	};
 	constexpr auto Fx6 = setsubmatrix(F23x, 3, 3, Fx4);	// コンパイル時に小行列を書き込む
-	dispmat(Fx6);
+	disp(Fx6);
 	
 	// シフト関連の関数
 	printf("\n★★★★★★★ シフト関連の関数\n");
 	F = Fx;
 	auto G = ones<7,6>();
-	dispmat(F);
+	disp(F);
 	shiftup(F, G);			// 行列Fを1行分上にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
+	disp(G);
 	shiftup(G, G, 3);		// 行列Gを3行分上にシフト (引数渡し版)
-	dispmat(G);
-	dispmat(shiftup(F));	// 行列Fを1行分上にシフトして出力 (戻り値渡し版)
-	dispmat(shiftup(F, 0));	// 行列Fを0行分上にシフトして出力 (戻り値渡し版)
-	dispmat(shiftup(F, 4));	// 行列Fを4行分上にシフトして出力 (戻り値渡し版)
+	disp(G);
+	disp(shiftup(F));		// 行列Fを1行分上にシフトして出力 (戻り値渡し版)
+	disp(shiftup(F, 0));	// 行列Fを0行分上にシフトして出力 (戻り値渡し版)
+	disp(shiftup(F, 4));	// 行列Fを4行分上にシフトして出力 (戻り値渡し版)
 	constexpr auto Gx1 = shiftup(Fx, 4);				// コンパイル時に上にシフト
-	dispmat(Gx1);
-	dispmat(F);
+	disp(Gx1);
+	disp(F);
 	shiftdown(F, G);		// 行列Fを1行分下にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
+	disp(G);
 	shiftdown(F, G, 3);		// 行列Fを3行分下にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
+	disp(G);
 	F = Fx;
-	dispmat(F);
-	dispmat(shiftdown(F));		// 行列Fを1行分下にシフトして出力 (戻り値渡し版)
-	dispmat(shiftdown(F, 4));	// 行列Fを4行分下にシフトして出力 (戻り値渡し版)
+	disp(F);
+	disp(shiftdown(F));		// 行列Fを1行分下にシフトして出力 (戻り値渡し版)
+	disp(shiftdown(F, 4));	// 行列Fを4行分下にシフトして出力 (戻り値渡し版)
 	constexpr auto Gx2 = shiftdown(Fx, 2);				// コンパイル時に下にシフト
-	dispmat(Gx2);
+	disp(Gx2);
 	F = Fx;
 	shiftleft(F, G);			// 行列Fを1列分左にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
+	disp(G);
 	shiftleft(F, G, 3);			// 行列Fを3列分左にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
-	dispmat(shiftleft(F));		// 行列Fを1列分左にシフトして出力 (戻り値渡し版)
-	dispmat(shiftleft(F, 2));	// 行列Fを2列分左にシフトして出力 (戻り値渡し版)
+	disp(G);
+	disp(shiftleft(F));			// 行列Fを1列分左にシフトして出力 (戻り値渡し版)
+	disp(shiftleft(F, 2));		// 行列Fを2列分左にシフトして出力 (戻り値渡し版)
 	constexpr auto Gx3 = shiftleft(Fx, 4);				// コンパイル時に左にシフト
-	dispmat(Gx3);
+	disp(Gx3);
 	F = Fx;
 	shiftright(F, G);			// 行列Fを1列分右にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
+	disp(G);
 	shiftright(F, G, 3);		// 行列Fを3列分右にシフトして行列Gとして出力 (引数渡し版)
-	dispmat(G);
-	dispmat(shiftright(F));		// 行列Fを1列分右にシフトして出力 (戻り値渡し版)
-	dispmat(shiftright(F, 2));	// 行列Fを2列分右にシフトして出力 (戻り値渡し版)
+	disp(G);
+	disp(shiftright(F));		// 行列Fを1列分右にシフトして出力 (戻り値渡し版)
+	disp(shiftright(F, 2));		// 行列Fを2列分右にシフトして出力 (戻り値渡し版)
 	constexpr auto Gx4 = shiftright(Fx, 4);				// コンパイル時に右にシフト
-	dispmat(Gx4);
+	disp(Gx4);
 	
 	// 連結関連の関数
 	printf("\n★★★★★★★ 連結関連の関数\n");
@@ -596,12 +596,12 @@ int main(void){
 	};
 	ArcsMat<6,3> H12;
 	concatv(Hx1, Hx2, H12);		// 行列を縦に連結する (引数渡し版)
-	dispmat(Hx1);
-	dispmat(Hx2);
-	dispmat(H12);
-	dispmat(concatv(Hx2, Hx1));	// 行列を縦に連結する (戻り値渡し版)
+	disp(Hx1);
+	disp(Hx2);
+	disp(H12);
+	disp(concatv(Hx2, Hx1));	// 行列を縦に連結する (戻り値渡し版)
 	constexpr auto Hx12 = concatv(Hx1, Hx2);			// コンパイル時に連結
-	dispmat(Hx12);
+	disp(Hx12);
 	constexpr ArcsMat<4,1> Hx3 = {
 		1,
 		2,
@@ -610,55 +610,55 @@ int main(void){
 	};
 	ArcsMat<4,4> H44;
 	concath(Hx2, Hx3, H44);		// 行列を横に連結する (引数渡し版)
-	dispmat(H44);
-	dispmat(concath(Hx2, Hx3));	// 行列を横に連結する (戻り値渡し版)
+	disp(H44);
+	disp(concath(Hx2, Hx3));	// 行列を横に連結する (戻り値渡し版)
 	constexpr auto Hx44 = concath(Hx2, Hx3);			// コンパイル時に連結
-	dispmat(Hx44);
+	disp(Hx44);
 	constexpr ArcsMat<2,1> Hx4 = {
 		5,
 		6
 	};
 	ArcsMat<6,4> H64;
 	concat4(Hx1, Hx3, Hx2, Hx4, H64);		// 4つの行列を連結する (引数渡し版)
-	dispmat(H64);
-	dispmat(concat4(Hx1, Hx4, Hx2, Hx3));	// 4つの行列を連結する (戻り値渡し版)
+	disp(H64);
+	disp(concat4(Hx1, Hx4, Hx2, Hx3));		// 4つの行列を連結する (戻り値渡し版)
 	constexpr auto Hx64 = concat4(Hx1, Hx3, Hx2, Hx4);	// コンパイル時に連結
-	dispmat(Hx64);
+	disp(Hx64);
 	
 	// 対角要素操作関連の関数
 	printf("\n★★★★★★★ 対角要素操作関連の関数\n");
 	constexpr ArcsMat<3,1> jx1 = {1, 3, 5};
-	dispmat(jx1);
+	disp(jx1);
 	ArcsMat<3,3> Jy1;
 	diag(jx1, Jy1);							// 対角要素に縦ベクトルの各要素を持つ行列を生成する (引数渡し版) 
-	dispmat(Jy1);
-	dispmat(diag(jx1));						// 対角要素に縦ベクトルの各要素を持つ行列を生成する (戻り値渡し版) 
+	disp(Jy1);
+	disp(diag(jx1));						// 対角要素に縦ベクトルの各要素を持つ行列を生成する (戻り値渡し版) 
 	constexpr auto Jx1 = diag(jx1);						// コンパイル時に生成
-	dispmat(Jx1);
+	disp(Jx1);
 	constexpr ArcsMat<3,3> Jx2 = {
 		3, 1, 1,
 		1, 9, 1,
 		1, 1, 2
 	};
-	dispmat(Jx2);
+	disp(Jx2);
 	ArcsMat<3,1> jy2;
 	getdiag(Jx2, jy2);						// 対角要素を縦ベクトルとして取得する (引数渡し版)
-	dispmat(jy2);
-	dispmat(getdiag(Jx2));					// 対角要素を縦ベクトルとして取得する (戻り値渡し版)
+	disp(jy2);
+	disp(getdiag(Jx2));						// 対角要素を縦ベクトルとして取得する (戻り値渡し版)
 	constexpr auto jx2 = getdiag(Jx2);					// コンパイル時に取得
-	dispmat(jx2);
+	disp(jx2);
 	constexpr ArcsMat<3,2> Jx3 = {
 		3, 5,
 		5, 9,
 		5, 5
 	};
-	dispmat(Jx3);
-	dispmat(getdiag(Jx3));					// 縦長の場合の対角要素を無理やり取得
-	dispmat(getdiag(tp(Jx3)));				// 横長の場合の対角要素を無理やり取得
+	disp(Jx3);
+	disp(getdiag(Jx3));						// 縦長の場合の対角要素を無理やり取得
+	disp(getdiag(tp(Jx3)));					// 横長の場合の対角要素を無理やり取得
 	printf("trace(Jx2) = %f\n", trace(Jx2));// トレースを計算する (戻り値渡し版のみ)
 	constexpr double trJx2 = trace(Jx2);				// コンパイル時にトレースを計算
 	printf("trJx2 = %f\n", trJx2);
-	printf("multdiag(Jx2) = %f\n", multdiag(Jx2));	// 対角要素の総積を計算する (戻り値渡し版のみ)
+	printf("multdiag(Jx2) = %f\n", multdiag(Jx2));		// 対角要素の総積を計算する (戻り値渡し版のみ)
 	constexpr double mdJx2 = multdiag(Jx2);				// コンパイル時に対角の総積を計算
 	printf("mdJx2 = %f\n", mdJx2);
 	
@@ -673,8 +673,8 @@ int main(void){
 		-1,
 		 6
 	};
-	dispmat(k1);
-	dispmat(Fx);
+	disp(k1);
+	disp(Fx);
 	printf("max(k1) = %f\n", max(k1));			// 縦ベクトル要素の最大値を返す関数
 	printf("max(tp(k1)) = %f\n", max(tp(k1)));	// 横ベクトル要素の最大値を返す関数
 	printf("max(Fx) = %f\n", max(Fx));			// 行列要素の最大値を返す関数
@@ -696,7 +696,7 @@ int main(void){
 	printf("kxy2 = %ld, %ld\n", std::get<0>(kxy2), std::get<1>(kxy2));
 	using namespace std::literals::complex_literals;	// 虚数単位リテラル「i」の使用
 	ArcsMat<1,3,std::complex<double>> k1comp = {-2.0 + 2.0i, 4.0 + 1.0i, -1.0 - 3.0i};
-	dispmat(k1comp);
+	disp(k1comp);
 	auto k1cmax = max(k1comp);					// 複素数の最大値
 	printf("max(k1comp) = %f + %fj\n", std::real(k1cmax), std::imag(k1cmax));
 	auto k1cmin = min(k1comp);					// 複素数の最小値
@@ -709,42 +709,42 @@ int main(void){
 		    M_PI_4,     M_PI_2, 3.0*M_PI_4,	    M_PI,
 		5.0*M_PI_4, 3.0*M_PI_2, 7.0*M_PI_4, 2.0*M_PI 
 	};
-	dispmatfmt(Ax1, "%8.3f");
+	dispf(Ax1, "%8.3f");
 	printf("sum(Ax1) = %f\n", sum(Ax1));	// 行列要素の総和 (戻り値渡し版のみ)
 	ArcsMat<3,4> Y1;
 	exp(Ax1, Y1);							// 行列要素の指数関数 (引数渡し版)
-	dispmatfmt(exp(Ax1), "%8.3f");			// 行列要素の指数関数 (戻り値渡し版)
+	dispf(exp(Ax1), "%8.3f");				// 行列要素の指数関数 (戻り値渡し版)
 	constexpr auto Yx1 = exp(Ax1);						// コンパイル時に行列要素の指数関数を計算
-	dispmatfmt(Yx1, "%8.3f");
+	dispf(Yx1, "%8.3f");
 	ArcsMat<3,4> Y2;
 	log(Y1, Y2);							// 行列要素の対数関数(底e版) (引数渡し版)
-	dispmatfmt(log(Y1), "%8.3f");			// 行列要素の対数関数(底e版) (戻り値渡し版)
+	dispf(log(Y1), "%8.3f");				// 行列要素の対数関数(底e版) (戻り値渡し版)
 	constexpr auto Yx2 = log(Yx1);						// コンパイル時に行列要素の対数関数(底e版)を計算
-	dispmatfmt(Yx2, "%8.3f");
+	dispf(Yx2, "%8.3f");
 	log10(Ax1, Y1);							// 行列要素の対数関数(底10版) (引数渡し版)
-	dispmatfmt(log10(Ax1), "%8.3f");		// 行列要素の対数関数(底10版) (戻り値渡し版)
+	dispf(log10(Ax1), "%8.3f");				// 行列要素の対数関数(底10版) (戻り値渡し版)
 	constexpr auto Yx3 = log10(Ax1);					// コンパイル時に行列要素の対数関数(底10版)を計算
-	dispmatfmt(Yx3, "%8.3f");
+	dispf(Yx3, "%8.3f");
 	sin(Ax1, Y1);							// 行列要素の正弦関数 (引数渡し版)
-	dispmatfmt(sin(Ax1), "%8.3f");			// 行列要素の正弦関数 (戻り値渡し版)
+	dispf(sin(Ax1), "%8.3f");				// 行列要素の正弦関数 (戻り値渡し版)
 	constexpr auto Yx4 = sin(Ax1);						// コンパイル時に行列要素の正弦関数を計算
-	dispmatfmt(Yx4, "%8.3f");
+	dispf(Yx4, "%8.3f");
 	cos(Ax1, Y1);							// 行列要素の余弦関数 (引数渡し版)
-	dispmatfmt(cos(Ax1), "%8.3f");			// 行列要素の余弦関数 (戻り値渡し版)
+	dispf(cos(Ax1), "%8.3f");				// 行列要素の余弦関数 (戻り値渡し版)
 	constexpr auto Yx5 = cos(Ax1);						// コンパイル時に行列要素の余弦関数を計算
-	dispmatfmt(Yx5, "%8.3f");
+	dispf(Yx5, "%8.3f");
 	tan(Ax1, Y1);							// 行列要素の正接関数 (引数渡し版)
-	dispmatfmt(tan(Ax1), "% 12.3e");		// 行列要素の正接関数 (戻り値渡し版)
+	dispf(tan(Ax1), "% 12.3e");				// 行列要素の正接関数 (戻り値渡し版)
 	constexpr auto Yx6 = tan(Ax1);						// コンパイル時に行列要素の正接関数を計算
-	dispmatfmt(Yx6, "% 12.3e");
+	dispf(Yx6, "% 12.3e");
 	sqrt(Ax1, Y1);							// 行列要素の平方根 (引数渡し版)
-	dispmatfmt(sqrt(Ax1), "% 8.3f");		// 行列要素の平方根 (戻り値渡し版)
+	dispf(sqrt(Ax1), "% 8.3f");				// 行列要素の平方根 (戻り値渡し版)
 	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の平方根を計算
-	dispmatfmt(Yx7, "% 8.3f");
+	dispf(Yx7, "% 8.3f");
 	abs(Yx5, Y1);							// 行列要素の絶対値 (引数渡し版)
-	dispmatfmt(abs(Yx5), "% 12.3f");		// 行列要素の絶対値 (戻り値渡し版)
+	dispf(abs(Yx5), "% 12.3f");				// 行列要素の絶対値 (戻り値渡し版)
 	constexpr auto Yx8 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
-	dispmatfmt(Yx8, "% 12.3f");
+	dispf(Yx8, "% 12.3f");
 
 	// 複素数関連の関数
 	printf("\n★★★★★★★ 複素数関連の関数\n");
@@ -753,78 +753,78 @@ int main(void){
 		-4, -3,  0,  3,  4,
 		-1, -2, -1, -2, -1
 	};
-	dispmat(Acmpx1);
+	disp(Acmpx1);
 	ArcsMat<3,5,std::complex<double>> Y9;
 	sqrt(Acmpx1, Y9);						// 負の行列要素の平方根 (引数渡し版)
-	dispmatfmt(sqrt(Acmpx1), "% 6.3f");		// 負の行列要素の平方根 (戻り値渡し版)
-	//constexpr auto Yx9 = sqrt(Acmpx1);			// コンパイル時に行列要素の平方根を計算 驚異の非対応エラー!!
-	//dispmatfmt(Yx9, "%8.3f");
+	dispf(sqrt(Acmpx1), "% 6.3f");			// 負の行列要素の平方根 (戻り値渡し版)
+	//constexpr auto Yx9 = sqrt(Acmpx1);			// コンパイル時に行列要素の平方根を計算 驚異の非対応エラー!!(C++20以上にしないと解決不可)
+	//dispf(Yx9, "%8.3f");
 	constexpr ArcsMat<2,3,std::complex<double>> Acmpx2 = {
 		std::complex( 1.0, 1.0), std::complex( 3.0, 4.0), std::complex( 3.0,-4.0),
 		std::complex(-1.0, 1.0), std::complex(-3.0, 4.0), std::complex(-3.0,-4.0)
 	};
-	dispmat(Acmpx2);
+	disp(Acmpx2);
 	ArcsMat<2,3,double> Y10;
 	abs(Acmpx2, Y10);						// 複素数行列要素の絶対値 (引数渡し版)
-	dispmat(abs(Acmpx1));					// 複素数行列要素の絶対値 (戻り値渡し版)
-	arg(Acmpx2, Y10);								// 複素数行列要素の偏角 (引数渡し版)   [rad]
-	dispmatfmt(arg(Acmpx2)*180.0/M_PI, "% 6.1f");	// 複素数行列要素の偏角 (戻り値渡し版) [deg]
+	disp(abs(Acmpx1));						// 複素数行列要素の絶対値 (戻り値渡し版)
+	arg(Acmpx2, Y10);							// 複素数行列要素の偏角 (引数渡し版)   [rad]
+	dispf(arg(Acmpx2)*180.0/M_PI, "% 6.1f");	// 複素数行列要素の偏角 (戻り値渡し版) [deg]
 	real(Acmpx2, Y10);						// 複素数行列要素の実数部 (引数渡し版)
-	dispmat(real(Acmpx2));					// 複素数行列要素の実数部 (戻り値渡し版)
+	disp(real(Acmpx2));						// 複素数行列要素の実数部 (戻り値渡し版)
 	imag(Acmpx2, Y10);						// 複素数行列要素の実数部 (引数渡し版)
-	dispmat(imag(Acmpx2));					// 複素数行列要素の実数部 (戻り値渡し版)
+	disp(imag(Acmpx2));						// 複素数行列要素の実数部 (戻り値渡し版)
 	ArcsMat<2,3,std::complex<double>> Y11;
 	conj(Acmpx2, Y11);						// 複素数行列要素の複素共役 (引数渡し版)
-	dispmat(conj(Acmpx2));					// 複素数行列要素の複素共役 (戻り値渡し版)
+	disp(conj(Acmpx2));						// 複素数行列要素の複素共役 (戻り値渡し版)
 	ArcsMat<3,2,std::complex<double>> Y12;
 	Y9.FillAll(39);							// 複素数行列の実数部に値を埋める
-	dispmat(Y9);
+	disp(Y9);
 	Y9.FillAll( 3.9 + 2.4i );				// 複素数行列に値を埋める
-	dispmat(Y9);
+	disp(Y9);
 	ArcsMat<2,3,std::complex<double>> Acmp1 = Pi;		//「実数行列 → 複素数行列」のコピーコンストラクタ
-	dispmat(Acmp1);
+	disp(Acmp1);
 	
 	// 転置行列関連の関数と演算子
 	printf("\n★★★★★★★ 転置行列関連の関数と演算子\n");
 	ArcsMat<2,3> Dt;
-	dispmat(D);
+	disp(D);
 	tp(D, Dt);							// Dの転置 (引数渡し版)
-	dispmat(tp(D));						// Dの転置 (戻り値渡し版)
+	disp(tp(D));						// Dの転置 (戻り値渡し版)
 	constexpr auto Atx = tp(Ax);		// コンパイル時に転置行列を生成
-	dispmat(Ax);
-	dispmat(Atx);
+	disp(Ax);
+	disp(Atx);
 	//tp(A, Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
 	//A = tp(Dt);	// ←サイズエラー！(アンコメントするとAssertion Failed)
 	Htp(Acmpx2, Y12);					// エルミート転置 (引数渡し版)
-	dispmat(Htp(Acmpx2));				// エルミート転置 (戻り値渡し版)
-	dispmat(~D);						// 実数行列の転置 (演算子版)
-	dispmat(~Acmpx2);					// 複素数行列のエルミート転置 (演算子版は自動的に共役転置)
+	disp(Htp(Acmpx2));					// エルミート転置 (戻り値渡し版)
+	disp(~D);							// 実数行列の転置 (演算子版)
+	disp(~Acmpx2);						// 複素数行列のエルミート転置 (演算子版は自動的に共役転置)
 	constexpr auto jxjtx = jx1*~jx1;	// コンパイル時に転置して乗算 (演算子版)
 	constexpr auto jxtjx = (~jx1)*jx1;	// コンパイル時に転置して乗算 (演算子版)
-	dispmat(jx1);
-	dispmatfmt(jxjtx, "% 3.0f");
-	dispmatfmt(jxtjx, "% 3.0f");
+	disp(jx1);
+	dispf(jxjtx, "% 3.0f");
+	dispf(jxtjx, "% 3.0f");
 
-	// ノルム関連の関数(行列版)2
+	// ノルム関連の関数(行列版)
 	printf("\n★★★★★★★ ノルム関連の関数(行列版)\n");
-	dispmatfmt(Ax1, "% 7.4f");
+	dispf(Ax1, "% 7.4f");
 	printf("norm<euc>(Ax1) = % 7.4f\n", norm<NormType::AMT_L2>(Ax1));	// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
-	double enormAx1 = norm<NormType::AMT_L2>(Ax1);			// コンパイル時にユークリッドL2ノルムを計算
+	double enormAx1 = norm<NormType::AMT_L2>(Ax1);						// コンパイル時にユークリッドL2ノルムを計算
 	printf("norm<euc>(Ax1) = % 7.4f\n", enormAx1);
-/*	printf("norm<man>(Ax1) = % 7.4f\n", norm<NormType::AMT_L1>(Ax1));	// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
+	printf("norm<man>(Ax1) = % 7.4f\n", norm<NormType::AMT_L1>(Ax1));	// 絶対値L1ノルムを計算する (戻り値渡し版のみ)
 	constexpr double mnormAx1 = norm<NormType::AMT_L1>(Ax1);			// コンパイル時に絶対値L1ノルムを計算
 	printf("norm<man>(Ax1) = % 7.4f\n", mnormAx1);
 	printf("norm<inf>(Ax1) = % 7.4f\n", norm<NormType::AMT_LINF>(Ax1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	constexpr double inormAx1 = norm<NormType::AMT_LINF>(Ax1);			// コンパイル時に無限大L∞ノルムを計算
 	printf("norm<inf>(Ax1) = % 7.4f\n", inormAx1);
-	dispmatfmt(Acmpx2, "% 7.4f");
+	dispf(Acmpx2, "% 7.4f");
 	printf("norm<euc>(Acmpx2) = % 7.4f\n", norm<NormType::AMT_L2>(Acmpx2));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<man>(Acmpx2) = % 7.4f\n", norm<NormType::AMT_L1>(Acmpx2));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<inf>(Acmpx2) = % 7.4f\n", norm<NormType::AMT_LINF>(Acmpx2));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	
 	// ノルム関連の関数(ベクトル版)
 	printf("\n★★★★★★★ ノルム関連の関数(ベクトル版)\n");
-	dispmatfmt(k1, "% 7.4f");
+	dispf(k1, "% 7.4f");
 	printf("norm<euc>(k1) = % 7.4f\n", norm<NormType::AMT_L2>(k1));		// ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
 	constexpr double enormk1 = norm<NormType::AMT_L2>(k1);				// コンパイル時にユークリッドL2ノルムを計算
 	printf("norm<euc>(k1) = % 7.4f\n", enormk1);
@@ -835,7 +835,7 @@ int main(void){
 	constexpr double inormk1 = norm<NormType::AMT_LINF>(k1);			// コンパイル時に無限大L∞ノルムを計算
 	printf("norm<inf>(k1) = % 7.4f\n\n", inormk1);
 	auto k1cmpx = sqrt(static_cast<ArcsMat<7,1,std::complex<double>>>(-k1));
-	dispmatfmt(k1cmpx, "% 7.4f");
+	dispf(k1cmpx, "% 7.4f");
 	printf("norm<euc>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_L2>(k1cmpx));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<man>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_L1>(k1cmpx));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<inf>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_LINF>(k1cmpx));	// 複素数無限大L∞ノルムを計算する (戻り値渡し版のみ)
@@ -844,16 +844,16 @@ int main(void){
 	printf("\n★★★★★★★ 三角行列操作関連の関数\n");
 	ArcsMat<7,6> Fx7;
 	gettriup(Fx, Fx7);						// 上三角行列を切り出す (引数渡し版)
-	dispmatfmt(Fx7, "%3.0f");
-	dispmatfmt(gettriup(Fx, 3), "%3.0f");	// 上三角行列を切り出す (戻り値渡し版)
+	dispf(Fx7, "%3.0f");
+	dispf(gettriup(Fx, 3), "%3.0f");		// 上三角行列を切り出す (戻り値渡し版)
 	constexpr auto Fxtri = gettriup(Fx, 2);				// コンパイル時に上三角行列を切り出す 
-	dispmatfmt(Fxtri, "%3.0f");
+	dispf(Fxtri, "%3.0f");
 	Fx7.FillAllZero();
 	gettrilo(Fx, Fx7);						// 下三角行列を切り出す (引数渡し版)
-	dispmatfmt(Fx7, "%3.0f");
-	dispmatfmt(gettrilo(Fx, 3), "%3.0f");	// 下三角行列を切り出す (戻り値渡し版)
+	dispf(Fx7, "%3.0f");
+	dispf(gettrilo(Fx, 3), "%3.0f");		// 下三角行列を切り出す (戻り値渡し版)
 	constexpr auto Fxtri2 = gettrilo(Fx, 2);			// コンパイル時に下三角行列を切り出す 
-	dispmatfmt(Fxtri2, "%3.0f");
+	dispf(Fxtri2, "%3.0f");
 
 	// LU分解関連の関数
 	printf("\n★★★★★★★ LU分解関連の関数\n");
@@ -863,43 +863,43 @@ int main(void){
 		-3,  2,  6,
 		 5, -1,  5
 	);
-	dispmatfmt(A, "% 3.0f");
-	LUP(A, L, U, P);				// LU分解の結果と置換行列を計算 (引数渡し版)
-	dispmatfmt(L, "% 6.2f");
-	dispmatfmt(U, "% 6.2f");
-	dispmatfmt(P, "% 3.0f");
-	dispmatfmt(~P*L*U, "% 3.0f");	// もとに戻るかチェック
-	std::tie(L, U, P) = LUP(A);		// LU分解の結果と置換行列を計算 (タプル返し版)
-	dispmatfmt(L, "% 6.2f");
-	dispmatfmt(U, "% 6.2f");
-	dispmatfmt(P, "% 3.0f");
+	dispf(A, "% 3.0f");
+	LUP(A, L, U, P);				// LU分解の結果と置換行列Pを計算 (引数渡し版)
+	dispf(L, "% 6.2f");
+	dispf(U, "% 6.2f");
+	dispf(P, "% 3.0f");
+	dispf(~P*L*U, "% 3.0f");		// もとに戻るかチェック
+	std::tie(L, U, P) = LUP(A);		// LU分解の結果と置換行列Pを計算 (タプル返し版)
+	dispf(L, "% 6.2f");
+	dispf(U, "% 6.2f");
+	dispf(P, "% 3.0f");
 	LU(A, L, U);					// LU分解の結果のみを計算 (引数渡し版)
-	dispmatfmt(L, "% 6.2f");
-	dispmatfmt(U, "% 6.2f");
-	dispmatfmt(L*U, "% 3.0f");		// もとに戻るかチェック
+	dispf(L, "% 6.2f");
+	dispf(U, "% 6.2f");
+	dispf(L*U, "% 3.0f");			// もとに戻るかチェック
 	std::tie(L, U) = LU(A);			// LU分解の結果のみを計算 (タプル返し版)
-	dispmatfmt(L, "% 6.2f");
-	dispmatfmt(U, "% 6.2f");
-	dispmatfmt(L*U, "% 3.0f");		// もとに戻るかチェック
+	dispf(L, "% 6.2f");
+	dispf(U, "% 6.2f");
+	dispf(L*U, "% 3.0f");			// もとに戻るかチェック
 	constexpr auto LxUx = LU(Ax);						// コンパイル時にLU分解を計算
 	constexpr auto Lx = std::get<0>(LxUx);				// コンパイル時に計算した下三角を抽出
 	constexpr auto Ux = std::get<1>(LxUx);				// コンパイル時に計算した上三角を抽出
-	dispmatfmt(Ax, "% 3.0f");
-	dispmatfmt(Lx, "% 6.2f");
-	dispmatfmt(Ux, "% 6.2f");
-	dispmatfmt(Lx*Ux, "%3.0f");		// もとに戻るかチェック
+	dispf(Ax, "% 3.0f");
+	dispf(Lx, "% 6.3f");
+	dispf(Ux, "% 6.3f");
+	dispf(Lx*Ux, "%3.0f");			// もとに戻るかチェック
 	ArcsMat<3,3,std::complex<double>> Acomp1 = {
 		4.0 + 6.0i,  1.0 - 3.0i,  5.0 + 2.0i,
 		8.0 - 5.0i, -7.0 - 6.0i,  7.0 - 1.0i,
 		9.0 + 9.0i, -7.0 - 5.0i, -5.0 - 3.0i
 	};
-	dispmatfmt(Acomp1, "% 3.0f");
+	dispf(Acomp1, "% 3.0f");
 	auto [Lcomp, Ucomp, Pcomp] = LUP(Acomp1);	// 複素数LU分解と置換行列の計算
-	dispmatfmt(Lcomp, "% 8.3f");
-	dispmatfmt(Ucomp, "% 8.3f");
-	dispmatfmt(Pcomp, "% 8.3f");
-	dispmatfmt(~Pcomp*Lcomp*Ucomp, "% 5.2f");	// もとに戻るかチェック
-
+	dispf(Lcomp, "% 8.3f");
+	dispf(Ucomp, "% 8.3f");
+	dispf(Pcomp, "% 8.3f");
+	dispf(~Pcomp*Lcomp*Ucomp, "% 5.2f");		// もとに戻るかチェック
+/*
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
 	ArcsMat<5,5> Aqr1 = {
@@ -911,11 +911,11 @@ int main(void){
 	};
 	ArcsMat<5,5> Qqr1, Rqr1;
 	QR(Aqr1, Qqr1, Rqr1);				// QR分解を計算 (引数渡し版)
-	dispmatfmt(Aqr1, "% 8.4f");
-	dispmatfmt(Qqr1, "% 8.4f");
-	dispmatfmt(Rqr1, "% 8.4f");
-	dispmatfmt(Qqr1*~Qqr1, "% 8.4f");	// Qが直交行列かチェック
-	dispmatfmt(Qqr1*Rqr1, "% 8.4f");	// 元に戻るかチェック
+	dispf(Aqr1, "% 8.4f");
+	dispf(Qqr1, "% 8.4f");
+	dispf(Rqr1, "% 8.4f");
+	dispf(Qqr1*~Qqr1, "% 8.4f");	// Qが直交行列かチェック
+	dispf(Qqr1*Rqr1, "% 8.4f");	// 元に戻るかチェック
 	printf("norm<L2>(A - Q*R) = %e\n", norm<NormType::AMT_L2>(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
 	constexpr ArcsMat<3,4> Aqr2 = {
 		12, -51,   4, 39,
@@ -923,25 +923,25 @@ int main(void){
 		-4,  24, -41, 11
 	};
 	auto [Qqr2, Rqr2] = QR(Aqr2);		// QR分解を計算 (タプル返し版)
-	dispmatfmt(Aqr2, "% 5.0f");
-	dispmatfmt(Qqr2, "% 7.2f");
-	dispmatfmt(Rqr2, "% 7.2f");
-	dispmatfmt(Qqr2*~Qqr2, "% 7.2f");	// Qが直交行列かチェック
-	dispmatfmt(Qqr2*Rqr2, "% 7.2f");	// 元に戻るかチェック
+	dispf(Aqr2, "% 5.0f");
+	dispf(Qqr2, "% 7.2f");
+	dispf(Rqr2, "% 7.2f");
+	dispf(Qqr2*~Qqr2, "% 7.2f");	// Qが直交行列かチェック
+	dispf(Qqr2*Rqr2, "% 7.2f");	// 元に戻るかチェック
 	constexpr auto QRx2 = QR(~Aqr2);					// コンパイル時にQR分解を計算
 	constexpr auto Qx2 = std::get<0>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
 	constexpr auto Rx2 = std::get<1>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
-	dispmatfmt(~Aqr2, "% 5.0f");
-	dispmatfmt(Qx2, "% 7.3f");
-	dispmatfmt(Rx2, "% 8.3f");
-	dispmatfmt(Qx2*~Qx2, "% 7.3f");		// Qが直交行列かチェック
-	dispmatfmt(Qx2*Rx2, "% 8.3f");		// 元に戻るかチェック
+	dispf(~Aqr2, "% 5.0f");
+	dispf(Qx2, "% 7.3f");
+	dispf(Rx2, "% 8.3f");
+	dispf(Qx2*~Qx2, "% 7.3f");		// Qが直交行列かチェック
+	dispf(Qx2*Rx2, "% 8.3f");		// 元に戻るかチェック
 	auto [Qqr3, Rqr3] = QR(Acomp1);		// 複素数QR分解を計算 (タプル返し版)
-	dispmatfmt(Acomp1, "% 2.0f");
-	dispmatfmt(Qqr3, "% 7.3f");
-	dispmatfmt(Rqr3, "% 7.3f");
-	dispmatfmt(Qqr3*~Qqr3, "% 3.1f");	// Qが直交行列かチェック
-	dispmatfmt(Qqr3*Rqr3, "% 3.1f");	// 元に戻るかチェック
+	dispf(Acomp1, "% 2.0f");
+	dispf(Qqr3, "% 7.3f");
+	dispf(Rqr3, "% 7.3f");
+	dispf(Qqr3*~Qqr3, "% 3.1f");	// Qが直交行列かチェック
+	dispf(Qqr3*Rqr3, "% 3.1f");	// 元に戻るかチェック
 	
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
@@ -955,19 +955,19 @@ int main(void){
 	ArcsMat<4,2> Ss1;
 	ArcsMat<2,2> Vs1;
 	SVD(As1, Us1, Ss1, Vs1);				// 特異値分解 (引数渡し版)：縦長行列の場合
-	dispmatfmt(As1, "% 8.3f");
-	dispmatfmt(Us1, "% 8.3f");
-	dispmatfmt(Ss1, "% 8.3f");
-	dispmatfmt(Vs1, "% 8.3f");
-	dispmatfmt(Us1*Ss1*~Vs1, "% 8.3f");		// 元に戻るかチェック
+	dispf(As1, "% 8.3f");
+	dispf(Us1, "% 8.3f");
+	dispf(Ss1, "% 8.3f");
+	dispf(Vs1, "% 8.3f");
+	dispf(Us1*Ss1*~Vs1, "% 8.3f");		// 元に戻るかチェック
 	constexpr auto USVs2 = SVD(~As1);					// コンパイル時に特異値分解を計算 (タプル返し版)：横長行列の場合
 	constexpr auto Us2 = std::get<0>(USVs2);			// コンパイル時に計算したU行列を抽出
 	constexpr auto Ss2 = std::get<1>(USVs2);			// コンパイル時に計算したΣ行列を抽出
 	constexpr auto Vs2 = std::get<2>(USVs2);			// コンパイル時に計算したV行列を抽出
-	dispmatfmt(Us2, "% 8.3f");
-	dispmatfmt(Ss2, "% 8.3f");
-	dispmatfmt(Vs2, "% 8.3f");
-	dispmatfmt(Us2*Ss2*~Vs2, "% 8.3f");		// 元に戻るかチェック
+	dispf(Us2, "% 8.3f");
+	dispf(Ss2, "% 8.3f");
+	dispf(Vs2, "% 8.3f");
+	dispf(Us2*Ss2*~Vs2, "% 8.3f");		// 元に戻るかチェック
 	ArcsMat<3,3> As2 = {
 		 2,  0,  2,
 		 0,  1,  0,
@@ -975,28 +975,28 @@ int main(void){
 	};
 	ArcsMat<3,3> Us3, Ss3, Vs3;
 	std::tie(Us3, Ss3, Vs3) = SVD(As2);		// 特異値分解 (タプル返し版)：ランク落ちの場合
-	dispmatfmt(Us3, "% 8.3f");
-	dispmatfmt(Ss3, "% 8.3f");
-	dispmatfmt(Vs3, "% 8.3f");
-	dispmatfmt(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
+	dispf(Us3, "% 8.3f");
+	dispf(Ss3, "% 8.3f");
+	dispf(Vs3, "% 8.3f");
+	dispf(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
 	As2.Set(
 		 1,  1,  3,
 		-5,  6, -3, 
 		 7, -2,  9
 	);
 	std::tie(Us3, Ss3, Vs3) = SVD(As2);		// 特異値分解 (タプル返し版)：符号修正が必要な場合
-	dispmatfmt(As2, "% 8.3f");
-	dispmatfmt(Us3, "% 8.3f");
-	dispmatfmt(Ss3, "% 8.3f");
-	dispmatfmt(Vs3, "% 8.3f");
-	dispmatfmt(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
+	dispf(As2, "% 8.3f");
+	dispf(Us3, "% 8.3f");
+	dispf(Ss3, "% 8.3f");
+	dispf(Vs3, "% 8.3f");
+	dispf(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
 	ArcsMat<3,3,std::complex<double>> Us4, Ss4, Vs4;
 	std::tie(Us4, Ss4, Vs4) = SVD(Acomp1);	// 複素数特異値分解を計算 (タプル返し版)
-	dispmatfmt(Acomp1, "% 8.3f");
-	dispmatfmt(Us4, "% 8.3f");
-	dispmatfmt(Ss4, "% 8.3f");
-	dispmatfmt(Vs4, "% 8.3f");
-	dispmatfmt(Us4*Ss4*~Vs4, "% 8.3f");		// 元に戻るかチェック
+	dispf(Acomp1, "% 8.3f");
+	dispf(Us4, "% 8.3f");
+	dispf(Ss4, "% 8.3f");
+	dispf(Vs4, "% 8.3f");
+	dispf(Us4*Ss4*~Vs4, "% 8.3f");		// 元に戻るかチェック
 */
 	/*
 	// 行列演算補助関連の関数のテスト

@@ -3,18 +3,17 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2023/10/03
+//! @date 2024/06/26
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2023 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 //
 // 以下，コメント。
 // ・各々の関数における計算結果はMATLAB/Maximaと比較して合っていることを確認している。
 // ・ただし，LU分解やコレスキー分解などの一見した表現が定まらない関数では，当然，MATLABとは異なる結果を出力するように見える。
 // ・動的メモリ版に比べてかなり高速の行列演算が可能。
+// ・旧来のMatrixクラスの不具合と不満を一掃。
 
 #ifndef ARCSMATRIX
 #define ARCSMATRIX
@@ -36,9 +35,9 @@
 #endif
 
 // 表示用マクロ
-#define dispsize(a)  (ArcsMatrix::dispsize_macro((a),#a))		//!< 行列サイズ表示マクロ
-#define dispmatfmt(a,b) (ArcsMatrix::dispmatfmt_macro((a),b,#a))//!< 行列要素表示マクロ(フォーマット指定あり版)
-#define dispmat(a) (ArcsMatrix::dispmat_macro((a),#a))			//!< 行列要素表示マクロ(フォーマット指定なし版)
+#define dispsize(a)  (ArcsMatrix::dispsize_macro((a),#a))	//!< 行列サイズ表示マクロ
+#define dispf(a,b) (ArcsMatrix::dispf_macro((a),b,#a))		//!< 行列要素表示マクロ(フォーマット指定あり版)
+#define disp(a) (ArcsMatrix::disp_macro((a),#a))			//!< 行列要素表示マクロ(フォーマット指定なし版)
 
 // ARCS名前空間
 namespace ARCS {
@@ -2929,7 +2928,7 @@ namespace ArcsMatrix {
 	//! @param[in] format	表示形式 (%1.3e とか %5.3f とか printfと同じ)
 	//! @param[in] varname	変数名
 	template <size_t M, size_t N, typename T = double>
-	static void dispmatfmt_macro(const ArcsMat<M,N,T>& U, const std::string& format, const std::string& varname){
+	static void dispf_macro(const ArcsMat<M,N,T>& U, const std::string& format, const std::string& varname){
 		printf("%s = \n", varname.c_str());
 		U.Disp(format);
 	}
@@ -2939,35 +2938,35 @@ namespace ArcsMatrix {
 	//! @param[in] U		表示する行列
 	//! @param[in] varname	変数名
 	template <size_t M, size_t N, typename T = double>
-	static void dispmat_macro(const ArcsMat<M,N,T>& U, const std::string& varname){
+	static void disp_macro(const ArcsMat<M,N,T>& U, const std::string& varname){
 		// データ型によって書式指定子を変える
 		// 浮動小数点型の場合
 		if constexpr(std::is_floating_point_v<T>){
-			dispmatfmt_macro(U, "% g", varname);
+			dispf_macro(U, "% g", varname);
 			return;
 		}
 		
 		// int型の場合
 		if constexpr(std::is_same_v<T, int>){
-			dispmatfmt_macro(U, "% d", varname);
+			dispf_macro(U, "% d", varname);
 			return;
 		}
 		
 		// long型の場合
 		if constexpr(std::is_same_v<T, long>){
-			dispmatfmt_macro(U, "% ld", varname);
+			dispf_macro(U, "% ld", varname);
 			return;
 		}
 		
 		// size_t型の場合
 		if constexpr(std::is_same_v<T, size_t>){
-			dispmatfmt_macro(U, "% zu", varname);
+			dispf_macro(U, "% zu", varname);
 			return;
 		}
 		
 		// 複素数型の場合
 		if constexpr(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>){
-			dispmatfmt_macro(U, "% g", varname);
+			dispf_macro(U, "% g", varname);
 			return;
 		}
 	}

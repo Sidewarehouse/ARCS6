@@ -74,6 +74,7 @@ C = A./B
 C = 3 + A
 C = 3 - A
 C = 2*A
+fprintf('\n');
 
 disp 'š ƒmƒ‹ƒ€ŠÖ˜A‚ÌŠÖ”(s—ñ”Å)'
 Ax1 = [
@@ -101,7 +102,7 @@ k1 = [
   7.000 ;
  -1.000 ;
   6.000
-];
+]
 fprintf('norm(k1) = %f\n', norm(k1));
 fprintf('norm(k1, 1) = %f\n', norm(k1, 1));
 fprintf('norm(k1, Inf) = %f\n', norm(k1, Inf));
@@ -115,20 +116,27 @@ A = [
 	10, -7,  0 ;
 	-3,  2,  6 ;
 	 5, -1,  5
-];
+]
 [L, U, P] = lu(A)
 Acomp1 = [
 	4 + 6i,  1 - 3i,  5 + 2i ;
 	8 - 5i, -7 - 6i,  7 - 1i ;
 	9 + 9i, -7 - 5i, -5 - 3i
-];
+]
 [L, U, P] = lu(Acomp1)
+Ax = [
+	 5,  6,  7 ;
+	 8,  9,  0 ;
+	 1,  2,  3
+]
+[L, U] = lu(Ax)
 
+
+%{
 disp 'š QR•ª‰ğŠÖ˜A‚ÌŠÖ”'
 A = magic(5)
 [Q, R] = qr(A)
 
-%{
 % QR•ª‰ğ
 Aqr = [
 	12, -51,   4;

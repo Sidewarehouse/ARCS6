@@ -1,7 +1,7 @@
 ./sampleディレクトリについて
-Yokokura, Yuki 2022/06/10
+Yokokura, Yuki 2024/06/26
 
-このディレクトリには色々な ControlFunctions.cc，InterfaceFunctions.hh，OfflineCalculation.cc のサンプルコードが含まれている。
+このディレクトリには色々な ControlFunctions.cc，InterfaceFunctions.hh，OfflineFunction.cc のサンプルコードが含まれている。
 中身を見てもらえば、様々な制御系のコードの書き方やライブラリの使い方が分かると思う。
 
 サンプルコードの使い方の手順は以下の通り。例として行列演算のサンプルを動かしたい場合。
@@ -15,7 +15,7 @@ make offline
 3. 実行
 ./ARCS
 
-サンプルコードによってはオフラインモードじゃない場合もあるので，
+サンプルコードによってはオフラインモードじゃない場合もあるので、
 そのときは普通に make して実行。
 
 以上
