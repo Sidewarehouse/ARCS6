@@ -583,6 +583,16 @@ class ArcsMat {
 			printf("\n");
 		}
 		
+		//! @brief 行列の要素を表示(表示形式自動版)
+		constexpr void Disp(void) const{
+			Disp("%g");
+		}
+		
+		//! @brief 行列のサイズを表示
+		constexpr void DispSize(void) const{
+			printf("[ Height: %zu  x  Width: %zu ]\n\n", M, N);
+		}
+		
 		//! @brief 行列の高さ(行数)を返す関数
 		//! @return 行列の幅
 		constexpr size_t GetHeight(void) const{
@@ -1849,7 +1859,7 @@ class ArcsMat {
 			return Y;
 		}
 		*/
-
+		
 		//! @brief 行列要素の平方根を計算する関数(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
@@ -1862,7 +1872,7 @@ class ArcsMat {
 				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::sqrt( U(j,i) ) );
 			}
 		}
-
+		
 		//! @brief 行列要素の平方根を計算する関数(戻り値渡し版)
 		//! @param[in]	U	入力行列
 		//! @return	Y	出力行列
@@ -1871,7 +1881,29 @@ class ArcsMat {
 			ArcsMat<M,N,T>::sqrt(U, Y);
 			return Y;
 		}
-
+		
+		//! @brief 行列要素の符号関数を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void sign(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( sgn( U(j,i) ) );
+			}
+		}
+		
+		//! @brief 行列要素の符号関数を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> sign(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::sign(U, Y);
+			return Y;
+		}
+		
 		//! @brief 行列要素の絶対値を計算する関数(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
@@ -2240,7 +2272,7 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<TR>, "ArcsMat: Type Error");	// 対応可能型チェック
 
 			// 事前準備
-			constexpr size_t K = std::min(M,N);	// 縦長か横長か、長い方をKとする
+			constexpr size_t K = std::min(M,N);	// 縦長か横長か、短い方をKとする
 			constexpr ArcsMat<M,1,T> e = {1};	// 単位ベクトルを生成
 			auto I = ArcsMat<M,M,T>::eye();		// 初期単位行列を生成
 			ArcsMat<M,1,T> a, v;
@@ -2267,6 +2299,23 @@ class ArcsMat {
 				Q = Q*H;
 			}
 			R = HA;
+			
+			if constexpr(ArcsMatrix::IsComplex<T>){
+				const auto d  = ArcsMat<K,1,T>::sign( ArcsMat<MR,NR,T>::getdiag(R) );
+				const auto l  = ArcsMat<K,1,T>::ones();
+				const auto di = l % d;
+				const auto D  = ArcsMat<K,1,T>::diag(d);
+				const auto Di = ArcsMat<K,1,T>::diag(di);
+				//Q = Q*D;
+				//R = Di*R;
+				/*
+				d.Disp();
+				l.Disp();
+				di.Disp();
+				D.Disp();
+				Di.Disp();
+				*/
+			}
 		}
 
 		//! @brief QR分解(タプル返し版)
@@ -3753,6 +3802,24 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> sqrt(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::sqrt(U);
+	}
+
+	//! @brief 行列要素の符号関数を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void sign(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::sign(U, Y);
+	}
+
+	//! @brief 行列要素の符号関数を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> sign(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::sign(U);
 	}
 
 	//! @brief 行列要素の絶対値を計算する関数(引数渡し版)

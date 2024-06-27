@@ -1,5 +1,5 @@
 % 行列演算チェック用MATLABコード
-% Yokokura, Yuki 2022/07/27
+% Yokokura, Yuki 2024/06/27
 clc;
 clear;
 
@@ -143,8 +143,34 @@ Aqr2 = [
 ]
 [Qqr2, Rqr2] = qr(Aqr2)
 [Qx2, Rx2] = qr(Aqr2')
+
 Acomp1
 [Qqr3, Rqr3] = qr(Acomp1)
+
+%ArcsMatrixでの複素数QR分解の結果
+Qqr3a = [
+  -0.414 -  0.000i,   0.165 -  0.101i,   0.888 +  0.051i ;
+  -0.016 +  0.542i,  -0.751 -  0.064i,   0.104 +  0.356i ;
+  -0.717 +  0.143i,  -0.001 +  0.628i,  -0.259 -  0.064i
+];
+Rqr3a = [
+  -9.656 - 14.483i,   0.749 +  9.719i,   0.430 -  1.737i ;
+   0.000 +  0.000i,   2.984 +  8.067i,  -6.449 +  5.182i ;
+   0.000 +  0.000i,   0.000 +  0.000i,   6.401 -  0.623i
+];
+%d  = abs(diag(Rqr3a))./diag(Rqr3a)
+d = sign(diag(Rqr3a))
+di = 1./d
+D = diag(d)
+Di = diag(di)
+Q  = Qqr3a*D
+R  = Di*Rqr3a
+
+[Qqr4, Rqr4] = qr(Acmpx2.')
+d = sign(diag(Rqr4))
+di = 1./d
+D = diag(d)
+Di = diag(di)
 
 
 %{

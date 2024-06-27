@@ -741,10 +741,14 @@ int main(void){
 	dispf(sqrt(Ax1), "% 8.3f");				// 行列要素の平方根 (戻り値渡し版)
 	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の平方根を計算
 	dispf(Yx7, "% 8.3f");
+	sqrt(Ax1, Y1);							// 行列要素の符号関数 (引数渡し版)
+	dispf(sqrt(Ax1), "% 8.3f");				// 行列要素の符号関数 (戻り値渡し版)
+	constexpr auto Yx8 = sign(Ax1);						// コンパイル時に行列要素の符号関数を計算
+	dispf(Yx8, "% 8.3f");
 	abs(Yx5, Y1);							// 行列要素の絶対値 (引数渡し版)
 	dispf(abs(Yx5), "% 12.3f");				// 行列要素の絶対値 (戻り値渡し版)
-	constexpr auto Yx8 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
-	dispf(Yx8, "% 12.3f");
+	constexpr auto Yx9 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
+	dispf(Yx9, "% 12.3f");
 
 	// 複素数関連の関数
 	printf("\n★★★★★★★ 複素数関連の関数\n");
