@@ -144,37 +144,66 @@ Aqr2 = [
 [Qqr2, Rqr2] = qr(Aqr2)
 [Qx2, Rx2] = qr(Aqr2')
 
+%ArcsMatrix‚Å‚Ì•¡‘f”QR•ª‰ğ‚ÌŒ‹‰Ê(³•ûs—ñ)
 Acomp1
 [Qqr3, Rqr3] = qr(Acomp1)
-
-%ArcsMatrix‚Å‚Ì•¡‘f”QR•ª‰ğ‚ÌŒ‹‰Ê
-Qqr3a = [
+Qqr3 = [
   -0.414 -  0.000i,   0.165 -  0.101i,   0.888 +  0.051i ;
   -0.016 +  0.542i,  -0.751 -  0.064i,   0.104 +  0.356i ;
   -0.717 +  0.143i,  -0.001 +  0.628i,  -0.259 -  0.064i
 ];
-Rqr3a = [
+Rqr3 = [
   -9.656 - 14.483i,   0.749 +  9.719i,   0.430 -  1.737i ;
    0.000 +  0.000i,   2.984 +  8.067i,  -6.449 +  5.182i ;
    0.000 +  0.000i,   0.000 +  0.000i,   6.401 -  0.623i
 ];
-%d  = abs(diag(Rqr3a))./diag(Rqr3a)
-d = sign(diag(Rqr3a))
-di = 1./d
-D = diag(d)
-Di = diag(di)
-Q  = Qqr3a*D
-R  = Di*Rqr3a
+D  = diag(1./sign(diag(Rqr3)));
+Di = diag(sign(diag(Rqr3)));
+Q = Qqr3*Di
+R = D*Rqr3
 
-[Qqr4, Rqr4] = qr(Acmpx2.')
-d = sign(diag(Rqr4))
-di = 1./d
-D = diag(d)
-Di = diag(di)
+%ArcsMatrix‚Å‚Ì•¡‘f”QR•ª‰ğ‚ÌŒ‹‰Ê(‰¡’·s—ñ)
+Acmpx2
+[Qqr4, Rqr4] = qr(Acmpx2)
+Qqr4 = [
+  -0.707 +  0.000i,   0.000 -  0.707i ;
+   0.000 -  0.707i,  -0.707 -  0.000i 
+];
+Rqr4 = [
+  -1.414 -  1.414i,  -4.950 -  4.950i,   0.707 +  0.707i, ;
+   0.000 +  0.000i,  -0.707 -  0.707i,   4.950 +  4.950i
+];
+D  = diag(1./sign(diag(Rqr4)));
+Di = diag(sign(diag(Rqr4)));
+Q = Qqr4*Di
+R = D*Rqr4
 
+%ArcsMatrix‚Å‚Ì•¡‘f”QR•ª‰ğ‚ÌŒ‹‰Ê(c’·s—ñ)
+Acmpx2.'
+[Qqr5, Rqr5] = qr(Acmpx2.')
+Qqr5 = [
+  -0.196 +  0.000i,  -0.199 +  0.041i,   0.067 +  0.957i ;
+  -0.686 +  0.098i,  -0.663 +  0.040i,  -0.020 -  0.279i ;
+   0.098 -  0.686i,  -0.144 +  0.705i,  -0.003 -  0.040i 
+];
+Rqr5 = [
+  -5.099 +  5.099i,  -1.177 +  1.569i ;
+  -0.000 -  0.000i,   5.239 +  4.551i ;
+  -0.000 -  0.000i,   0.000 -  0.000i 
+];
+D  = diag(1./sign(diag(Rqr5)))
+Di = diag(sign(diag(Rqr5)))
+%{ % Q‚ª•â³‚Å‚«‚È‚¢‚Ì‚Å¡Œã‚Ì‰Û‘è
+D = [D ; [0, 0]];
+D = [D [0 ; 0; 1]]
+Di = [Di ; [0, 0]];
+Di = [Di [0 ; 0; -1]]
+Q = Qqr5*Di
+R = D*Rqr5
+%}
+%A = QR = ((QR)t)t = ( ((QDi)(DR))t )t = ( (DR)t (QDi)t )t = ( RtDt DitQt )t
 
 %{
-
 % Schur•ª‰ğ
 Asr1 = [
 	 4, -8,  1,

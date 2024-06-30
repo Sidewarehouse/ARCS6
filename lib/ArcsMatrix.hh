@@ -2300,21 +2300,15 @@ class ArcsMat {
 			}
 			R = HA;
 			
-			if constexpr(ArcsMatrix::IsComplex<T>){
+			// Aが縦長を除き、且つ複素数の場合にはRの対角項を実数に変換
+			if constexpr( (M <= N) && ArcsMatrix::IsComplex<T>){
+				const auto l  = ArcsMat<K,1,T>::ones();	// C++20移行時にconstexprに改修すべし！	
 				const auto d  = ArcsMat<K,1,T>::sign( ArcsMat<MR,NR,T>::getdiag(R) );
-				const auto l  = ArcsMat<K,1,T>::ones();
 				const auto di = l % d;
 				const auto D  = ArcsMat<K,1,T>::diag(d);
 				const auto Di = ArcsMat<K,1,T>::diag(di);
-				//Q = Q*D;
-				//R = Di*R;
-				/*
-				d.Disp();
-				l.Disp();
-				di.Disp();
-				D.Disp();
-				Di.Disp();
-				*/
+				Q = Q*D;
+				R = Di*R;
 			}
 		}
 

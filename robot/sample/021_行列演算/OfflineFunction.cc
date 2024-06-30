@@ -940,12 +940,25 @@ int main(void){
 	dispf(Rx2, "% 8.3f");
 	dispf(Qx2*~Qx2, "% 7.3f");			// Qが直交行列かチェック
 	dispf(Qx2*Rx2, "% 8.3f");			// 元に戻るかチェック
-	auto [Qqr3, Rqr3] = QR(Acomp1);		// 複素数QR分解を計算 (タプル返し版)
+	auto [Qqr3, Rqr3] = QR(Acomp1);		// 複素数QR分解を計算 正方行列 (タプル返し版)
 	dispf(Acomp1, "% 2.0f");
 	dispf(Qqr3, "% 7.3f");
 	dispf(Rqr3, "% 7.3f");
 	dispf(Qqr3*~Qqr3, "% 3.1f");		// Qが直交行列かチェック
 	dispf(Qqr3*Rqr3, "% 3.1f");			// 元に戻るかチェック
+	auto [Qqr4, Rqr4] = QR(Acmpx2);		// 複素数QR分解を計算 横長行列 (タプル返し版)
+	dispf(Acmpx2, "% 2.0f");
+	dispf(Qqr4, "% 7.3f");
+	dispf(Rqr4, "% 7.3f");
+	dispf(Qqr4*~Qqr4, "% 3.1f");		// Qが直交行列かチェック
+	dispf(Qqr4*Rqr4, "% 3.1f");			// 元に戻るかチェック
+	auto [Qqr5, Rqr5] = QR(~Acmpx2);	// 複素数QR分解を計算 縦長行列 (タプル返し版)
+	dispf(~Acmpx2, "% 2.0f");
+	dispf(Qqr5, "% 7.3f");
+	dispf(Rqr5, "% 7.3f");
+	dispf(Qqr5*~Qqr5, "% 3.1f");		// Qが直交行列かチェック
+	dispf(Qqr5*Rqr5, "% 3.1f");			// 元に戻るかチェック
+	
 	/*
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
