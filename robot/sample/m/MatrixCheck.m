@@ -263,14 +263,14 @@ Vs4 = [
   -0.4846 +  0.2941i,   0.4154 -  0.0462i,  -0.2318 -  0.6710i ;
    0.1049 +  0.0422i,   0.3058 -  0.7780i,   0.5370 -  0.0000i ];
 % MATLABに準拠させるための等価変換
+% A = U S V' = U D Di S (V D Di)' = U D Di S Di' (V D)' = U D S (V D)' = Un S Vn'
+% Di = diag(1./d);
+% D*Di' = I
 d = 1./sign(Vs4(1,1:3));
-for i = 1:3
-	Us4(:,i) = d(i)*Us4(:,i);
-	Vs4(:,i) = d(i)*Vs4(:,i);
-end
-Us4;
-Vs4;
-Us4*Ss4*Vs4';
+D  = diag(d);
+Us4 = Us4*D
+Vs4 = Vs4*D
+Z = Acomp1 - Us4*Ss4*Vs4'
 
 %ArcsMatrixでの特異値分解の結果(横長行列)
 [Us5, Ss5, Vs5] = svd(Acmpx2)
@@ -285,7 +285,28 @@ Vs5 = [
   -0.5521 +  0.4788i,  -0.4399 +  0.4406i,  -0.0196 -  0.2791i ;
    0.4962 -  0.4304i,  -0.5320 +  0.5329i,  -0.0028 -  0.0399i ];
 % MATLABに準拠させるための等価変換
+% A = U S V' = U D2 Di2 S (V D3 Di3)' = U D2 Di2 S Di3' (V D3)' = U D2 S (V D3)' = Un S Vn'
+% Di2*S*Di3'    = S
+% D2*Di2*S*Di3' = D2*S
+%        S*Di3' = D2*S
+%          Di3' = S\D2*S
+%          Di3  = (S\D2*S)'
+norm(Vs5(:,3))
 d = 1./sign(Us5(1,:))
+D2  = diag(d)
+Di2 = diag(1./d)
+%Di3 = [ diag(diag(D2*Ss5)./diag(Ss5)), zeros(2,1) ]
+Di3 = (Ss5\D2*Ss5)'
+Z = Ss5*Di3' - D2*Ss5
+%{
+D3 = diag(1./diag(Di3))
+D3(3,3) = 0
+D3*Di3
+Vs5*D3
+%}
+%Us5 = Us5*D
+
+%{
 Us5(:,1) = d(1)*Us5(:,1);
 Us5(:,2) = d(2)*Us5(:,2);
 Us5
@@ -293,6 +314,7 @@ Vs5(:,1) = d(1)*Vs5(:,1);
 Vs5(:,2) = d(2)*Vs5(:,2);
 Vs5(:,3) = (0.9075 + 0.4200i)*Vs5(:,3);	% ←謎のスカラー倍するとMATLABと合う
 Vs5
+%}
 
 %[Us6, Ss6, Vs6] = svd(Acmpx2')
 
