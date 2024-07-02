@@ -928,38 +928,37 @@ int main(void){
 	};
 	auto [Qqr2, Rqr2] = QR(Aqr2);		// QR分解を計算 (タプル返し版)
 	dispf(Aqr2, "% 5.0f");
-	dispf(Qqr2, "% 7.2f");
-	dispf(Rqr2, "% 7.2f");
-	dispf(Qqr2*~Qqr2, "% 7.2f");		// Qが直交行列かチェック
-	dispf(Qqr2*Rqr2, "% 7.2f");			// 元に戻るかチェック
+	dispf(Qqr2, "% 8.4f");
+	dispf(Rqr2, "% 8.4f");
+	dispf(Qqr2*~Qqr2, "% 8.4f");		// Qが直交行列かチェック
+	dispf(Qqr2*Rqr2, "% 8.4f");			// 元に戻るかチェック
 	constexpr auto QRx2 = QR(~Aqr2);					// コンパイル時にQR分解を計算
 	constexpr auto Qx2 = std::get<0>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
 	constexpr auto Rx2 = std::get<1>(QRx2);				// コンパイル時に計算したユニタリ行列を抽出
 	dispf(~Aqr2, "% 5.0f");
-	dispf(Qx2, "% 7.3f");
-	dispf(Rx2, "% 8.3f");
-	dispf(Qx2*~Qx2, "% 7.3f");			// Qが直交行列かチェック
-	dispf(Qx2*Rx2, "% 8.3f");			// 元に戻るかチェック
+	dispf(Qx2, "% 8.4f");
+	dispf(Rx2, "% 8.4f");
+	dispf(Qx2*~Qx2, "% 8.4f");			// Qが直交行列かチェック
+	dispf(Qx2*Rx2, "% 8.4f");			// 元に戻るかチェック
 	auto [Qqr3, Rqr3] = QR(Acomp1);		// 複素数QR分解を計算 正方行列 (タプル返し版)
 	dispf(Acomp1, "% 2.0f");
-	dispf(Qqr3, "% 7.3f");
-	dispf(Rqr3, "% 7.3f");
+	dispf(Qqr3, "% 8.4f");
+	dispf(Rqr3, "% 8.4f");
 	dispf(Qqr3*~Qqr3, "% 3.1f");		// Qが直交行列かチェック
 	dispf(Qqr3*Rqr3, "% 3.1f");			// 元に戻るかチェック
 	auto [Qqr4, Rqr4] = QR(Acmpx2);		// 複素数QR分解を計算 横長行列 (タプル返し版)
 	dispf(Acmpx2, "% 2.0f");
-	dispf(Qqr4, "% 7.3f");
-	dispf(Rqr4, "% 7.3f");
+	dispf(Qqr4, "% 8.4f");
+	dispf(Rqr4, "% 8.4f");
 	dispf(Qqr4*~Qqr4, "% 3.1f");		// Qが直交行列かチェック
 	dispf(Qqr4*Rqr4, "% 3.1f");			// 元に戻るかチェック
 	auto [Qqr5, Rqr5] = QR(~Acmpx2);	// 複素数QR分解を計算 縦長行列 (タプル返し版)
 	dispf(~Acmpx2, "% 2.0f");
-	dispf(Qqr5, "% 7.3f");
-	dispf(Rqr5, "% 7.3f");
+	dispf(Qqr5, "% 8.4f");
+	dispf(Rqr5, "% 8.4f");
 	dispf(Qqr5*~Qqr5, "% 3.1f");		// Qが直交行列かチェック
 	dispf(Qqr5*Rqr5, "% 3.1f");			// 元に戻るかチェック
 	
-	/*
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
 	constexpr ArcsMat<4,2> As1 = {
@@ -971,50 +970,56 @@ int main(void){
 	ArcsMat<4,4> Us1;
 	ArcsMat<4,2> Ss1;
 	ArcsMat<2,2> Vs1;
-	SVD(As1, Us1, Ss1, Vs1);				// 特異値分解 (引数渡し版)：縦長行列の場合
-	dispf(As1, "% 8.3f");
-	dispf(Us1, "% 8.3f");
-	dispf(Ss1, "% 8.3f");
-	dispf(Vs1, "% 8.3f");
-	dispf(Us1*Ss1*~Vs1, "% 8.3f");		// 元に戻るかチェック
-	constexpr auto USVs2 = SVD(~As1);					// コンパイル時に特異値分解を計算 (タプル返し版)：横長行列の場合
-	constexpr auto Us2 = std::get<0>(USVs2);			// コンパイル時に計算したU行列を抽出
-	constexpr auto Ss2 = std::get<1>(USVs2);			// コンパイル時に計算したΣ行列を抽出
-	constexpr auto Vs2 = std::get<2>(USVs2);			// コンパイル時に計算したV行列を抽出
-	dispf(Us2, "% 8.3f");
-	dispf(Ss2, "% 8.3f");
-	dispf(Vs2, "% 8.3f");
-	dispf(Us2*Ss2*~Vs2, "% 8.3f");		// 元に戻るかチェック
+	SVD(As1, Us1, Ss1, Vs1);			// 特異値分解 (引数渡し版)：縦長行列の場合
+	dispf(As1, "% 8.4f");
+	dispf(Us1, "% 8.4f");
+	dispf(Ss1, "% 8.4f");
+	dispf(Vs1, "% 8.4f");
+	dispf(Us1*Ss1*~Vs1, "% 8.4f");		// 元に戻るかチェック
+	auto USVs2 = SVD(~As1);					// コンパイル時に特異値分解を計算 (タプル返し版)：横長行列の場合
+	auto Us2 = std::get<0>(USVs2);			// コンパイル時に計算したU行列を抽出
+	auto Ss2 = std::get<1>(USVs2);			// コンパイル時に計算したΣ行列を抽出
+	auto Vs2 = std::get<2>(USVs2);			// コンパイル時に計算したV行列を抽出
+	dispf(Us2, "% 8.4f");
+	dispf(Ss2, "% 8.4f");
+	dispf(Vs2, "% 8.4f");
+	dispf(Us2*Ss2*~Vs2, "% 8.4f");		// 元に戻るかチェック
 	ArcsMat<3,3> As2 = {
 		 2,  0,  2,
 		 0,  1,  0,
 		 0,  0,  0
 	};
 	ArcsMat<3,3> Us3, Ss3, Vs3;
-	std::tie(Us3, Ss3, Vs3) = SVD(As2);		// 特異値分解 (タプル返し版)：ランク落ちの場合
-	dispf(Us3, "% 8.3f");
-	dispf(Ss3, "% 8.3f");
-	dispf(Vs3, "% 8.3f");
+	std::tie(Us3, Ss3, Vs3) = SVD(As2);	// 特異値分解 (タプル返し版)：ランク落ちの場合
+	dispf(Us3, "% 8.4f");
+	dispf(Ss3, "% 8.4f");
+	dispf(Vs3, "% 8.4f");
 	dispf(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
 	As2.Set(
 		 1,  1,  3,
 		-5,  6, -3, 
 		 7, -2,  9
 	);
-	std::tie(Us3, Ss3, Vs3) = SVD(As2);		// 特異値分解 (タプル返し版)：符号修正が必要な場合
-	dispf(As2, "% 8.3f");
-	dispf(Us3, "% 8.3f");
-	dispf(Ss3, "% 8.3f");
-	dispf(Vs3, "% 8.3f");
-	dispf(Us3*Ss3*~Vs3, "% 8.3f");		// 元に戻るかチェック
+	std::tie(Us3, Ss3, Vs3) = SVD(As2);	// 特異値分解 (タプル返し版)：符号修正が必要な場合
+	dispf(As2, "% 8.4f");
+	dispf(Us3, "% 8.4f");
+	dispf(Ss3, "% 8.4f");
+	dispf(Vs3, "% 8.4f");
+	dispf(Us3*Ss3*~Vs3, "% 8.4f");		// 元に戻るかチェック
 	ArcsMat<3,3,std::complex<double>> Us4, Ss4, Vs4;
 	std::tie(Us4, Ss4, Vs4) = SVD(Acomp1);	// 複素数特異値分解を計算 (タプル返し版)
-	dispf(Acomp1, "% 8.3f");
-	dispf(Us4, "% 8.3f");
-	dispf(Ss4, "% 8.3f");
-	dispf(Vs4, "% 8.3f");
-	dispf(Us4*Ss4*~Vs4, "% 8.3f");		// 元に戻るかチェック
-*/
+	dispf(Acomp1, "% 8.4f");
+	dispf(Us4, "% 8.4f");
+	dispf(Ss4, "% 8.4f");
+	dispf(Vs4, "% 8.4f");
+	dispf(Us4*Ss4*~Vs4, "% 8.4f");		// 元に戻るかチェック
+	auto [Us5, Ss5, Vs5] = SVD(Acmpx2);	// 複素数特異値分解を計算 横長行列 (タプル返し版)
+	dispf(Acmpx2, "% 2.0f");
+	dispf(Us5, "% 8.4f");
+	dispf(Ss5, "% 8.4f");
+	dispf(Vs5, "% 8.4f");
+	dispf(Us5*Ss5*~Vs5, "% 8.4f");		// 元に戻るかチェック
+	
 	/*
 	// 行列演算補助関連の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");

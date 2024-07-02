@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/06/26
+//! @date 2024/07/02
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -2355,16 +2355,25 @@ class ArcsMat {
 			T E = 0, F = 0;
 			
 			// ループ打ち切り最大回数に達するまでループ
-			for(size_t l = 0; l < LoopMax; ++l){
-				ArcsMat<M,N,T>::QR(S, Qm, S);
+			for(size_t i = 0; i < LoopMax; ++i){
+				// MATLABに準拠するために縦長か横長かで漸化式の順序を変える
+				if constexpr( N <= M ){
+					// 縦長の場合
+					ArcsMat<M,N,T>::QR(S, Qm, S);
+					ArcsMat<N,M,T>::QR(~S, Qn, Snm);
+					S = ~Snm;
+				}else{
+					// 横長の場合
+					ArcsMat<N,M,T>::QR(~S, Qn, Snm);
+					S = ~Snm;
+					ArcsMat<M,N,T>::QR(S, Qm, S);
+				}
 				U = U*Qm;
-				ArcsMat<N,M,T>::QR(~S, Qn, Snm);
 				V = V*Qn;
-				S = ~Snm;
 				E = ArcsMat<N,M,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::gettriup(Snm) );
 				F = ArcsMat<std::min(M,N),1,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::getdiag(Snm)  );
 				if(std::abs(E - F) < EPSILON) break;		// 誤差がイプシロンを下回ったらループ打ち切り
-				//printf("%zu: %f\n", l, std::abs(E - F));	// 誤差確認用コード
+				//printf("%zu: %f\n", i, std::abs(E - F));	// 誤差確認用コード
 			}
 			
 			// 符号修正
@@ -2372,6 +2381,16 @@ class ArcsMat {
 				if( std::real(sgn( S(k,k) )) < 0){
 					S(k,k) = -S(k,k);
 					ArcsMat<M,M,T>::setcolumn(U, -ArcsMat<M,M,T>::getcolumn(U, k), k);
+				}
+			}
+
+			// Aが正方で且つ複素数の場合には、MATLABに準拠させるための等価変換を実行
+			if constexpr((M == N) && ArcsMatrix::IsComplex<T>){
+				const auto l  = ArcsMat<1,NV,T>::ones();	// C++20移行時にconstexprに改修すべし！	
+				const ArcsMat<1,NV,TV> d = l % ArcsMat<1,NV,TV>::sign( ArcsMat<MV,NV,TV>::getrow(V, 1) );	// V行列の一番上の横ベクトルの符号の逆数を計算
+				for(size_t i = 1; i <= NV; ++i){
+					ArcsMat<MU,NU,TU>::setcolumn(U, d(1,i)*ArcsMat<MU,NU,TU>::getcolumn(U, i), i);	// U行列の等価変換
+					ArcsMat<MV,NV,TV>::setcolumn(V, d(1,i)*ArcsMat<MV,NV,TV>::getcolumn(V, i), i);	// V行列の等価変換
 				}
 			}
 		}
