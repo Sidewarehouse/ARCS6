@@ -2443,6 +2443,16 @@ class ArcsMat {
 			L = L*Di;
 			D = ArcsMat<M,1,T>::diag(d);
 		}
+		
+		//! @brief 修正コレスキー分解(LDL分解) (タプル返し版)
+		//! @param[in]	A	入力行列
+		//! @return	(L, D)	(L行列, D行列)のタプル
+		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LDL(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,N,T> L;
+			ArcsMat<M,N,T> D;
+			LDL(A, L, D);
+			return {L, D};
+		}
 
 /*		
 		//! @brief 行列の非ゼロ要素数を返す関数
@@ -4151,6 +4161,15 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double, size_t ML, size_t NL, typename TL = double, size_t MD, size_t ND, typename TD = double>
 	constexpr void LDL(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MD,ND,TD>& D){
 		ArcsMat<M,N,T>::LDL(A, L, D);
+	}
+
+	//! @brief 修正コレスキー分解(LDL分解) (タプル返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	(L, D)	(L行列, D行列)のタプル
+	template<size_t M, size_t N, typename T = double>
+	static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LDL(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::LDL(A);
 	}
 }
 

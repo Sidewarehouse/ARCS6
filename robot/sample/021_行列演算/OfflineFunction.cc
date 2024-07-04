@@ -976,10 +976,10 @@ int main(void){
 	dispf(Ss1, "% 8.4f");
 	dispf(Vs1, "% 8.4f");
 	dispf(Us1*Ss1*~Vs1, "% 8.4f");		// 元に戻るかチェック
-	auto USVs2 = SVD(~As1);					// コンパイル時に特異値分解を計算 (タプル返し版)：横長行列の場合
-	auto Us2 = std::get<0>(USVs2);			// コンパイル時に計算したU行列を抽出
-	auto Ss2 = std::get<1>(USVs2);			// コンパイル時に計算したΣ行列を抽出
-	auto Vs2 = std::get<2>(USVs2);			// コンパイル時に計算したV行列を抽出
+	constexpr auto USVs2 = SVD(~As1);					// コンパイル時に特異値分解を計算 (タプル返し版)：横長行列の場合
+	constexpr auto Us2 = std::get<0>(USVs2);			// コンパイル時に計算したU行列を抽出
+	constexpr auto Ss2 = std::get<1>(USVs2);			// コンパイル時に計算したΣ行列を抽出
+	constexpr auto Vs2 = std::get<2>(USVs2);			// コンパイル時に計算したV行列を抽出
 	dispf(Us2, "% 8.4f");
 	dispf(Ss2, "% 8.4f");
 	dispf(Vs2, "% 8.4f");
@@ -1038,12 +1038,22 @@ int main(void){
 		 9, -3,  3
 	};
 	ArcsMat<3,3> Lchol1, Dchol1;
-	LDL(Achol1, Lchol1, Dchol1);
+	LDL(Achol1, Lchol1, Dchol1);			// LDL分解を計算 (引数渡し版)
 	dispf(Achol1, "% 8.4f");
 	dispf(Lchol1, "% 8.4f");
 	dispf(Dchol1, "% 8.4f");
-	dispf(Lchol1*Dchol1*~Lchol1, "% 8.4f");
-	
+	dispf(Lchol1*Dchol1*~Lchol1, "% 8.4f");	// 元に戻るかチェック
+	ArcsMat<3,3,std::complex<double>> Acomp3 = {
+		4.0 + 6.0i,  1.0 - 3.0i,  5.0 + 2.0i,
+		1.0 - 3.0i, -7.0 - 6.0i,  7.0 - 1.0i,
+		5.0 + 2.0i,  7.0 - 1.0i, -5.0 - 3.0i
+	};
+	auto [Lchol2, Dchol2] = LDL(Acomp3);	// 複素数LDL分解を計算 (タプル返し版)
+	dispf(Acomp3, "% 8.4f");
+	dispf(Lchol2, "% 8.4f");
+	dispf(Dchol2, "% 8.4f");
+	dispf(Lchol2*Dchol2*tp(Lchol2), "% 8.4f");	// 共役転置ではなく普通の転置で元に戻る
+
 	/*
 	// 行列演算補助関連の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");
