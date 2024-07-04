@@ -1029,6 +1029,20 @@ int main(void){
 	dispf(Ss6, "% 8.4f");
 	dispf(Vs6, "% 8.4f");
 	dispf(Us6*Ss6*~Vs6, "% 8.4f");		// 元に戻るかチェック
+
+	// コレスキー分解関連の関数
+	printf("\n★★★★★★★ コレスキー分解関連の関数\n");
+	ArcsMat<3,3> Achol1 = {
+		 7, -2,  9,
+		-2,  6, -3,
+		 9, -3,  3
+	};
+	ArcsMat<3,3> Lchol1, Dchol1;
+	LDL(Achol1, Lchol1, Dchol1);
+	dispf(Achol1, "% 8.4f");
+	dispf(Lchol1, "% 8.4f");
+	dispf(Dchol1, "% 8.4f");
+	dispf(Lchol1*Dchol1*~Lchol1, "% 8.4f");
 	
 	/*
 	// 行列演算補助関連の関数のテスト

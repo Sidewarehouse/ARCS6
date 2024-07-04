@@ -147,7 +147,7 @@ Aqr2 = [
 
 %ArcsMatrixでの複素数QR分解の結果(正方行列)
 Acomp1
-[Qqr3, Rqr3] = qr(Acomp1)
+[Qqr3_, Rqr3_] = qr(Acomp1)
 Qqr3 = [
   -0.414 -  0.000i,   0.165 -  0.101i,   0.888 +  0.051i ;
   -0.016 +  0.542i,  -0.751 -  0.064i,   0.104 +  0.356i ;
@@ -161,13 +161,12 @@ Rqr3 = [
 % MATLABに準拠させるための等価変換
 D  = diag(1./sign(diag(Rqr3)));
 Di = diag(sign(diag(Rqr3)));
-Q = Qqr3*Di;
-R = D*Rqr3;
-
+Qqr3 = Qqr3*Di
+Rqr3 = D*Rqr3
 
 %ArcsMatrixでの複素数QR分解の結果(横長行列)
 Acmpx2
-[Qqr4, Rqr4] = qr(Acmpx2)
+[Qqr4_, Rqr4_] = qr(Acmpx2)
 Qqr4 = [
   -0.707 +  0.000i,   0.000 -  0.707i ;
    0.000 -  0.707i,  -0.707 -  0.000i 
@@ -179,22 +178,22 @@ Rqr4 = [
 % MATLABに準拠させるための等価変換
 D  = diag(1./sign(diag(Rqr4)));
 Di = diag(sign(diag(Rqr4)));
-Q = Qqr4*Di;
-R = D*Rqr4;
+Qqr4 = Qqr4*Di
+Rqr4 = D*Rqr4
 
 %ArcsMatrixでの複素数QR分解の結果(縦長行列)
 Acmpx2t = Acmpx2'
-[Qqr5, Rqr5] = qr(Acmpx2t)
+[Qqr5_, Rqr5_] = qr(Acmpx2t)
 Qqr5 = [
   -0.196 +  0.000i,  -0.199 +  0.041i,   0.067 +  0.957i ;
   -0.686 +  0.098i,  -0.663 +  0.040i,  -0.020 -  0.279i ;
    0.098 -  0.686i,  -0.144 +  0.705i,  -0.003 -  0.040i 
-];
+]
 Rqr5 = [
   -5.099 +  5.099i,  -1.177 +  1.569i ;
   -0.000 -  0.000i,   5.239 +  4.551i ;
   -0.000 -  0.000i,   0.000 -  0.000i 
-];
+]
 % MATLABに準拠させるための等価変換
 % しかし、Qが補正できないので今後の課題
 %{
@@ -285,19 +284,19 @@ Vs5 = [
   -0.5521 +  0.4788i,  -0.4399 +  0.4406i,  -0.0196 -  0.2791i ;
    0.4962 -  0.4304i,  -0.5320 +  0.5329i,  -0.0028 -  0.0399i ];
 % MATLABに準拠させるための等価変換
+% しかし、不明な点が多々あり、今後の課題
 % A = U S V' = U D2 Di2 S (V D3 Di3)' = U D2 Di2 S Di3' (V D3)' = U D2 S (V D3)' = Un S Vn'
 % Di2*S*Di3'    = S
 % D2*Di2*S*Di3' = D2*S
 %        S*Di3' = D2*S
 %          Di3' = S\D2*S
 %          Di3  = (S\D2*S)'
+%{
 d = 1./sign(Us5(1,:))
 D2  = diag(d)
 Di2 = diag(1./d)
 x = (0.9075 + 0.4200i)	% 謎の係数
 x = Vs5_(:,3)./Vs5(:,3)	% 謎の係数
-
-%Di3 = [ diag(diag(D2*Ss5)./diag(Ss5)), zeros(2,1) ]
 Di3 = (Ss5\D2*Ss5)'
 Di3(3,3) = 1
 D3 = diag(1./diag(Di3))
@@ -306,7 +305,8 @@ I = Di3*D3
 V  = Vs5
 VD = Vs5*D3
 det(V)
-1/det(VD)	% 謎の係数が計算できた！
+1/det(VD)	% 謎の係数が計算できたとおもいきや微妙に異なる、不明
+%}
 
 %ArcsMatrixでの特異値分解の結果(長い横長行列)
 Acomp2 = [
@@ -326,34 +326,21 @@ Vs6 = [
   -0.4426 +  0.0890i,   0.1830 -  0.3272i,  -0.0141 -  0.0894i,   0.7456 -  0.0144i,  -0.2795 +  0.1150i  ;
   -0.3656 -  0.0789i,   0.4824 -  0.3612i,   0.1153 -  0.0912i,  -0.2613 -  0.1280i,   0.6251 -  0.0012i  ]
 % MATLABに準拠させるための等価変換
+% しかし、不明な点が多々あり、今後の課題
+%{
 x = Vs6_(:,3)./Vs6(:,3)	% 謎の係数
 x = Vs6_(:,4)./Vs6(:,4)	% 謎の係数
 x = Vs6_(:,5)./Vs6(:,5)	% 謎の係数
-
-diag(Vs6_)./diag(Vs6)
-% https://jp.mathworks.com/matlabcentral/answers/419089-where-am-i-going-wrong-in-this-code-to-find-svd-of-a-matrix
-
-
-%{
-D3 = diag(1./diag(Di3))
-D3(3,3) = 0
-D3*Di3
-Vs5*D3
-%}
-%Us5 = Us5*D
-
-%{
-Us5(:,1) = d(1)*Us5(:,1);
-Us5(:,2) = d(2)*Us5(:,2);
-Us5
-Vs5(:,1) = d(1)*Vs5(:,1);
-Vs5(:,2) = d(2)*Vs5(:,2);
-Vs5(:,3) = (0.9075 + 0.4200i)*Vs5(:,3);	% ←謎のスカラー倍するとMATLABと合う
-Vs5
 %}
 
-%[Us6, Ss6, Vs6] = svd(Acmpx2')
-
+fprintf('\n');
+disp '★ コレスキー分解関連の関数'
+Achol1 = [
+	 7, -2,  9 ;
+	-2,  6, -3 ;
+	 9, -3,  3
+]
+[L, D] = ldl(Achol1)
 
 %{
 % Schur分解

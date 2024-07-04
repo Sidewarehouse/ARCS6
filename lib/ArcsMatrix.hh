@@ -2358,7 +2358,7 @@ class ArcsMat {
 			for(size_t i = 0; i < LoopMax; ++i){
 				// MATLABに準拠するために縦長か横長かで漸化式の順序を変える
 				if constexpr( N <= M ){
-					// 縦長の場合
+					// 正方および縦長の場合
 					ArcsMat<M,N,T>::QR(S, Qm, S);
 					ArcsMat<N,M,T>::QR(~S, Qn, Snm);
 					S = ~Snm;
@@ -2405,6 +2405,44 @@ class ArcsMat {
 			SVD(A, U, S, V);
 			return {U, S, V};
 		}
+		
+		//! @brief 修正コレスキー分解(LDL分解) (引数渡し版)
+		//! @tparam	M, N, T, ML, NL, TL, MD, ND, TD	A, L, D行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	L	下三角行列
+		//! @param[out]	D	対角行列
+		template<size_t ML, size_t NL, typename TL = double, size_t MD, size_t ND, typename TD = double>
+		static constexpr void LDL(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MD,ND,TD>& D){
+			static_assert(M == N,  "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(ML == M, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(NL == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MD == M, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(ND == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TL>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TD>, "ArcsMat: Type Error");	// 対応可能型チェック
+			L(1,1) = A(1,1);
+			D(1,1) = static_cast<T>(1)/L(1,1);
+			
+			for(size_t i = 2; i <= N; ++i){
+				for(size_t j = 1; j <= i; ++j){
+					T lld = A(i,j);
+					for(size_t k = 1; k < j; ++k){
+						lld -= L(i,k)*L(j,k)*D(k,k);
+					}
+					L(i,j) = lld;
+				}
+				D(i,i) = static_cast<T>(1)/L(i,i);
+			}
+			
+			// MATLABに準拠させるための等価変換を実行
+			const auto l  = ArcsMat<M,1,T>::ones();					// C++20移行時にconstexprに改修すべし！	
+			const ArcsMat<M,1,T> di = ArcsMat<M,N,T>::getdiag(D);	// 対角要素を抽出
+			const ArcsMat<M,N,T> Di = ArcsMat<M,1,T>::diag(di);
+			const ArcsMat<M,1,T> d  = l % di;						// 対角要素の逆数を抽出
+			L = L*Di;
+			D = ArcsMat<M,1,T>::diag(d);
+		}
 
 /*		
 		//! @brief 行列の非ゼロ要素数を返す関数
@@ -2428,27 +2466,6 @@ class ArcsMat {
 			ArcsMat<N,N,T> U, S, V;
 			SVD(A, U, S, V);			// まず特異値分解して，
 			return nonzeroele(diag(S));	// S行列の対角要素の非ゼロをカウントするとそれがランク
-		}
-		
-		//! @brief 修正コレスキー分解(LDL^T版)
-		//! @param[in]	A	入力行列
-		//! @param[out]	L	下三角行列
-		//! @param[out]	D	対角行列
-		constexpr friend void Cholesky(const ArcsMat& A, ArcsMat& L, ArcsMat& D){
-			static_assert(A.N == A.M, "ArcsMat Size Error");	// Aが正方行列かチェック
-			L.Data[0][0] = A.Data[0][0];
-			D.Data[0][0] = 1.0/L.Data[0][0];
-			
-			for(size_t i = 1; i < A.N; ++i){
-				for(size_t j = 0; j <= i; ++j){
-					T lld = A.Data[j][i];
-					for(size_t k = 0; k < j; ++k){
-						lld -= L.Data[k][i]*L.Data[k][j]*D.Data[k][k];
-					}
-					L.Data[j][i] = lld;
-				}
-				D.Data[i][i] = 1.0/L.Data[i][i];
-			}
 		}
 		
 		//! @brief 修正コレスキー分解(LL^T版)
@@ -4124,6 +4141,16 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr std::tuple<ArcsMat<M,M,T>, ArcsMat<M,N,T>, ArcsMat<N,N,T>> SVD(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::SVD(A);
+	}
+
+	//! @brief 修正コレスキー分解(LDL分解) (引数渡し版)
+	//! @tparam	M, N, T, ML, NL, TL, MD, ND, TD	A, L, D行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	L	下三角行列
+	//! @param[out]	D	対角行列
+	template<size_t M, size_t N, typename T = double, size_t ML, size_t NL, typename TL = double, size_t MD, size_t ND, typename TD = double>
+	constexpr void LDL(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MD,ND,TD>& D){
+		ArcsMat<M,N,T>::LDL(A, L, D);
 	}
 }
 
