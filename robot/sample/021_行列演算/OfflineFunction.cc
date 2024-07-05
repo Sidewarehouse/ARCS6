@@ -653,8 +653,8 @@ int main(void){
 		5, 5
 	};
 	disp(Jx3);
-	disp(getdiag(Jx3));						// 縦長の場合の対角要素を無理やり取得
-	disp(getdiag(tp(Jx3)));					// 横長の場合の対角要素を無理やり取得
+	disp(getdiag(Jx3));						// 縦長の場合の主対角要素を取得
+	disp(getdiag(tp(Jx3)));					// 横長の場合の主対角要素を取得
 	printf("trace(Jx2) = %f\n", trace(Jx2));// トレースを計算する (戻り値渡し版のみ)
 	constexpr double trJx2 = trace(Jx2);				// コンパイル時にトレースを計算
 	printf("trJx2 = %f\n", trJx2);
@@ -1076,17 +1076,67 @@ int main(void){
 	dispf(~Rchol1*Rchol1, "% 8.4f");		// 元に戻るかチェック
 	constexpr auto Rchol1x = Cholesky(Achol2);			// コンパイル時に修正コレスキー分解を計算
 	dispf(Rchol1x, "% 8.4f");
-	
+
+	// 線形方程式関連の関数
+	printf("\n★★★★★★★ 線形方程式関連の関数\n");
+	ArcsMat<3,3> Aslv1 = {
+		1,  1,  1,
+		2,  3, -2,
+		3, -1,  1
+	};
+	ArcsMat<3,1> bslv1 = {
+		9,
+		5,
+		7
+	};
+	ArcsMat<3,1> xslv1;
+	ArcsMat<3,3>::linsolve_vec(Aslv1, bslv1, xslv1);
+	dispf(Aslv1, "% 8.4f");
+	dispf(bslv1, "% 8.4f");
+	dispf(xslv1, "% 8.4f");
+	ArcsMat<3,3> Bslv2 = {
+		9,  2,  7,
+		5,  6, -7,
+		7, -3,  5
+	};
+	ArcsMat<3,3> Xslv2;
+	ArcsMat<3,3>::linsolve_mat(Aslv1, Bslv2, Xslv2);
+	dispf(Bslv2, "% 8.4f");
+	dispf(Xslv2, "% 8.4f");
+	ArcsMat<4,3> Aslv3 = {
+		1,  1,  1,
+		2,  3, -2,
+		3, -1,  1,
+		7,  5,  4
+	};
+	ArcsMat<4,1> bslv3 = {
+		9,
+		5,
+		7,
+		3
+	};
+	ArcsMat<3,1> xslv3;
+	ArcsMat<4,3>::linsolve_vec_nsqv(Aslv3, bslv3, xslv3);
+	dispf(Aslv3, "% 8.4f");
+	dispf(bslv3, "% 8.4f");
+	dispf(xslv3, "% 8.4f");
+	ArcsMat<4,3> Bslv4 = {
+		9,  2,  7,
+		5,  6, -7,
+		7, -3,  5,
+		3,  1,  2 
+	};
+	ArcsMat<3,3> Xslv4;
+	ArcsMat<4,3>::linsolve_mat_nsqv(Aslv3, Bslv4, Xslv4);
+	dispf(Bslv4, "% 8.4f");
+	dispf(Xslv4, "% 8.4f");
+
+
 	/*
 	// 行列演算補助関連の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");
 	printf("nonzeroele(I) = %ld\n", nonzeroele(I));
 	printf("rank(I) = %ld\n", rank(I));
-	
-	// ノルム演算関連のテスト
-	printf("\n★★★★★★★ ノルム演算関連のテスト\n");
-	printf("infnorm(A) = %f\n", infnorm(A));
-	printf("euclidnorm(v) = %f\n", euclidnorm(v));
 	
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");

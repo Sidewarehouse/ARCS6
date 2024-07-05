@@ -340,18 +340,54 @@ Achol1 = [
 	-2,  6, -3 ;
 	 9, -3,  3
 ]
-[Lchol1, Dchol1] = ldl(Achol1)
+[Lldl1, Dldl1] = ldl(Achol1)
 Acomp3 = [
 	4.0 + 6.0i,  1.0 - 3.0i,  5.0 + 2.0i ;
 	1.0 - 3.0i, -7.0 - 6.0i,  7.0 - 1.0i ;
 	5.0 + 2.0i,  7.0 - 1.0i, -5.0 - 3.0i ]
-%[Lchol2, Dchol2] = ldl(Acomp3)	% 複素数のLDL分解はMATLABでは非対応
+%[Lldl2, Dldl2] = ldl(Acomp3)	% 複素数のLDL分解はMATLABでは非対応
 %chol(Achol1)					% 対称正定値行列ではないのでエラー
 Achol2 = [
     2.3370   -0.0127   -0.6299 ;
    -0.0127    2.3370   -0.0127 ;
    -0.6299   -0.0127    2.3370 ]
-Lchol2 = chol(Achol2)
+Rchol1 = chol(Achol2)
+
+fprintf('\n');
+disp '★ 線形方程式関連の関数'
+Aslv1 = [
+	1,  1,  1 ;
+	2,  3, -2 ;
+	3, -1,  1 ]
+bslv1 = [
+	9 ;
+	5 ;
+	7 ]
+xslv1 = linsolve(Aslv1, bslv1)
+Bslv2 = [
+	9,  2,  7 ;
+	5,  6, -7 ;
+	7, -3,  5 ]
+Xslv2 = linsolve(Aslv1, Bslv2)
+Aslv3 = [
+	1,  1,  1 ;
+	2,  3, -2 ;
+	3, -1,  1 ;
+	7,  5,  4 ]
+bslv3 = [
+	9 ;
+	5 ;
+	7 ;
+	3 ]
+xslv3 = linsolve(Aslv3, bslv3)
+Bslv4 = [
+	9,  2,  7 ;
+	5,  6, -7 ;
+	7, -3,  5 ;
+	3,  1,  2 ]
+Xslv4 = linsolve(Aslv3, Bslv4)
+
+
 
 %{
 % Schur分解

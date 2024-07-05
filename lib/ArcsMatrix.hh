@@ -2476,7 +2476,138 @@ class ArcsMat {
 			ArcsMat<M,N,T>::Cholesky(A, R);
 			return R;
 		}
+		
+		//! @brief Ax = bの形の線形方程式をxについて解く関数(正方行列A・ベクトルx,b版) (内部用引数渡し版のみ)
+		//! @param[in]	A	係数行列(正方行列)
+		//! @param[in]	b	係数ベクトル
+		//! @param[out]	x	解ベクトル
+		template<size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+		static constexpr void linsolve_vec(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& b, ArcsMat<MX,NX,TX>& x){
+			static_assert(M == N,  "ArcsMat: Size Error");		// 正方行列チェック
+			static_assert(MB == M,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(MX == N,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(NB == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
+			static_assert(NX == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TB>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TX>, "ArcsMat: Type Error");	// 対応可能型チェック
+			
+			// 行列のサイズでアルゴリズムを変える
+			if constexpr(M == 1){
+				// スカラーの場合
+				x[1] = b[1]/A(1,1);	// スカラーのときはそのまま単純に除算
+			}else{
+				// 行列の場合
+				// まず、Ax = b の A をLUP分解すると、
+				// 　Ax = b  →  P'LUx = b  →  PP'LUx = Pb  →  LUx = Pb
+				// となり、Ux = d、Pb = c と置き換えると、
+				// 　Ld = c
+				// と書けるので、そこまでの計算をすると下記のコードとなる。
+				const auto [L, U, P] = LUP(A);
+				const auto c = P*b;
+				ArcsMat<M,1,T> d;
 
+				// 次に、Ld = c の d について解く。Lは下三角行列で対角が1なので、下記の前進代入法で求まる。
+				T buff = 0;			// 行方向加算用のバッファ
+				d[1] = c[1];		// 1行目は答えがそのまま現れる
+				for(size_t i = 2; i <= M; ++i){
+					for(size_t j = 1; j < i; ++j) buff += L(i,j)*d[j];
+					d[i] = c[i] - buff;	// i行目の答え
+					buff = 0;
+				}
+
+				// さらに、Ux = d の x について解く。Uは上三角行列なので、下記の後退代入法で求まる。
+				x[M] = d[M]/U(M,M);	// 最後のM行目はUの対角項で割るだけ
+				for(ssize_t i = M - 1; 0 < i; --i){
+					for(size_t j = static_cast<size_t>(i) + 1; j <= N; ++j){
+						buff += U(i,j)*x[j];
+					}
+					x[i] = (d[i] - buff)/U(i,i);
+					buff = 0;
+				}
+			}
+		}
+		
+		//! @brief AX = Bの形の線形方程式をxについて解く関数(正方行列A・行列X,B版) (内部用引数渡し版のみ)
+		//! @param[in]	A	係数行列(正方行列)
+		//! @param[in]	B	係数行列(正方行列)
+		//! @param[out]	X	解行列
+		template<size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+		static constexpr void linsolve_mat(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MX,NX,TX>& X){
+			static_assert(M == N,   "ArcsMat: Size Error");		// 正方行列チェック
+			static_assert(MB == M,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(MX == N,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(NX == NB, "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TB>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TX>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// 列ごとに線形方程式を解く
+			ArcsMat<MX,1,TX> x;
+			for(size_t i = 1; i <= NB; ++i){
+				ArcsMat<M,N,T>::linsolve_vec(A, ArcsMat<MB,NB,TB>::getcolumn(B, i), x);
+				ArcsMat<MX,NX,TX>::setcolumn(X, x, i);
+			}
+		}
+		
+		//! @brief Ax = bの形の線形方程式をxについて解く関数(非正方縦長行列A・ベクトルx,b版) (内部用引数渡し版のみ)
+		//! @param[in]	A	係数行列(非正方縦長行列)
+		//! @param[in]	b	係数ベクトル
+		//! @param[out]	x	解ベクトル
+		template<size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+		static constexpr void linsolve_vec_nsqv(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& b, ArcsMat<MX,NX,TX>& x){
+			static_assert(N < M,   "ArcsMat: Size Error");		// 非正方縦長行列チェック
+			static_assert(MB == M,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(MX == N,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(NB == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
+			static_assert(NX == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TB>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TX>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// まず、Ax = b の A をQR分解すると、
+			// 　Ax = b  →  QRx = b
+			// となり、Rx = d と置き換えると、
+			// 　Qd = b
+			// 　Q'Qd = Q'b  (← Qは直交行列なので Q'Q = I)
+			// 　d = Q'b
+			// と書けるので、そこまでの計算をすると下記のコードとなる。
+			const auto [Q, R] = QR(A);
+			const auto d = ~Q*b;
+
+			// 次に、Rx = d の x について解く。Rは縦長上三角行列なので、下記の後退代入法で求まる。
+			T buff = 0;			// 行方向加算用のバッファ
+			x[N] = d[N]/R(N,N);	// xの最後のN行目は対角項で割るだけ。
+			for(ssize_t i = N - 1; 0 < i; --i){
+				for(size_t j = static_cast<size_t>(i) + 1; j <= N; ++j){
+					buff += R(i,j)*x[j];
+				}
+				x[i] = (d[i] - buff)/R(i,i);
+				buff = 0;
+			}
+		}
+		
+		//! @brief Ax = bの形の線形方程式をxについて解く関数(非正方縦長行列A・行列X,B版) (内部用引数渡し版のみ)
+		//! @param[in]	A	係数行列(非正方縦長行列)
+		//! @param[in]	B	係数行列(非正方縦長行列)
+		//! @param[out]	X	解行列
+		template<size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+		static constexpr void linsolve_mat_nsqv(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MX,NX,TX>& X){
+			static_assert(N < M,   "ArcsMat: Size Error");		// 非正方縦長行列チェック
+			static_assert(MB == M,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(MX == N,  "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(NX == NB, "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TB>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TX>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// 列ごとに線形方程式を解く
+			ArcsMat<MX,1,TX> x;
+			for(size_t i = 1; i <= NB; ++i){
+				ArcsMat<M,N,T>::linsolve_vec_nsqv(A, ArcsMat<MB,NB,TB>::getcolumn(B, i), x);
+				ArcsMat<MX,NX,TX>::setcolumn(X, x, i);
+			}
+		}
 /*		
 		//! @brief 行列の非ゼロ要素数を返す関数
 		//! @param[in]	U	入力行列
@@ -2519,47 +2650,6 @@ class ArcsMat {
 			}
 			Q = Qa;
 			U = Tk;
-		}
-		
-		//! @brief Ax = bの形の線形連立1次方程式をxについて解く関数(引数渡し版)
-		//! @param[in]	A	係数行列
-		//! @param[in]	b	係数ベクトル
-		//! @param[out]	x	解ベクトル
-		constexpr friend void solve(const ArcsMat& A, const ArcsMat<1,M,T>& b, ArcsMat<1,N,T>& x){
-			static_assert(A.N == A.M, "ArcsMat Size Error");				// Aが正方行列かチェック
-			static_assert(b.M == A.M, "ArcsMat and Vector Size Error");	// Aの高さとbの高さが同じかチェック
-			static_assert(b.N == 1, "Input is NOT vector.");			// bは縦ベクトルかチェック
-			
-			if constexpr(M == 1){
-				// スカラーの場合
-				x[1] = b[1]/A.GetElement(1,1);	// スカラーのときはそのまま単純に除算
-			}else{
-				// 行列の場合
-				// Ax = b において A をLU分解すると，(LU)x = b になって L(Ux) = b と表現できることを利用する。
-				ArcsMat<A.N,A.N,T> L, U;
-				ArcsMat<1,A.N,T> d, bb;
-				ArcsMat<1,A.N,int> v;
-				T buff = 0;
-				LU(A, L, U, v);		// まず，LU分解(並べ替え有り)してから，Ux = d と勝手に置き換えて考える。
-				bb = orderrow(b, v);// bベクトルも並べ替える
-				// その次に Ld = b の方を d について解いて，
-				// (下記では，Lの対角要素が1となるLU分解がなされているものとして計算する)
-				d.Data[0][0] = bb.Data[0][0];
-				for(size_t i = 1; i < A.N; ++i){
-					for(size_t j = 0; j <= i - 1; ++j) buff += L.Data[j][i]*d.Data[0][j];
-					d.Data[0][i] = (bb.Data[0][i] - buff);
-					buff = 0;
-				}
-				// さらに Ux = d を x について解く。
-				x.Data[0][A.N-1] = d.Data[0][A.N-1]/U.Data[A.N-1][A.N-1];
-				for(int k = A.N - 2; 0 <= k; --k){
-					for(size_t j = (size_t)k + 1; j < A.N; ++j){
-						buff += U.Data[j][k]*x.Data[0][j];
-					}
-					x.Data[0][k] = (d.Data[0][k] - buff)/U.Data[k][k];
-					buff = 0;
-				}
-			}
 		}
 		
 		//! @brief Ax = bの形の線形連立1次方程式をxについて解く関数(戻り値として返す版)
