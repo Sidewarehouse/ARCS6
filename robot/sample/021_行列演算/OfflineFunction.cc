@@ -1031,29 +1031,52 @@ int main(void){
 	dispf(Us6*Ss6*~Vs6, "% 8.4f");		// 元に戻るかチェック
 
 	// コレスキー分解関連の関数
+	// 注意：コレスキー分解は対称正定値でないと失敗する(理論的に)が、関数内部での判定は行っていない。
 	printf("\n★★★★★★★ コレスキー分解関連の関数\n");
-	ArcsMat<3,3> Achol1 = {
+	constexpr ArcsMat<3,3> Achol1 = {
 		 7, -2,  9,
 		-2,  6, -3,
 		 9, -3,  3
 	};
-	ArcsMat<3,3> Lchol1, Dchol1;
-	LDL(Achol1, Lchol1, Dchol1);			// LDL分解を計算 (引数渡し版)
+	ArcsMat<3,3> Lldl1, Dldl1;
+	LDL(Achol1, Lldl1, Dldl1);				// LDL分解を計算 (引数渡し版)
+	std::tie(Lldl1, Dldl1) = LDL(Achol1);	// LDL分解を計算 (タプル返し版)
 	dispf(Achol1, "% 8.4f");
-	dispf(Lchol1, "% 8.4f");
-	dispf(Dchol1, "% 8.4f");
-	dispf(Lchol1*Dchol1*~Lchol1, "% 8.4f");	// 元に戻るかチェック
+	dispf(Lldl1, "% 8.4f");
+	dispf(Dldl1, "% 8.4f");
+	dispf(Lldl1*Dldl1*~Lldl1, "% 8.4f");	// 元に戻るかチェック
+	constexpr auto LDldl1x = LDL(Achol1);				// コンパイル時にLDL分解を計算
+	constexpr auto Lldl1x = std::get<0>(LDldl1x);		// コンパイル時に計算したL行列を抽出
+	constexpr auto Dldl1x = std::get<1>(LDldl1x);		// コンパイル時に計算したL行列を抽出
+	dispf(Lldl1x, "% 8.4f");
+	dispf(Dldl1x, "% 8.4f");
 	ArcsMat<3,3,std::complex<double>> Acomp3 = {
 		4.0 + 6.0i,  1.0 - 3.0i,  5.0 + 2.0i,
 		1.0 - 3.0i, -7.0 - 6.0i,  7.0 - 1.0i,
 		5.0 + 2.0i,  7.0 - 1.0i, -5.0 - 3.0i
 	};
-	auto [Lchol2, Dchol2] = LDL(Acomp3);	// 複素数LDL分解を計算 (タプル返し版)
+	auto [Lldl2, Dldl2] = LDL(Acomp3);		// 複素数LDL分解を計算(MATLABでは非対応で失敗する可能性アリ) (タプル返し版)
 	dispf(Acomp3, "% 8.4f");
-	dispf(Lchol2, "% 8.4f");
-	dispf(Dchol2, "% 8.4f");
-	dispf(Lchol2*Dchol2*tp(Lchol2), "% 8.4f");	// 共役転置ではなく普通の転置で元に戻る
-
+	dispf(Lldl2, "% 8.4f");
+	dispf(Dldl2, "% 8.4f");
+	dispf(Lldl2*Dldl2*tp(Lldl2), "% 8.4f");	// 共役転置ではなく普通の転置で元に戻る
+	ArcsMat<3,3> Rchol1;
+	Cholesky(Achol1, Rchol1);				// 修正コレスキー分解を計算 (引数渡し版)
+	dispf(Achol1, "% 8.4f");				// ←対称正定値行列ではないので、
+	dispf(Rchol1, "% 8.4f");				// ←NaNが出現
+	constexpr ArcsMat<3,3> Achol2 = {
+		 2.3370,   -0.0127,   -0.6299,
+		-0.0127,    2.3370,   -0.0127,
+		-0.6299,   -0.0127,    2.3370
+	};
+	Cholesky(Achol2, Rchol1);				// 修正コレスキー分解を計算 (引数渡し版)
+	Rchol1 = Cholesky(Achol2);				// 修正コレスキー分解を計算 (戻り値返し版)
+	dispf(Achol2, "% 8.4f");				// ←対称正定値行列なので、
+	dispf(Rchol1, "% 8.4f");				// ←ちゃんと分解できる
+	dispf(~Rchol1*Rchol1, "% 8.4f");		// 元に戻るかチェック
+	constexpr auto Rchol1x = Cholesky(Achol2);			// コンパイル時に修正コレスキー分解を計算
+	dispf(Rchol1x, "% 8.4f");
+	
 	/*
 	// 行列演算補助関連の関数のテスト
 	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");
@@ -1064,27 +1087,6 @@ int main(void){
 	printf("\n★★★★★★★ ノルム演算関連のテスト\n");
 	printf("infnorm(A) = %f\n", infnorm(A));
 	printf("euclidnorm(v) = %f\n", euclidnorm(v));
-	
-	// Cholesky分解(LDL^T版)のテスト
-	printf("\n★★★★★★★ Cholesky分解(LDL^T版)のテスト\n");
-	Matrix<3,3> Ach = {
-		  4,  12, -16,
-		 12,  37, -43,
-		-16, -43,  98
-	};
-	Matrix<3,3> Lch, Dch;
-	Cholesky(Ach, Lch, Dch);
-	PrintMat(Ach);
-	PrintMat(Lch);
-	PrintMat(Dch);
-	PrintMat(Lch*Dch*tp(Lch));
-	
-	// Cholesky分解(LL^T版)のテスト
-	printf("\n★★★★★★★ Cholesky分解(LL^T版)のテスト\n");
-	Cholesky(Ach, Lch);
-	PrintMat(Ach);
-	PrintMat(Lch);
-	PrintMat(Lch*tp(Lch));
 	
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");
