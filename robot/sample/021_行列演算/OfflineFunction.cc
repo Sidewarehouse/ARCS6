@@ -1130,7 +1130,14 @@ int main(void){
 	ArcsMat<4,3>::linsolve_mat_nsqv(Aslv3, Bslv4, Xslv4);
 	dispf(Bslv4, "% 8.4f");
 	dispf(Xslv4, "% 8.4f");
-
+	ArcsMat<4,1> xslv5;
+	ArcsMat<3,4>::linsolve_vec_nsqh(~Aslv3, bslv1, xslv5);
+	dispf(xslv5, "% 8.3f");			// この関数はMATLABとは異なる解を出力する
+	dispf(~Aslv3*xslv5, "% 8.4f");	// ただしもちろん、Ax = b は成立
+	ArcsMat<4,4> Xslv6;
+	ArcsMat<3,4>::linsolve_mat_nsqh(~Aslv3, ~Bslv4, Xslv6);
+	dispf(Xslv6, "% 8.3f");			// この関数はMATLABとは異なる解を出力する
+	dispf(~Aslv3*Xslv6, "% 8.4f");	// ただしもちろん、AX = B は成立
 
 	/*
 	// 行列演算補助関連の関数のテスト
