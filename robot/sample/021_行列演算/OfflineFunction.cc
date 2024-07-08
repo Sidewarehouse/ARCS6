@@ -1090,36 +1090,34 @@ int main(void){
 		7
 	};
 	ArcsMat<3,1> xslv1;
-	ArcsMat<3,3>::linsolve_vec(Aslv1, bslv1, xslv1);
-	dispf(Aslv1, "% 8.4f");
-	dispf(bslv1, "% 8.4f");
-	dispf(xslv1, "% 8.4f");
+	linsolve(Aslv1, bslv1, xslv1);	// Ax = bの形の線形方程式をxについて解く関数(引数渡し版)
+	dispf(Aslv1, "% 8.4f");			// Aが正方行列で、
+	dispf(bslv1, "% 8.4f");			// bがベクトルで、
+	dispf(xslv1, "% 8.4f");			// xもベクトルの場合
 	ArcsMat<3,3> Bslv2 = {
 		9,  2,  7,
 		5,  6, -7,
 		7, -3,  5
 	};
-	ArcsMat<3,3> Xslv2;
-	ArcsMat<3,3>::linsolve_mat(Aslv1, Bslv2, Xslv2);
-	dispf(Bslv2, "% 8.4f");
-	dispf(Xslv2, "% 8.4f");
-	ArcsMat<4,3> Aslv3 = {
+	auto Xslv2 = linsolve(Aslv1, Bslv2);	// AX = Bの形の線形方程式をXについて解く関数(戻り値返す版)
+	dispf(Bslv2, "% 8.4f");			// Aが正方行列で、Bが行列で、
+	dispf(Xslv2, "% 8.4f");			// Xも行列の場合
+	constexpr ArcsMat<4,3> Aslv3 = {
 		1,  1,  1,
 		2,  3, -2,
 		3, -1,  1,
 		7,  5,  4
 	};
-	ArcsMat<4,1> bslv3 = {
+	constexpr ArcsMat<4,1> bslv3 = {
 		9,
 		5,
 		7,
 		3
 	};
-	ArcsMat<3,1> xslv3;
-	ArcsMat<4,3>::linsolve_vec_nsqv(Aslv3, bslv3, xslv3);
-	dispf(Aslv3, "% 8.4f");
-	dispf(bslv3, "% 8.4f");
-	dispf(xslv3, "% 8.4f");
+	constexpr auto xslv3 = linsolve(Aslv3, bslv3);	// コンパイル時にAx = bの形の線形方程式をXについて解く
+	dispf(Aslv3, "% 8.4f");			// Aが非正方縦長行列で、
+	dispf(bslv3, "% 8.4f");			// bがベクトルで、
+	dispf(xslv3, "% 8.4f");			// xもベクトルの場合
 	ArcsMat<4,3> Bslv4 = {
 		9,  2,  7,
 		5,  6, -7,

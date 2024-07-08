@@ -2685,22 +2685,22 @@ class ArcsMat {
 				X[1] = B[1]/A(1,1);	// スカラーのときはそのまま単純に除算
 			}else if constexpr((M == N) && (NB == 1)){
 				// Aが正方行列で、Bが縦ベクトルの場合
-				linsolve_vec(A, B, X);		// LU分解を使った線形方程式のベクトル版の解法を使用
+				ArcsMat<M,N,T>::linsolve_vec(A, B, X);		// LU分解を使った線形方程式のベクトル版の解法を使用
 			}else if constexpr((M == N) && (NB != 1)){
 				// Aが正方行列で、Bも行列の場合
-				linsolve_mat(A, B, X);		// LU分解を使った線形方程式の行列版の解法を使用
+				ArcsMat<M,N,T>::linsolve_mat(A, B, X);		// LU分解を使った線形方程式の行列版の解法を使用
 			}else if constexpr((N < M) && (NB == 1)){
 				// Aが縦長行列で、Bが縦ベクトルの場合
-				linsolve_vec_nsqv(A, B ,X);	// QR分解を使った線形方程式のベクトル版の解法を使用
+				ArcsMat<M,N,T>::linsolve_vec_nsqv(A, B ,X);	// QR分解を使った線形方程式のベクトル版の解法を使用
 			}else if constexpr((N < M) && (NB != 1)){
 				// Aが縦長行列で、Bが行列の場合
-				linsolve_mat_nsqv(A, B ,X);	// QR分解を使った線形方程式の行列版の解法を使用
+				ArcsMat<M,N,T>::linsolve_mat_nsqv(A, B ,X);	// QR分解を使った線形方程式の行列版の解法を使用
 			}else if constexpr((M < N) && (NB == 1)){
 				// Aが縦長行列で、Bが縦ベクトルの場合
-				linsolve_vec_nsqh(A, B ,X);	// QR分解を使った線形方程式のベクトル版の解法を使用(この場合はMATLABとは異なる解を出力する、ただしもちろん、Ax = b は成立)
+				ArcsMat<M,N,T>::linsolve_vec_nsqh(A, B ,X);	// QR分解を使った線形方程式のベクトル版の解法を使用(この場合はMATLABとは異なる解を出力する、ただしもちろん、Ax = b は成立)
 			}else if constexpr((M < N) && (NB != 1)){
 				// Aが縦長行列で、Bが行列の場合
-				linsolve_mat_nsqh(A, B ,X);	// QR分解を使った線形方程式の行列版の解法を使用(この場合はMATLABとは異なる解を出力する、ただしもちろん、AX = B は成立)
+				ArcsMat<M,N,T>::linsolve_mat_nsqh(A, B ,X);	// QR分解を使った線形方程式の行列版の解法を使用(この場合はMATLABとは異なる解を出力する、ただしもちろん、AX = B は成立)
 			}else{
 				arcs_assert(false);			// ここには来ない
 			}
@@ -2712,8 +2712,8 @@ class ArcsMat {
 		//! @param[in]	B	係数ベクトル・行列
 		//! @param[out]	X	解ベクトル・行列
 		template<size_t MB, size_t NB, typename TB = double>
-		static constexpr ArcsMat<M,NB,T> linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
-			ArcsMat<M,NB,T> X;
+		static constexpr ArcsMat<N,NB,T> linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
+			ArcsMat<N,NB,T> X;
 			ArcsMat<M,N,T>::linsolve(A, B, X);
 			return X;
 		}
@@ -4387,6 +4387,26 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> Cholesky(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::Cholesky(A);
+	}
+
+	//! @brief AX = Bの形の線形方程式をXについて解く関数(引数渡し版)
+	//! @tparam	M, N, T, MB, NB, TB, MX, NX, TX	A、BとXの高さ, 幅, 要素の型
+	//! @param[in]	A	係数行列(正方行列・非正方行列)
+	//! @param[in]	B	係数ベクトル・行列
+	//! @param[out]	X	解ベクトル・行列
+	template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+	constexpr void linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MX,NX,TX>& X){
+		ArcsMat<M,N,T>::linsolve(A, B, X);
+	}
+	
+	//! @brief AX = Bの形の線形方程式をXについて解く関数(戻り値返し版)
+	//! @tparam	M, N, T, MB, NB, TB	A、Bの高さ, 幅, 要素の型
+	//! @param[in]	A	係数行列(正方行列・非正方行列)
+	//! @param[in]	B	係数ベクトル・行列
+	//! @return	X	解ベクトル・行列
+	template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double>
+	constexpr ArcsMat<N,NB,T> linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
+		return ArcsMat<M,N,T>::linsolve(A, B);
 	}
 }
 
