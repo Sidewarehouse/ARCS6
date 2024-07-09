@@ -65,9 +65,10 @@ int main(void){
 	disp(Aint);				// 整数行列Aintを表示
 	A.DispAddress();		// 行列Aのメモリアドレスを表示
 
-	// 行列のサイズの取得
-	printf("H = %zu, W = %zu\n", A.GetHeight(), A.GetWidth());
-	
+	// 行列のサイズと要素情報の取得
+	printf("H = %zu, W = %zu\n", A.GetHeight(), A.GetWidth());	// 行列Aの高さと幅を表示
+	printf("Non-Zero = %zu\n", A.GetNumOfNonZero());			// 行列Aの非ゼロ要素の数を表示
+
 	// 行列要素からの取得
 	printf("\n★★★★★★★ 行列要素からの取得\n");
 	double a11, a12, a13, a21, a22, a23, a31, a32, a33;
@@ -1045,6 +1046,27 @@ int main(void){
 	dispf(Vs6, "% 8.4f");
 	dispf(Us6*Ss6*~Vs6, "% 8.4f");		// 元に戻るかチェック
 
+	// 階数関連の関数
+	printf("\n★★★★★★★ 階数関連の関数\n");
+	constexpr ArcsMat<3,3> Arank1 = {
+		 3, 2,  4,
+		-1, 1,  2,
+		 9, 5, 10
+	};
+	dispf(Arank1, "% 8.4f");	
+	printf("rank(Arank1) = %zu\n", rank(Arank1));	// 階数を計算(戻り値返し版のみ)
+	constexpr size_t rankA1 = rank(Arank1);				// コンパイル時にランクを計算
+	printf("rank(Arank1) = %zu\n\n", rankA1);
+	ArcsMat<4,4> Arank2 = {
+		10.0,  0.0,  0.0, 0.0,
+		 0.0, 25.0,  0.0, 0.0,
+		 0.0,  0.0, 34.0, 0.0,
+		 0.0,  0.0,  0.0, 1e-15
+	};
+	dispf(Arank2, "% 8.4f");	
+	printf("rank(Arank2) = %zu\n", rank(Arank2));		// 要素の1つが 1e-15 で小さすぎてランク落ちと見なされる
+	printf("rank(Arank2) = %zu\n", rank(Arank2, 1e-16));// そこで、許容誤差を 1e-16 に設定するとフルランクと見なされる
+
 	// コレスキー分解関連の関数
 	// 注意：コレスキー分解は対称正定値でないと失敗する(理論的に)が、関数内部での判定は行っていない。
 	printf("\n★★★★★★★ コレスキー分解関連の関数\n");
@@ -1194,12 +1216,21 @@ int main(void){
 	constexpr auto Yinv5x = pinv(~Aslv3);		// コンパイル時にMoore-Penroseの擬似逆行列を計算
 	dispf(Yinv5x, "% 8.4f");
 
+	// Schur分解関連の関数
+	printf("\n★★★★★★★ Schur分解関連の関数\n");
+	ArcsMat<3,3> Asch1 = {
+		-149, -50, -154,
+    	 537, 180,  546,
+    	 -27,  -9,  -25,
+	};	
+	ArcsMat<3,3> Qsch1, Usch1;
+	Schur(Asch1, Qsch1, Usch1);
+	dispf(Asch1, "% 8.4f");
+	dispf(Qsch1, "% 8.4f");
+	dispf(Usch1, "% 8.4f");
+	dispf(Qsch1*Usch1*~Qsch1, "% 8.4f");
+
 	/*
-	// 行列演算補助関連の関数のテスト
-	printf("\n★★★★★★★ 行列演算補助関連の関数のテスト\n");
-	printf("nonzeroele(I) = %ld\n", nonzeroele(I));
-	printf("rank(I) = %ld\n", rank(I));
-	
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");
 	Matrix<3,3> Asr1 = {

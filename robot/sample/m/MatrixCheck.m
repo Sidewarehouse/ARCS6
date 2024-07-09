@@ -342,6 +342,13 @@ x = Vs6_(:,5)./Vs6(:,5)	% 謎の係数
 %}
 
 fprintf('\n');
+disp '★ 階数関連の関数'
+Arank1 = [3 2 4; -1 1 2; 9 5 10]
+rankA1 = rank(Arank1)
+Arank2 = [10 0 0 0; 0 25 0 0; 0 0 34 0; 0 0 0 1e-15]
+rankA2 = rank(Arank2)
+
+fprintf('\n');
 disp '★ コレスキー分解関連の関数'
 Achol1 = [
 	 7, -2,  9 ;
@@ -405,6 +412,13 @@ Yinv3 = inv(Acomp1)
 Yinv4 = pinv(Aslv3)
 Yinv5 = pinv(Aslv3')
 
+fprintf('\n');
+disp '★ Schur分解関連の関数'
+Asch1 = [
+ -149    -50   -154 ;
+  537    180    546 ;
+  -27     -9    -25 ]
+[Qsch1, Usch1] = schur(Asch1)
 
 %{
 % Schur分解

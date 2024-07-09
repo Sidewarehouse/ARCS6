@@ -617,6 +617,19 @@ class ArcsMat {
 			return N;
 		}
 		
+		//! @brief 非ゼロ要素の数を返す関数
+		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
+		//! @return 結果
+		constexpr size_t GetNumOfNonZero(const T eps = ArcsMat<M,N,T>::EPSILON) const{
+			size_t ret = 0;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j){
+					if(eps < std::abs( (*this)(j, i) )) ++ret;
+				}
+			}
+			return ret;
+		}
+		
 		//! @brief 行列要素に値を設定する関数
 		//! @tparam	T1, T2	要素の型
 		//! @param[in]	u1	要素1の値
@@ -840,7 +853,7 @@ class ArcsMat {
 			arcs_assert(0 < n && Q + n - 1 <= N);	// はみ出しチェック
 			for(size_t i = 1; i <= Q; ++i) (*this)(m, n + i - 1) = w(1,i);
 		}
-		
+
 	public:
 		// ここから下は静的メンバ関数
 
@@ -2447,6 +2460,17 @@ class ArcsMat {
 			return {U, S, V};
 		}
 		
+		//! @brief 行列の階数を返す関数(戻り値返し版のみ)
+		//! @param[in]	A	入力行列
+		//! @param[in]	eps	ランク許容誤差(デフォルト値 = EPSILON)
+		//! @return	結果
+		static constexpr size_t rank(const ArcsMat<M,N,T>& A, const T eps = ArcsMat<M,N,T>::EPSILON){
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			const auto [U, S, V] = ArcsMat<M,N,T>::SVD(A);	// まず、特異値分解して，
+			const auto s = ArcsMat<M,N,T>::getdiag(S);		// 次に、S行列の対角要素を抜き出して、
+			return s.GetNumOfNonZero(eps);					// 最後に、非ゼロ要素の数をカウントするとそれが階数と等価
+		}
+		
 		//! @brief 修正コレスキー分解(LDL分解) (引数渡し版)
 		//! @tparam	ML, NL, TL, MD, ND, TD	A, L, D行列の高さ, 幅, 要素の型
 		//! @param[in]	A	入力行列
@@ -2810,51 +2834,38 @@ class ArcsMat {
 			return Y;
 		}
 		
-
-/*		
-		//! @brief 行列の非ゼロ要素数を返す関数
-		//! @param[in]	U	入力行列
-		//! @return 結果
-		constexpr friend size_t nonzeroele(const ArcsMat& U){
-			size_t ret = 0;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j){
-					if(epsilon < std::abs(U.Data[i][j])) ++ret;
-				}
-			}
-			return ret;
-		}
-		
-		//! @brief 行列のランクを返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend size_t rank(const ArcsMat& A){
-			static_assert(N == M, "ArcsMat Size Error");	// 正方行列のみ対応
-			ArcsMat<N,N,T> U, S, V;
-			SVD(A, U, S, V);			// まず特異値分解して，
-			return nonzeroele(diag(S));	// S行列の対角要素の非ゼロをカウントするとそれがランク
-		}
-		
-		//! @brief Schur分解
+		//! @brief Schur分解(引数渡し版)
+		//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = QUQ' は成立
+		//! @tparam	MQ, NQ, TQ, MU, NU, TU	入出力行列の高さ, 幅, 要素の型
 		//! @param[in]	A	入力行列
 		//! @param[out]	Q	ユニタリ行列
 		//! @param[out]	U	上三角行列または疑似上三角行列
-		constexpr friend void Schur(const ArcsMat<N,M,T>& A, ArcsMat<N,M,T>& Q, ArcsMat<N,M,T>& U){
-			static_assert(A.N == A.M, "ArcsMat Size Error");				// Aが正方行列かチェック
+		template<size_t MQ, size_t NQ, typename TQ = double, size_t MU, size_t NU, typename TU = double>
+		static constexpr void Schur(const ArcsMat<M,N,T>& A, ArcsMat<MQ,NQ,TQ>& Q, ArcsMat<MU,NU,TU>& U){
+			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MQ == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NQ == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MU == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NU == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TQ>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TU>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// QR法によるシュール分解
-			ArcsMat<N,M,T> Tk = A, Qk, Rk, Qa;
-			Qa = ArcsMat<N,M,T>::eye();
-			for(size_t k = 0; k < ITERATION_MAX; ++k){
-				QR(Tk, Qk, Rk);
+			ArcsMat<M,N,T> Tk = A; 
+			ArcsMat<M,N,T> Qa = ArcsMat<M,N,T>::eye();
+			ArcsMat<M,N,T> Qk, Rk;
+			for(size_t k = 1; k <= ITERATION_MAX; ++k){
+				ArcsMat<M,N,T>::QR(Tk, Qk, Rk);
 				Tk = Rk*Qk;
 				Qa = Qa*Qk;
-				if(std::abs(Tk.GetElement(1,A.M)) < A.epsilon) break;
+				if( std::abs(Tk(M,1)) < EPSILON*EPSILON ) break;
 			}
 			Q = Qa;
 			U = Tk;
 		}
-		
+
+/*		
 		//! @brief 行列指数関数 e^(U)
 		//! @param[in]	U	入力行列
 		//! @param[in]	Order	パデ近似の次数
@@ -3069,10 +3080,13 @@ class ArcsMat {
 			return Y;
 		}
 */		
-	private:
-		// 基本定数
+	public:
+		// 公開版基本定数
 		static constexpr double EPSILON = 1e-12;		//!< 零とみなす閾値(実数版)
 		static constexpr std::complex<double> EPSLCOMP = std::complex(1e-12, 1e-12);	//!< 零とみなす閾値(複素数版)
+
+	private:
+		// 非公開版基本定数
 		static constexpr size_t ITERATION_MAX = 10000;	//!< 反復計算の最大値
 		static constexpr char CMPLX_UNIT = 'j';			//!< 虚数単位記号
 		
@@ -4268,6 +4282,15 @@ namespace ArcsMatrix {
 	constexpr std::tuple<ArcsMat<M,M,T>, ArcsMat<M,N,T>, ArcsMat<N,N,T>> SVD(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::SVD(A);
 	}
+	
+	//! @brief 行列の階数を返す関数(戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	結果
+	template<size_t M, size_t N, typename T = double>
+	constexpr size_t rank(const ArcsMat<M,N,T>& A, const T eps = ArcsMat<M,N,T>::EPSILON){
+		return ArcsMat<M,N,T>::rank(A, eps);
+	}
 
 	//! @brief 修正コレスキー分解(LDL分解) (引数渡し版)
 	//! @tparam	M, N, T, ML, NL, TL, MD, ND, TD	A, L, D行列の高さ, 幅, 要素の型
@@ -4361,6 +4384,17 @@ namespace ArcsMatrix {
 	constexpr ArcsMat<N,M,T> pinv(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::pinv(A);
 	}
+
+	//! @brief Schur分解(引数渡し版)
+	//! @tparam	M, N, T, MQ, NQ, TQ, MU, NU, TU	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	Q	ユニタリ行列
+	//! @param[out]	U	上三角行列または疑似上三角行列
+	template<size_t M, size_t N, typename T = double, size_t MQ, size_t NQ, typename TQ = double, size_t MU, size_t NU, typename TU = double>
+	constexpr void Schur(const ArcsMat<M,N,T>& A, ArcsMat<MQ,NQ,TQ>& Q, ArcsMat<MU,NU,TU>& U){
+		ArcsMat<M,N,T>::Schur(A, Q, U);
+	}
+
 }
 
 }
