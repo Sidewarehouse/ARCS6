@@ -470,10 +470,22 @@ class ArcsMat {
 		//! @brief 行列べき乗演算子(正方行列のべき乗)
 		//! @param[in] right 演算子の右側
 		//! @return 結果
-		constexpr ArcsMat<M,N,T> operator^(const size_t& right) const{
+		constexpr ArcsMat<M,N,T> operator^(const int& right) const{
 			static_assert(M == N, "ArcsMat: Size Error");		// 正方行列チェック
-			ArcsMat<M,N,T> ret = ArcsMat<M,N,T>::eye();			// ゼロ乗は単位行列
-			for(size_t k = 1; k <= right; ++k) ret *= (*this);
+			ArcsMat<M,N,T> ret;
+			if(0 < right){
+				// 正のときはべき乗を計算
+				for(size_t k = 1; k <= static_cast<size_t>(right); ++k) ret *= (*this);
+			}else if(right == 0){
+				// ゼロ乗は単位行列
+				ret = ArcsMat<M,N,T>::eye();
+			}else if(right == -1){
+				// -1乗のときは逆行列を返す
+				ret = ArcsMat<M,N,T>::inv((*this));
+			}else{
+				// -1より下の負数は未対応
+				arcs_assert(false);
+			}
 			return ret;
 		}
 		
@@ -829,6 +841,9 @@ class ArcsMat {
 			for(size_t i = 1; i <= Q; ++i) (*this)(m, n + i - 1) = w(1,i);
 		}
 		
+	public:
+		// ここから下は静的メンバ関数
+
 		//! @brief m行n列の零行列を返す関数
 		//! @return 零行列
 		static constexpr ArcsMat<M,N,T> zeros(void){
@@ -2741,6 +2756,61 @@ class ArcsMat {
 			ArcsMat<M,N,T>::linsolve(A, B, X);
 			return X;
 		}
+
+		//! @brief 逆行列を返す関数(引数渡し版)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void inv(const ArcsMat<M,N,T>& A, ArcsMat<P,Q,R>& Y){
+			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			const auto I = ArcsMat<M,N,T>::eye();			// 単位行列の生成 ← C++20移行時にconstexprに改修すべし！	
+			Y = ArcsMat<M,N,T>::linsolve(A, I);				// AX = I となる行列Xを linsolve で見つける
+		}
+
+		//! @brief 逆行列を返す関数(戻り値返し版)
+		//! @param[in]	A	入力行列
+		//! @return	出力行列
+		static constexpr ArcsMat<M,N,T> inv(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::inv(A, Y);
+			return Y;
+		}
+		
+		//! @brief Moore-Penroseの擬似逆行列を返す関数(引数渡し版)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void pinv(const ArcsMat<M,N,T>& A, ArcsMat<P,Q,R>& Y){
+			static_assert(M != N, "ArcsMat: Size Error");	// 非正方行列チェック
+			static_assert(M == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			if constexpr(N < M){
+				// 縦長行列の場合
+				Y = ArcsMat<N,N,T>::inv(~A*A)*~A;
+			}else if constexpr(M < N){
+				// 横長行列の場合
+				Y = ~A*ArcsMat<M,M,T>::inv(A*~A);
+			}
+		}
+		
+		//! @brief Moore-Penroseの疑似逆行列を返す関数(戻り値返し版)
+		//! @param[in]	A	入力行列
+		//! @return	出力行列
+		static constexpr ArcsMat<N,M,T> pinv(const ArcsMat<M,N,T>& A){
+			ArcsMat<N,M,T> Y;
+			ArcsMat<M,N,T>::pinv(A, Y);
+			return Y;
+		}
+		
+
 /*		
 		//! @brief 行列の非ゼロ要素数を返す関数
 		//! @param[in]	U	入力行列
@@ -2783,135 +2853,6 @@ class ArcsMat {
 			}
 			Q = Qa;
 			U = Tk;
-		}
-		
-		//! @brief 逆行列を返す関数 (正則チェック無し)
-		//! @param[in]	A	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat inv(const ArcsMat& A){
-			static_assert(A.N == A.M, "ArcsMat Size Error");	// Aが正方行列かチェック
-			ArcsMat I = ArcsMat<A.N,A.N,T>::ident();			// 単位行列の生成
-			ArcsMat<1,A.N,T> x, b;
-			ArcsMat<A.N,A.N,T> Ainv;
-			for(size_t n = 1; n <= A.N; ++n){
-				b = getcolumn(I, n);	// 単位行列のn列目を切り出してbベクトルとする
-				solve(A, b, x);			// Ax = b の連立1次方程式をxについて解く
-				setcolumn(Ainv, x, n);	// xはAの逆行列のn列目となるので、Ainvのn列目にxを書き込む
-			}
-			return Ainv;	// 最終的に得られる逆行列を返す
-		}
-		
-		//! @brief 逆行列を返す関数 (正則チェック無し, 左上小行列のサイズ指定版)
-		//! @param[in]	A	入力行列 (kより右と下は全部ゼロ埋めを想定)
-		//! @param[in]	k	左上小行列のサイズ
-		//! @return	結果
-		constexpr friend ArcsMat inv(const ArcsMat& A, size_t k){
-			arcs_assert(k <= A.N);					// kが範囲内かチェック
-			ArcsMat I = ArcsMat<A.N,A.N,T>::ident();	// 単位行列の生成
-			
-			// 正則にするためにk列より右下の対角成分を「1」にする
-			ArcsMat<A.N,A.N,T> A2 = A;
-			for(size_t j = k + 1; j <= A.N; ++j){
-				A2.SetElement(j, j, 1);
-			}
-			
-			// k列までの逆行列を計算
-			ArcsMat<1,A.N,T> x, b;
-			ArcsMat<A.N,A.N,T> Ainv;
-			for(size_t n = 1; n <= k; ++n){
-				b = getcolumn(I, n);	// 単位行列のn列目を切り出してbベクトルとする
-				solve(A2, b, x);		// Ax = b の連立1次方程式をxについて解く
-				setcolumn(Ainv, x, n);	// xはAの逆行列のn列目となるので、Ainvのn列目にxを書き込む
-			}
-			return Ainv;	// 最終的に得られる逆行列を返す
-		}
-		
-		//! @brief 逆行列を返す関数 (正則チェック有り)
-		//! @param[in]	A	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat inv_with_check(const ArcsMat& A){
-			static_assert(A.N == A.M, "ArcsMat Size Error");	// Aが正方行列かチェック
-			arcs_assert(A.epsilon < std::abs(det(A)));		// 正則かチェック
-			return inv(A);	// 最終的に得られる逆行列を返す
-		}
-		
-		//! @brief 上三角行列の逆行列を返す関数
-		//! @param[in]	U	入力行列(上三角行列)
-		//! @param[out]	Uinv	逆行列
-		constexpr friend void inv_upper_tri(const ArcsMat& U, ArcsMat& Uinv){
-			static_assert(U.N == U.M, "ArcsMat Size Error");			// Uが正方行列かチェック
-			static_assert(Uinv.N == Uinv.M, "ArcsMat Size Error");	// Uinvが正方行列かチェック
-			static_assert(U.N == Uinv.N, "ArcsMat Size Error");		// UとUinvが同じサイズかチェック
-			ArcsMat I = ArcsMat<U.N,U.N,T>::ident();			// 単位行列の生成
-			ArcsMat<1,U.N,T> x, b;
-			for(size_t n = 1; n <= U.N; ++n){
-				b = getcolumn(I, n);		// 単位行列のn列目を切り出してbベクトルとする
-				solve_upper_tri(U, b, x);	// Ux = b の連立1次方程式をxについて解く
-				setcolumn(Uinv, x, n);		// xはUの逆行列のn列目となるので、Uinvのn列目にxを書き込む
-			}
-			// Uinvが最終的に得られる逆行列
-		}
-		
-		//! @brief 上三角行列の逆行列を返す関数(左上小行列のサイズ指定版)
-		//! @param[in]	U	入力行列(上三角行列, kより右と下は全部ゼロ埋めを想定)
-		//! @param[in]	k	左上小行列のサイズ
-		//! @param[out]	Uinv	逆行列
-		constexpr friend void inv_upper_tri(const ArcsMat& U, size_t k, ArcsMat& Uinv){
-			static_assert(U.N == U.M, "ArcsMat Size Error");			// Uが正方行列かチェック
-			static_assert(Uinv.N == Uinv.M, "ArcsMat Size Error");	// Uinvが正方行列かチェック
-			static_assert(U.N == Uinv.N, "ArcsMat Size Error");		// UとUinvが同じサイズかチェック
-			ArcsMat I = ArcsMat<U.N,U.N,T>::ident();			// 単位行列の生成
-			
-			// 正則にするためにk列より右下の対角成分を「1」にする
-			ArcsMat<U.N,U.N,T> U2 = U;
-			for(size_t j = k + 1; j <= U.N; ++j){
-				U2.SetElement(j, j, 1);
-			}
-			
-			// k列までの逆行列を計算
-			ArcsMat<1,U.N,T> x, b;
-			for(size_t n = 1; n <= k; ++n){
-				b = getcolumn(I, n);		// 単位行列のn列目を切り出してbベクトルとする
-				solve_upper_tri(U2, b, x);	// Ux = b の連立1次方程式をxについて解く
-				setcolumn(Uinv, x, n);		// xはUの逆行列のn列目となるので、Uinvのn列目にxを書き込む
-			}
-			// Uinvが最終的に得られる逆行列
-		}
-		
-		//! @brief 左擬似逆行列を返す関数 (Aが縦長行列の場合)
-		//! @param[in]	A	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<M,N,T> lpinv(const ArcsMat& A){
-			static_assert(A.N < A.M, "ArcsMat Size Error");	// 縦長行列かチェック
-			return inv(tp(A)*A)*tp(A);
-		}
-		
-		//! @brief 左擬似逆行列を返す関数 (Aが縦長行列の場合, 左上小行列のサイズ指定版)
-		//! @param[in]	A	入力行列 (kより右と下は全部ゼロ埋めを想定)
-		//! @param[in]	k	左上小行列のサイズ
-		//! @return	結果
-		constexpr friend ArcsMat<M,N,T> lpinv(const ArcsMat& A, size_t k){
-			ArcsMat<M,N> At = tp(A);
-			ArcsMat<N,N> A2 = At*A;
-			return inv(A2, k)*At;
-		}
-		
-		//! @brief 右擬似逆行列を返す関数 (Aが横長行列の場合)
-		//! @param[in]	A	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<M,N,T> rpinv(const ArcsMat& A){
-			static_assert(A.M < A.N, "ArcsMat Size Error");	// 横長行列かチェック
-			return tp(A)*inv(A*tp(A));
-		}
-		
-		//! @brief 右擬似逆行列を返す関数 (Aが横長行列の場合, 左上小行列のサイズ指定版)
-		//! @param[in]	A	入力行列 (kより右と下は全部ゼロ埋めを想定)
-		//! @param[in]	k	左上小行列のサイズ
-		//! @return	結果
-		constexpr friend ArcsMat<M,N,T> rpinv(const ArcsMat& A, size_t k){
-			ArcsMat<M,N> At = tp(A);
-			ArcsMat<M,M> A2 = A*At;
-			return At*inv(A2, k);
 		}
 		
 		//! @brief 行列指数関数 e^(U)
@@ -4383,6 +4324,42 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double>
 	constexpr ArcsMat<N,NB,T> linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
 		return ArcsMat<M,N,T>::linsolve(A, B);
+	}
+
+	//! @brief 逆行列を返す関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void inv(const ArcsMat<M,N,T>& A, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::inv(A, Y);
+	}
+
+	//! @brief 逆行列を返す関数(戻り値返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> inv(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::inv(A);
+	}
+
+	//! @brief Moore-Penroseの擬似逆行列を返す関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void pinv(const ArcsMat<M,N,T>& A, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::pinv(A, Y);
+	}
+
+	//! @brief Moore-Penroseの疑似逆行列を返す関数(戻り値返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<N,M,T> pinv(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::pinv(A);
 	}
 }
 

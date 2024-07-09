@@ -1154,9 +1154,9 @@ int main(void){
 
 	// 線形最小二乗法関連の関数(linsolveの応用)
 	printf("\n★★★★★★★ 線形最小二乗法関連の関数(linsolveの応用)\n");
-	ArcsMat<6,1> tlsq1 = { 0.0, 0.3, 0.8, 1.1, 1.6, 2.3 };			// 説明変数
-	ArcsMat<6,1> ylsq1 = { 0.82, 0.72, 0.63, 0.60, 0.55, 0.50 };	// 観測データ
-	ArcsMat<6,2> Alsq1 = concath(ArcsMat<6,1>::ones(), exp(-tlsq1));// y(t) = c1 + c2*exp(-t) の行列データ
+	const ArcsMat<6,1> tlsq1 = { 0.0, 0.3, 0.8, 1.1, 1.6, 2.3 };			// 説明変数
+	const ArcsMat<6,1> ylsq1 = { 0.82, 0.72, 0.63, 0.60, 0.55, 0.50 };		// 観測データ
+	const ArcsMat<6,2> Alsq1 = concath(ArcsMat<6,1>::ones(), exp(-tlsq1));	// y(t) = c1 + c2*exp(-t) の行列データ
 	dispf(tlsq1, "% 8.4f");
 	dispf(ylsq1, "% 8.4f");
 	dispf(Alsq1, "% 8.4f");
@@ -1164,6 +1164,35 @@ int main(void){
 	dispf(xlsq1, "% 8.4f");					// x = [ c1, c2 ]^T のフィッティング係数
 	printf("||Ax - y|| = % 8.4f\n", norm(Alsq1*xlsq1 - ylsq1));
 
+	// 逆行列関連の関数
+	printf("\n★★★★★★★ 逆行列関連の関数\n");
+	constexpr ArcsMat<3,3> Ainv1 = {
+		 1,  0,  2,
+		-1,  5,  0,
+		 0,  3, -9
+	};
+	ArcsMat<3,3> Yinv1;
+	inv(Ainv1, Yinv1);			// 逆行列を計算 (引数渡し版)
+	Yinv1 = inv(Ainv1);			// 逆行列を計算 (戻り値返し版)
+	dispf(Yinv1, "% 8.4f");
+	constexpr auto Yinv2 = inv(Ainv1);			// コンパイル時に逆行列を計算
+	dispf(Yinv2, "% 8.4f");
+	Yinv1 = Ainv1^(-1);			// -1乗と逆行列は等価
+	dispf(Yinv1, "% 8.4f");
+	auto Yinv3 = inv(Acomp1);	// 複素数逆行列を計算
+	dispf(Yinv3, "% 8.4f");
+	ArcsMat<3,4> Yinv4;
+	pinv(Aslv3, Yinv4);			// Moore-Penroseの擬似逆行列を計算(縦長→横長) (引数渡し版)
+	Yinv4 = pinv(Aslv3);		// Moore-Penroseの擬似逆行列を計算(縦長→横長) (戻り値返し版)
+	dispf(Yinv4, "% 8.4f");
+	constexpr auto Yinv4x = pinv(Aslv3);		// コンパイル時にMoore-Penroseの擬似逆行列を計算
+	dispf(Yinv4x, "% 8.4f");
+	ArcsMat<4,3> Yinv5;
+	pinv(~Aslv3, Yinv5);		// Moore-Penroseの擬似逆行列を計算(横長→縦長) (引数渡し版)
+	Yinv5 = pinv(~Aslv3);		// Moore-Penroseの擬似逆行列を計算(横長→縦長) (戻り値返し版)
+	dispf(Yinv5, "% 8.4f");
+	constexpr auto Yinv5x = pinv(~Aslv3);		// コンパイル時にMoore-Penroseの擬似逆行列を計算
+	dispf(Yinv5x, "% 8.4f");
 
 	/*
 	// 行列演算補助関連の関数のテスト
@@ -1197,77 +1226,6 @@ int main(void){
 	PrintMatrix(Qsr, "%6.3f");
 	PrintMatrix(Usr, "%6.3f");
 	PrintMat(Qsr*Usr*inv(Qsr));
-	
-	// 行列式と逆行列のテスト
-	printf("\n★★★★★★★ 行列式と逆行列のテスト\n");
-	printf("det(A) = %f\n", det(A));
-	PrintMatrix(inv(A), "% 16.14e");
-	PrintMatrix(inv_with_check(A), "% 16.14e");
-	
-	// 左上小行列の逆行列のテスト
-	printf("\n★★★★★★★ 左上小行列の逆行列のテスト\n");
-	Matrix<5,5> Ai5 = {
-		1,  1,  1,  0,  0,
-		2,  3, -2,  0,  0,
-		3, -1,  1,  0,  0,
-		0,  0,  0,  0,  0,
-		0,  0,  0,  0,  0
-	};
-	PrintMat(Ai5);
-	PrintMatrix(inv(Ai5, 3), "% 16.14e");
-	
-	// 上三角行列の逆行列のテスト
-	printf("\n★★★★★★★ 上三角行列の逆行列のテスト\n");
-	Matrix<3,3> Auptri_inv;
-	inv_upper_tri(Auptri, Auptri_inv);
-	PrintMat(Auptri_inv);
-	
-	// 上三角行列で左上小行列の逆行列のテスト
-	printf("\n★★★★★★★ 上三角行列で左上小行列の逆行列のテスト\n");
-	Matrix<4,4> Auptri2 = {
-		1, 3, 6, 0,
-		0, 2, 7, 0,
-		0, 0,-4, 0,
-		0, 0, 0, 0
-	};
-	Matrix<4,4> Auptri_inv2;
-	PrintMat(Auptri2);
-	inv_upper_tri(Auptri2, 3, Auptri_inv2);
-	PrintMat(Auptri_inv2);
-	
-	// 疑似逆行列のテスト
-	printf("\n★★★★★★★ 疑似逆行列のテスト\n");
-	PrintMatrix(lpinv(D), "% 16.14e");
-	PrintMatrix(rpinv(tp(D)), "% 16.14e");
-	Matrix<1,2> Dpinv = {
-		1,
-		2
-	};
-	PrintMatrix(lpinv(Dpinv), "% 16.14e");
-	PrintMatrix(rpinv(tp(Dpinv)), "% 16.14e");
-	
-	// 左上小行列の疑似逆行列のテスト
-	printf("\n★★★★★★★ 左上小行列の疑似逆行列のテスト\n");
-	Matrix<4,5> Dpinv45 = {
-		1,  0,  0,  0,
-		2,  0,  0,  0,
-		0,  0,  0,  0,
-		0,  0,  0,  0,
-		0,  0,  0,  0,
-	};
-	PrintMat(Dpinv45);
-	PrintMatrix(lpinv(Dpinv45, 1), "% 16.14e");
-	PrintMatrix(rpinv(tp(Dpinv45), 1), "% 16.14e");
-	Dpinv45.Set(
-		1,  1,  0,  0,
-		2,  3,  0,  0,
-		3, -1,  0,  0,
-		0,  0,  0,  0,
-		0,  0,  0,  0
-	);
-	PrintMat(Dpinv45);
-	PrintMatrix(lpinv(Dpinv45, 2), "% 16.14e");
-	PrintMatrix(rpinv(tp(Dpinv45), 2), "% 16.14e");
 	
 	// 行列指数関数のテスト
 	printf("\n★★★★★★★ 行列指数関数のテスト\n");

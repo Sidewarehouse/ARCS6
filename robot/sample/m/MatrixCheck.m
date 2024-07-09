@@ -394,35 +394,17 @@ Bslv4 = [
 	7, -3,  5 ;
 	3,  1,  2 ]
 Xslv4 = linsolve(Aslv3, Bslv4)
+xslv5 = linsolve(Aslv3', bslv1)		% 縦長の場合、ArcsMatrixとは異なる解が得られる
+Xslv6 = linsolve(Aslv3', Bslv4')	% 縦長の場合、ArcsMatrixとは異なる解が得られる
 
-[Q,R] = qr(Aslv3')
-xslv5 = linsolve(Aslv3', bslv1)
+fprintf('\n');
+disp '★ 逆行列関連の関数'
+Ainv1 = [1 0 2; -1 5 0; 0 3 -9]
+Yinv1 = inv(Ainv1)
+Yinv3 = inv(Acomp1)
+Yinv4 = pinv(Aslv3)
+Yinv5 = pinv(Aslv3')
 
-Xslv6 = linsolve(Aslv3', Bslv4')
-
-Xslv6_ = [
-    0.182   -0.474   -0.138    0.053 ;
-   -0.799    2.925   -0.820   -0.150 ;
-    1.026    0.647    2.123    0.293 ;
-    1.048   -0.331    0.344    0.338 ]
-
-norm(Xslv6)
-norm(Xslv6_)
-
-
-% dR = b'
-% (dR)' = b
-% R'd' = b
-%{
-Rt = R'
-b = bslv1
-d = [];
-d(1) = b(1)/Rt(1,1)
-d(2) = (b(2) - Rt(2,1)*d(1))/Rt(2,2)
-d(3) = (b(3) - (Rt(3,1)*d(1) + Rt(3,2)*d(2)))/Rt(3,3)
-d(4) = 0
-Q*d'
-%}
 
 %{
 % Schur分解
