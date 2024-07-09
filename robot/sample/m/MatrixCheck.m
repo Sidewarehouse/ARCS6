@@ -133,6 +133,14 @@ Acomp1 = [
 [L, U, P] = lu(Acomp1)
 
 fprintf('\n');
+disp 'š s—ñ®detŠÖ˜A‚ÌŠÖ”'
+Adet1 = [1 -2 4; -5 2 0; 1 0 3]
+det(Adet1)
+det(A)
+det(Ax)
+det(Acomp1)
+
+fprintf('\n');
 disp 'š QR•ª‰ğŠÖ˜A‚ÌŠÖ”'
 Aqr1 = magic(5)
 [Qqr1, Rqr1] = qr(Aqr1)

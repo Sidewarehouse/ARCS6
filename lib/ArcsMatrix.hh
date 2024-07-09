@@ -88,7 +88,7 @@ class ArcsMat {
 	public:
 		//! @brief コンストラクタ
 		constexpr ArcsMat(void)
-			: Nindex(0), Mindex(0), Data({0})
+			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
 			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
@@ -102,7 +102,7 @@ class ArcsMat {
 		//! @param[in]	InitValue	行列要素の初期値
 		template<typename R>
 		constexpr explicit ArcsMat(const R InitValue)
-			: Nindex(0), Mindex(0), Data({0})
+			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
 			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
@@ -117,7 +117,7 @@ class ArcsMat {
 		//! @param[in]	InitList	初期化リスト
 		template<typename R>
 		constexpr ArcsMat(const std::initializer_list<R> InitList)
-			: Nindex(0), Mindex(0), Data({0})
+			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
 			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
@@ -143,7 +143,7 @@ class ArcsMat {
 		//! @brief コピーコンストラクタ
 		//! @param[in]	right	右辺値
 		constexpr ArcsMat(const ArcsMat<M,N,T>& right)
-			: Nindex(0), Mindex(0), Data(right.GetData())
+			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			// メンバを取り込む以外の処理は無し
@@ -154,7 +154,7 @@ class ArcsMat {
 		//! @param[in]	right	右辺値
 		template<size_t P, size_t Q, typename R = double>
 		constexpr ArcsMat(const ArcsMat<P,Q,R>& right)
-			: Nindex(0), Mindex(0), Data()
+			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data()
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
@@ -182,7 +182,7 @@ class ArcsMat {
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	right	右辺値
 		constexpr ArcsMat(ArcsMat<M,N,T>&& right)
-			: Nindex(0), Mindex(0), Data(right.GetData())
+			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
 			// メンバを取り込む以外の処理は無し
 		}
@@ -192,7 +192,7 @@ class ArcsMat {
 		//! @param[in]	right	右辺値
 		template<size_t P, size_t Q, typename R = double>
 		constexpr ArcsMat(ArcsMat<M,N,T>&& right)
-			: Nindex(0), Mindex(0), Data(right.GetData())
+			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
@@ -727,6 +727,12 @@ class ArcsMat {
 			Array = Data;
 		}
 		
+		//! @brief 行列の状態をそのまま返す関数
+		//! @return 行列の状態
+		constexpr ArcsMatrix::MatStatus GetStatus(void) const{
+			return Status;
+		}
+
 		//! @brief std:arrayの2次元配列データをそのまま返す関数
 		//! @return	2次元配列データ
 		constexpr std::array<std::array<T, M>, N> GetData(void) const{
@@ -2196,9 +2202,9 @@ class ArcsMat {
 
 				// 対角要素が最大値でなければ、対角要素が最大となるように行丸ごと入れ替え
 				if(k != i){
-					swaprow(X, i, k);	// 対角要素の行と最大値の行を入れ替え
-					swaprow(P, i, k);	// 置換行列も同じ様に入れ替え
-					perm_count++;		// 入れ替えカウンタ
+					ArcsMat<M,N,T>::swaprow(X, i, k);	// 対角要素の行と最大値の行を入れ替え
+					ArcsMat<M,N,T>::swaprow(P, i, k);	// 置換行列も同じ様に入れ替え
+					perm_count++;						// 入れ替えカウンタ
 				}
 
 				// LU分解のコア部分
@@ -2215,8 +2221,8 @@ class ArcsMat {
 			}
 			
 			// 下三角行列と上三角行列に分離する
-			gettrilo(X, L);	// 下三角のみを抽出
-			gettriup(X, U);	// 上三角のみを抽出
+			ArcsMat<M,N,T>::gettrilo(X, L);	// 下三角のみを抽出
+			ArcsMat<M,N,T>::gettriup(X, U);	// 上三角のみを抽出
 			for(size_t j = 1; j <= M; ++j) L(j,j) = 1;	// 下三角行列の対角要素はすべて1
 			
 			// 入れ替え回数の判定と判定結果の保持
@@ -2232,7 +2238,7 @@ class ArcsMat {
 		//! @return	(L, U, P)	(下三角行列, 上三角行列, 置換行列)のタプル
 		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>, ArcsMat<M,N,T>> LUP(const ArcsMat<M,N,T>& A){
 			ArcsMat<M,N,T> L, U, P;
-			LUP(A, L, U, P);
+			ArcsMat<M,N,T>::LUP(A, L, U, P);
 			return {L, U, P};
 		}
 		
@@ -2244,7 +2250,7 @@ class ArcsMat {
 		template<size_t ML, size_t NL, typename TL = double, size_t MU, size_t NU, typename TU = double>
 		static constexpr void LU(const ArcsMat<M,N,T>& A, ArcsMat<ML,NL,TL>& L, ArcsMat<MU,NU,TU>& U){
 			ArcsMat<M,N,T> P;
-			LUP(A, L, U, P);
+			ArcsMat<M,N,T>::LUP(A, L, U, P);
 			L = tp(P)*L;
 		}
 
@@ -2253,8 +2259,26 @@ class ArcsMat {
 		//! @return	(L, U)	(下三角行列, 上三角行列)のタプル
 		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LU(const ArcsMat<M,N,T>& A){
 			ArcsMat<M,N,T> L, U;
-			LU(A, L, U);
+			ArcsMat<M,N,T>::LU(A, L, U);
 			return {L, U};
+		}
+		
+		//! @brief 行列式の値を返す関数(戻り値返し版のみ)
+		//! @param[in]	A	入力行列
+		//! @return	結果
+		static constexpr T det(const ArcsMat<M,N,T>& A){
+			static_assert(M == N, "ArcsMat: Size Error");		// 正方行列チェック
+
+			// |A| = |L||U| でしかも |L|と|U|は対角要素の総積に等しく，さらにLの対角要素は1なので|L|は省略可。
+			// LU分解の際に内部で並べ替える毎に符号が変わるので、並べ替え回数によって符号反転をする。
+			const auto [L, U, P] = LUP(A);	// LU分解
+			if(P.Status == ArcsMatrix::MatStatus::AMT_LU_ODD){	// LU分解の符号判定
+				return -ArcsMat<M,N,T>::multdiag(U);	// 奇数のとき
+			}else if(P.Status == ArcsMatrix::MatStatus::AMT_LU_EVEN){
+				return  ArcsMat<M,N,T>::multdiag(U);	// 偶数のとき
+			}else{
+				arcs_assert(false);	// ここには来ない
+			}
 		}
 
 		//! @brief QR分解(引数渡し版)
@@ -2319,7 +2343,7 @@ class ArcsMat {
 		static constexpr std::tuple<ArcsMat<M,M,T>, ArcsMat<M,N,T>> QR(const ArcsMat<M,N,T>& A){
 			ArcsMat<M,M,T> Q;
 			ArcsMat<M,N,T> R;
-			QR(A, Q, R);
+			ArcsMat<M,N,T>::QR(A, Q, R);
 			return {Q, R};
 		}
 
@@ -2449,7 +2473,7 @@ class ArcsMat {
 		//! @return	(L, D)	(L行列, D行列)のタプル
 		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LDL(const ArcsMat<M,N,T>& A){
 			ArcsMat<M,N,T> L, D;
-			LDL(A, L, D);
+			ArcsMat<M,N,T>::LDL(A, L, D);
 			return {L, D};
 		}
 
@@ -2465,7 +2489,7 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TL>, "ArcsMat: Type Error");	// 対応可能型チェック
 			ArcsMat<M,N,T> L, D;
-			LDL(A, L, D);					// まず、LDL分解してから、
+			ArcsMat<M,N,T>::LDL(A, L, D);	// まず、LDL分解してから、
 			L = L*ArcsMat<M,N,T>::sqrt(D);	// 次に、対角行列の平方根を取って、下三角行列に掛けたものを出力
 			R = ArcsMat<M,N,T>::tp(L);		// MATLABに準拠させるための等価変換を実行
 		}
@@ -2500,7 +2524,7 @@ class ArcsMat {
 			// となり、Ux = d、Pb = c と置き換えると、
 			// 　Ld = c
 			// と書けるので、そこまでの計算をすると下記のコードとなる。
-			const auto [L, U, P] = LUP(A);
+			const auto [L, U, P] = ArcsMat<M,N,T>::LUP(A);
 			const auto c = P*b;
 			ArcsMat<M,1,T> d;
 
@@ -2759,63 +2783,6 @@ class ArcsMat {
 			}
 			Q = Qa;
 			U = Tk;
-		}
-		
-		//! @brief Ax = bの形の線形連立1次方程式をxについて解く関数(戻り値として返す版)
-		//! @param[in]	A	係数行列
-		//! @param[in]	b	係数ベクトル
-		//! @return	解ベクトル
-		constexpr friend ArcsMat<1,M,T> solve(const ArcsMat& A, const ArcsMat<1,M,T>& b){
-			ArcsMat<1,A.N,T> x;
-			solve(A, b, x);
-			return x;		// 最終的な答えのxベクトルを返す
-		}
-		
-		//! @brief Uは上三角行列で，Ux = bの形の線形連立1次方程式をxについて解く関数(引数渡し版)
-		//! @param[in]	U	係数行列(上三角行列)
-		//! @param[in]	b	係数ベクトル
-		//! @param[out]	x	解ベクトル
-		constexpr friend void solve_upper_tri(const ArcsMat& U, const ArcsMat<1,M,T>& b, ArcsMat<1,N,T>& x){
-			static_assert(U.N == U.M, "ArcsMat Size Error");				// Uが正方行列かチェック
-			static_assert(b.M == U.M, "ArcsMat and Vector Size Error");	// Uの高さとbの高さが同じかチェック
-			static_assert(b.N == 1, "Input is NOT vector.");			// bは縦ベクトルかチェック
-			
-			if constexpr(M == 1){
-				// スカラーの場合
-				x[1] = b[1]/U.GetElement(1,1);	// スカラーのときはそのまま単純に除算
-			}else{
-				// 行列の場合
-				ArcsMat<1,U.N,int> v;
-				T buff = 0;
-				// 既にUは上三角行列なのでLU分解は不要
-				// Ux = b を x について解く。
-				x.Data[0][U.N-1] = b.Data[0][U.N-1]/U.Data[U.N-1][U.N-1];
-				for(int k = U.N - 2; 0 <= k; --k){
-					for(size_t j = (size_t)k + 1; j < U.N; ++j){
-						buff += U.Data[j][k]*x.Data[0][j];
-					}
-					x.Data[0][k] = (b.Data[0][k] - buff)/U.Data[k][k];
-					buff = 0;
-				}
-			}
-		}
-		
-		//! @brief 行列式の値を返す関数
-		//! @param[in]	A	入力行列
-		//! @return	結果
-		constexpr friend T det(const ArcsMat& A){
-			static_assert(A.N == A.M, "ArcsMat Size Error");	// Aが正方行列かチェック
-			ArcsMat<A.N,A.N,T> L, U;
-			ArcsMat<1,A.N,int> v;
-			int sign;		// 符号
-			if(LU(A, L, U, v) == ArcsMat::ODD){	// LU分解と符号判定
-				sign = -1;	// 奇数のとき
-			}else{
-				sign =  1;	// 偶数のとき
-			}
-			// |A| = |L||U| でしかも |L|と|U|は対角要素の総積に等しく，さらにLの対角要素は1なので|L|は省略可。
-			// 最後にLU分解のときの並べ替え回数によって符号反転をする。
-			return (T)sign*prod(U);
 		}
 		
 		//! @brief 逆行列を返す関数 (正則チェック無し)
@@ -4305,6 +4272,15 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> LU(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::LU(A);
+	}
+
+	//! @brief 行列式の値を返す関数(戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	結果
+	template<size_t M, size_t N, typename T = double>
+	constexpr T det(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::det(A);
 	}
 
 	//! @brief QR分解(引数渡し版)

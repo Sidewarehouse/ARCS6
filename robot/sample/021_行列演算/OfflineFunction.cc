@@ -904,6 +904,21 @@ int main(void){
 	dispf(Pcomp, "% 8.3f");
 	dispf(~Pcomp*Lcomp*Ucomp, "% 5.2f");		// もとに戻るかチェック
 
+	// 行列式det関連の関数
+	printf("\n★★★★★★★ 行列式det関連の関数\n");
+	ArcsMat<3,3> Adet1 = {
+		 1, -2,  4,
+    	-5,  2,  0,
+     	 1,  0,  3
+	};
+	printf("det(Adet1) = % 8.4f\n", det(Adet1));// 行列式の計算1
+	printf("det(A) = % 8.4f\n", det(A));		// 行列式の計算2
+	printf("det(Ax) = % 8.4f\n", det(Ax));		// 行列式の計算3
+	constexpr double detAx = det(Ax);					// コンパイル時に行列式を計算
+	printf("det(Ax) = % 8.4f\n", detAx);				// コンパイル時に計算した行列式を表示
+	std::complex detAcomp1 = det(Acomp1);		// 複素数の行列式の計算
+	printf("det(Acomp1) = % 8.4f + % 8.4fi\n", std::real(detAcomp1), std::imag(detAcomp1));
+
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
 	ArcsMat<5,5> Aqr1 = {
@@ -1099,7 +1114,7 @@ int main(void){
 		5,  6, -7,
 		7, -3,  5
 	};
-	auto Xslv2 = linsolve(Aslv1, Bslv2);	// AX = Bの形の線形方程式をXについて解く関数(戻り値返す版)
+	auto Xslv2 = linsolve(Aslv1, Bslv2);	// AX = Bの形の線形方程式をXについて解く関数(戻り値返し版)
 	dispf(Bslv2, "% 8.4f");			// Aが正方行列で、Bが行列で、
 	dispf(Xslv2, "% 8.4f");			// Xも行列の場合
 	constexpr ArcsMat<4,3> Aslv3 = {
@@ -1125,17 +1140,30 @@ int main(void){
 		3,  1,  2 
 	};
 	ArcsMat<3,3> Xslv4;
-	ArcsMat<4,3>::linsolve_mat_nsqv(Aslv3, Bslv4, Xslv4);
-	dispf(Bslv4, "% 8.4f");
-	dispf(Xslv4, "% 8.4f");
+	linsolve(Aslv3, Bslv4, Xslv4);	// AX = Bの形の線形方程式をXについて解く関数(引数渡し版)
+	dispf(Bslv4, "% 8.4f");			// Aが非正方縦長行列で、Bが行列で、
+	dispf(Xslv4, "% 8.4f");			// Xも行列の場合
 	ArcsMat<4,1> xslv5;
-	ArcsMat<3,4>::linsolve_vec_nsqh(~Aslv3, bslv1, xslv5);
-	dispf(xslv5, "% 8.3f");			// この関数はMATLABとは異なる解を出力する
-	dispf(~Aslv3*xslv5, "% 8.4f");	// ただしもちろん、Ax = b は成立
-	ArcsMat<4,4> Xslv6;
-	ArcsMat<3,4>::linsolve_mat_nsqh(~Aslv3, ~Bslv4, Xslv6);
-	dispf(Xslv6, "% 8.3f");			// この関数はMATLABとは異なる解を出力する
-	dispf(~Aslv3*Xslv6, "% 8.4f");	// ただしもちろん、AX = B は成立
+	xslv5 = linsolve(~Aslv3, bslv1);// Ax = bの形の線形方程式をxについて解く関数(引数渡し版)
+	dispf(xslv5, "% 8.3f");			// Aが非正方横長行列で、bがベクトルで、xもベクトルの場合
+	dispf(~Aslv3*xslv5, "% 8.4f");	// この関数はMATLABとは異なる解を出力するが、ただしもちろん Ax = b は成立
+	ArcsMat<4,4> Xslv6;				
+	Xslv6 = linsolve(~Aslv3, ~Bslv4);	// AX = Bの形の線形方程式をXについて解く関数(引数渡し版)
+	dispf(Xslv6, "% 8.3f");				// Aが非正方横長行列で、Bが行列で、Xも行列の場合
+	dispf(~Aslv3*Xslv6, "% 8.4f");		// この関数はMATLABとは異なる解を出力するが、ただしもちろん Ax = b は成立
+
+	// 線形最小二乗法関連の関数(linsolveの応用)
+	printf("\n★★★★★★★ 線形最小二乗法関連の関数(linsolveの応用)\n");
+	ArcsMat<6,1> tlsq1 = { 0.0, 0.3, 0.8, 1.1, 1.6, 2.3 };			// 説明変数
+	ArcsMat<6,1> ylsq1 = { 0.82, 0.72, 0.63, 0.60, 0.55, 0.50 };	// 観測データ
+	ArcsMat<6,2> Alsq1 = concath(ArcsMat<6,1>::ones(), exp(-tlsq1));// y(t) = c1 + c2*exp(-t) の行列データ
+	dispf(tlsq1, "% 8.4f");
+	dispf(ylsq1, "% 8.4f");
+	dispf(Alsq1, "% 8.4f");
+	auto xlsq1 = linsolve(Alsq1, ylsq1);	// 線形最小二乗法(優決定問題をlinsolveで解くだけ)
+	dispf(xlsq1, "% 8.4f");					// x = [ c1, c2 ]^T のフィッティング係数
+	printf("||Ax - y|| = % 8.4f\n", norm(Alsq1*xlsq1 - ylsq1));
+
 
 	/*
 	// 行列演算補助関連の関数のテスト
@@ -1169,32 +1197,6 @@ int main(void){
 	PrintMatrix(Qsr, "%6.3f");
 	PrintMatrix(Usr, "%6.3f");
 	PrintMat(Qsr*Usr*inv(Qsr));
-	
-	// 連立方程式の球解テスト
-	printf("\n★★★★★★★ 連立方程式の球解テスト\n");
-	Matrix<1,3> b;
-	b.Set(
-		9,
-		5,
-		7
-	);
-	PrintMat(A);
-	PrintMat(b);
-	Matrix<1,3> xslv;
-	solve(A, b, xslv);
-	PrintMat(xslv);
-	PrintMat(solve(A, b));
-	
-	// 上三角行列の連立方程式の球解テスト
-	printf("\n★★★★★★★ 上三角行列の連立方程式の球解テスト\n");
-	Matrix<3,3> Auptri = {
-		1, 3, 6,
-		0, 2, 7,
-		0, 0,-4
-	};
-	solve_upper_tri(Auptri, b, xslv);
-	PrintMat(Auptri);
-	PrintMat(xslv);
 	
 	// 行列式と逆行列のテスト
 	printf("\n★★★★★★★ 行列式と逆行列のテスト\n");
