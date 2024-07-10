@@ -920,6 +920,16 @@ int main(void){
 	std::complex detAcomp1 = det(Acomp1);		// 複素数の行列式の計算
 	printf("det(Acomp1) = % 8.4f + % 8.4fi\n", std::real(detAcomp1), std::imag(detAcomp1));
 
+	// Householder行列関連の関数
+	printf("\n★★★★★★★ Householder行列関連の関数\n");
+	ArcsMat<3,1> vhld1 = {0, 9, 3};
+	dispf(vhld1, "% 8.4f");
+	ArcsMat<3,3> Hhld1;
+	ArcsMat<3,1>::Householder(vhld1, Hhld1);
+	dispf(Hhld1, "% 8.4f");
+	ArcsMat<3,1>::Householder(vhld1, Hhld1, 2);
+	dispf(Hhld1, "% 8.4f");
+	
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
 	ArcsMat<5,5> Aqr1 = {

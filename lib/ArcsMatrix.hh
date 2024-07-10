@@ -2309,6 +2309,28 @@ class ArcsMat {
 			}
 		}
 
+		//! @brief Householder行列を生成する関数(引数渡し版)
+		//! @tparam	MH, NH, TH	H行列の高さ, 幅, 要素の型
+		//! @param[in]	v	入力縦ベクトル
+		//! @param[out]	H	ハウスホルダー行列
+		//! @param[in]	k	次元 (デフォルト値 = 1)
+		template<size_t MH, size_t NH, typename TH = double>
+		static constexpr void Householder(const ArcsMat<M,N,T>& v, ArcsMat<MH,NH,TH>& H, const size_t k = 1){
+			static_assert(N == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
+			static_assert(M == MH,  "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MH == NH, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TH>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			const auto I = ArcsMat<MH,NH,TH>::eye();
+			auto vHv = ~v*v;
+			if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;
+			H = I - 2.0*v*~v/vHv[1];
+			H = ArcsMat<M,M,T>::shiftdown(H, k-1);
+			H = ArcsMat<M,M,T>::shiftright(H, k-1);
+			for(size_t i = 1; i < k; ++i) H(i,i) = 1;
+		}
+
 		//! @brief QR分解(引数渡し版)
 		//! 注意：複素数で縦長行列の場合ではMATLABとは異なる解を出力する
 		//! @tparam	MQ, NQ, TQ, MQ, NQ, TQ	Q,R行列の高さ, 幅, 要素の型
