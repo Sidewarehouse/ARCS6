@@ -1215,20 +1215,30 @@ int main(void){
 	dispf(Yinv5, "% 8.4f");
 	constexpr auto Yinv5x = pinv(~Aslv3);		// コンパイル時にMoore-Penroseの擬似逆行列を計算
 	dispf(Yinv5x, "% 8.4f");
-
+	
 	// Schur分解関連の関数
 	printf("\n★★★★★★★ Schur分解関連の関数\n");
-	ArcsMat<3,3> Asch1 = {
+	constexpr ArcsMat<3,3> Asch1 = {
 		-149, -50, -154,
     	 537, 180,  546,
     	 -27,  -9,  -25,
 	};	
-	ArcsMat<3,3> Qsch1, Usch1;
-	Schur(Asch1, Qsch1, Usch1);
 	dispf(Asch1, "% 8.4f");
+
+	ArcsMat<3,3>::Hess(Asch1);
+	
+	ArcsMat<3,3> Qsch1, Usch1;
+	Schur(Asch1, Qsch1, Usch1);				// Schur分解を計算 (引数渡し版)
+	std::tie(Qsch1, Usch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
 	dispf(Qsch1, "% 8.4f");
 	dispf(Usch1, "% 8.4f");
-	dispf(Qsch1*Usch1*~Qsch1, "% 8.4f");
+	dispf(Qsch1*Usch1*inv(Qsch1), "% 8.4f");	// 元に戻るかチェック
+	constexpr auto QUsch1x = Schur(Asch1);		// コンパイル時にSchur分解を計算 (実行時と符号が異なる場合がある)
+	constexpr auto Qsch1x = std::get<0>(QUsch1x);	// Qを取り出す
+	constexpr auto Usch1x = std::get<1>(QUsch1x);	// Uを取り出す
+	dispf(Qsch1x, "% 8.4f");
+	dispf(Usch1x, "% 8.4f");
+	dispf(Qsch1x*Usch1x*inv(Qsch1x), "% 8.4f");	// 元に戻るかチェック
 
 	/*
 	// Schur分解のテスト1(実数固有値の場合)

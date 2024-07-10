@@ -420,6 +420,66 @@ Asch1 = [
   -27     -9    -25 ]
 [Qsch1, Usch1] = schur(Asch1)
 
+A = rand(4)
+%A(2,1) = 0
+[Q,H] = hess(A)
+Aiscomplex = ~isreal(A);
+[n,m] = size(A);
+I = eye(n)
+Q = I;
+H = A;
+u = zeros(n,1)
+for k=1:n-2
+	k
+	r = [H(k+1:n,k); zeros(k,1)]
+	if Aiscomplex
+		u(1)=-exp(arg(r(1))*1i)*(r'*r)^.5;
+	else
+		if r(1) == 0
+			u(1) = -sqrt(r'*r);
+		else
+			u(1) = -sign(r(1))*sqrt(r'*r);
+		end
+	end
+	v = r - u;
+	v = v/sqrt(v'*v)
+	vv = v*v'
+	I_2vv = I - 2*v*v'
+	W = [
+		eye(k),       zeros(k,n-k)      ;
+		zeros(n-k,k), I_2vv(1:n-k,1:n-k) ]
+	H = W*H*W';
+	Q = Q*W';
+end
+Q
+H
+lA_QHQl = norm(A - Q*H*Q')
+
+%{
+for k=1:n-2
+	k
+	r = H(k+1:n,k)
+	u = zeros(n-k,1)
+	if Aiscomplex
+		u(1)=-exp(arg(r(1))*1i)*(r'*r)^.5;
+	else
+		if r(1) == 0
+			u(1) = -sqrt(r'*r);
+		else
+			u(1) = -sign(r(1))*sqrt(r'*r);
+		end
+	end
+	v = r - u;
+	v = v/sqrt(v'*v)
+	vv = v*v'
+	W = [
+		eye(k),       zeros(k,n-k)      ;
+		zeros(n-k,k), eye(n-k) - 2*v*v' ]
+	H = W*H*W';
+	Q = Q*W';
+end
+%}
+
 %{
 % Schur•ª‰ð
 Asr1 = [
