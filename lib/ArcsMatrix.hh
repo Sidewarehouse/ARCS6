@@ -2308,7 +2308,7 @@ class ArcsMat {
 				arcs_assert(false);	// ここには来ない
 			}
 		}
-
+		
 		//! @brief Householder行列を生成する関数(引数渡し版)
 		//! @tparam	MH, NH, TH	H行列の高さ, 幅, 要素の型
 		//! @param[in]	v	入力縦ベクトル
@@ -2321,16 +2321,27 @@ class ArcsMat {
 			static_assert(MH == NH, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TH>, "ArcsMat: Type Error");	// 対応可能型チェック
-
+			arcs_assert(k <= M);	// 次元チェック
+			
 			const auto I = ArcsMat<MH,NH,TH>::eye();
 			auto vHv = ~v*v;
-			if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;
+			if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;	// ゼロ割回避
 			H = I - 2.0*v*~v/vHv[1];
 			H = ArcsMat<M,M,T>::shiftdown(H, k-1);
 			H = ArcsMat<M,M,T>::shiftright(H, k-1);
 			for(size_t i = 1; i < k; ++i) H(i,i) = 1;
 		}
-
+		
+		//! @brief Householder行列を生成する関数(戻り値返し版)
+		//! @param[in]	v	入力縦ベクトル
+		//! @param[in]	k	次元 (デフォルト値 = 1)
+		//! @return	ハウスホルダー行列
+		static constexpr ArcsMat<M,M,T> Householder(const ArcsMat<M,N,T>& v, const size_t k = 1){
+			ArcsMat<M,M,T> H;
+			ArcsMat<M,N,T>::Householder(v, H, k);
+			return H;
+		}
+		
 		//! @brief QR分解(引数渡し版)
 		//! 注意：複素数で縦長行列の場合ではMATLABとは異なる解を出力する
 		//! @tparam	MQ, NQ, TQ, MQ, NQ, TQ	Q,R行列の高さ, 幅, 要素の型
@@ -4275,7 +4286,27 @@ namespace ArcsMatrix {
 	constexpr T det(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::det(A);
 	}
-
+	
+	//! @brief Householder行列を生成する関数(引数渡し版)
+	//! @tparam	M, N, T, MH, NH, TH	入力ベクトルとH行列の高さ, 幅, 要素の型
+	//! @param[in]	v	入力縦ベクトル
+	//! @param[out]	H	ハウスホルダー行列
+	//! @param[in]	k	次元 (デフォルト値 = 1)
+	template<size_t M, size_t N, typename T = double, size_t MH, size_t NH, typename TH = double>
+	constexpr void Householder(const ArcsMat<M,N,T>& v, ArcsMat<MH,NH,TH>& H, const size_t k = 1){
+		ArcsMat<M,N,T>::Householder(v, H, k);
+	}
+	
+	//! @brief Householder行列を生成する関数(戻り値返し版)
+	//! @tparam	M, N, T	入力ベクトルの高さ, 幅, 要素の型
+	//! @param[in]	v	入力縦ベクトル
+	//! @param[in]	k	次元 (デフォルト値 = 1)
+	//! @return	ハウスホルダー行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,M,T> Householder(const ArcsMat<M,N,T>& v, const size_t k = 1){
+		return ArcsMat<M,N,T>::Householder(v, k);
+	}
+	
 	//! @brief QR分解(引数渡し版)
 	//! @tparam	M, N, T, MQ, NQ, TQ, MQ, NQ, TQ	入力行列,Q,R行列の高さ, 幅, 要素の型
 	//! @param[in]	A	入力行列

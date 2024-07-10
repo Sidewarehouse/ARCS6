@@ -922,13 +922,17 @@ int main(void){
 
 	// Householder行列関連の関数
 	printf("\n★★★★★★★ Householder行列関連の関数\n");
-	ArcsMat<3,1> vhld1 = {0, 9, 3};
+	constexpr ArcsMat<3,1> vhld1 = {0, 9, 3};
 	dispf(vhld1, "% 8.4f");
 	ArcsMat<3,3> Hhld1;
-	ArcsMat<3,1>::Householder(vhld1, Hhld1);
+	Householder(vhld1, Hhld1);		// ハウスホルダー行列を生成 (引数渡し版)
+	Hhld1 = Householder(vhld1);		// ハウスホルダー行列を生成 (戻り値返し版)
 	dispf(Hhld1, "% 8.4f");
-	ArcsMat<3,1>::Householder(vhld1, Hhld1, 2);
+	Householder(vhld1, Hhld1, 2);	// 次元を2にする場合 (引数渡し版)
+	Hhld1 = Householder(vhld1, 2);	// 次元を2にする場合 (戻り値返し版)
 	dispf(Hhld1, "% 8.4f");
+	constexpr auto Hhld1x = Householder(vhld1);			// コンパイル時にハウスホルダー行列を生成
+	dispf(Hhld1x, "% 8.4f");
 	
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
