@@ -413,27 +413,33 @@ Yinv4 = pinv(Aslv3)
 Yinv5 = pinv(Aslv3')
 
 fprintf('\n');
-disp '★ Schur分解関連の関数'
+disp '★ Hessenberg分解関連の関数'
 Asch1 = [
  -149    -50   -154 ;
   537    180    546 ;
   -27     -9    -25 ]
-[Qsch1, Usch1] = schur(Asch1)
+[Phes1, Hhes1] = hess(Asch1)
+[Phes2, Hhes2] = hess(Aqr1)
+[Phes3, Hhes3] = hess(Acomp1)
 
-A = rand(4)
+% ↓実装確認用の残骸↓
+%{
+%A = Asch1;
+%A = Aqr1
+A = Acomp1
+%A = rand(4)
 %A(2,1) = 0
-[Q,H] = hess(A)
 Aiscomplex = ~isreal(A);
 [n,m] = size(A);
-I = eye(n)
-Q = I;
+I = eye(n);
+P = I;
 H = A;
 u = zeros(n,1)
 for k=1:n-2
 	k
 	r = [H(k+1:n,k); zeros(k,1)]
 	if Aiscomplex
-		u(1)=-exp(arg(r(1))*1i)*(r'*r)^.5;
+		u(1) = -exp(angle(r(1))*1i)*sqrt(r'*r)
 	else
 		if r(1) == 0
 			u(1) = -sqrt(r'*r);
@@ -441,44 +447,51 @@ for k=1:n-2
 			u(1) = -sign(r(1))*sqrt(r'*r);
 		end
 	end
-	v = r - u;
-	v = v/sqrt(v'*v)
-	vv = v*v'
-	I_2vv = I - 2*v*v'
+	v = r - u
+	v = v/sqrt(v'*v);
+	vv = v*v';
+	I_2vv = I - 2*v*v';
 	W = [
 		eye(k),       zeros(k,n-k)      ;
 		zeros(n-k,k), I_2vv(1:n-k,1:n-k) ]
 	H = W*H*W';
-	Q = Q*W';
+	P = P*W';
 end
-Q
+P
 H
-lA_QHQl = norm(A - Q*H*Q')
-
-%{
-for k=1:n-2
-	k
-	r = H(k+1:n,k)
-	u = zeros(n-k,1)
-	if Aiscomplex
-		u(1)=-exp(arg(r(1))*1i)*(r'*r)^.5;
-	else
-		if r(1) == 0
-			u(1) = -sqrt(r'*r);
-		else
-			u(1) = -sign(r(1))*sqrt(r'*r);
-		end
-	end
-	v = r - u;
-	v = v/sqrt(v'*v)
-	vv = v*v'
-	W = [
-		eye(k),       zeros(k,n-k)      ;
-		zeros(n-k,k), eye(n-k) - 2*v*v' ]
-	H = W*H*W';
-	Q = Q*W';
-end
+norm(Acomp1 - P*H*P')
 %}
+
+fprintf('\n');
+disp '★ Schur分解関連の関数'
+[Qsch1, Usch1] = schur(Asch1)
+[Qsch2, Usch2] = schur(Acomp1)
+
+A = Asch1;
+[n, m] = size(A);
+[P, S] = hess(A);
+k = n;
+U = P;
+tol = 1e-20;
+lowt = tril(reshape(1:n^2,n,n),-1)>0;
+while k > 1
+	diag(S,-1);
+	f = (diag(S,-1) ~= 0);
+	k = find( f(1:k-1), 1, 'last') + 1
+	if k > 1
+		a = (S(k-1,k-1)+S(k,k)+((S(k-1,k-1)+S(k,k))^2-4*(S(k-1,k-1)*S(k,k)-(S(k-1,k)*S(k,k-1))))^.5)/2;
+		M = S(1:k,1:k) - a*eye(k);
+		[Q R] = qr(M);
+		T = [               Q, zeros(k-1+1,n-k) ;
+		     zeros(n-k,k-1+1),         eye(n-k) ];
+		U = U*T;
+		S = T'*S*T;
+		S(abs(S) < tol & lowt) = 0;
+	end
+end
+U
+S
+U*S*U'
 
 %{
 % Schur分解

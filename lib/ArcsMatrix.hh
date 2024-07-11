@@ -2089,7 +2089,7 @@ class ArcsMat {
 		}
 
 		//! @brief 行列のノルムを返す関数(戻り値渡し版のみ)
-		//! @tparam	NRM	ノルムのタイプ
+		//! @tparam	NRM	ノルムのタイプ (デフォルト値 = AMT_L2)
 		//! @param[in]	U	入力行列
 		//! @return	結果
 		template<ArcsMatrix::NormType NRM = ArcsMatrix::NormType::AMT_L2, typename R = double>
@@ -2325,11 +2325,11 @@ class ArcsMat {
 			
 			const auto I = ArcsMat<MH,NH,TH>::eye();
 			auto vHv = ~v*v;
-			if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;	// ゼロ割回避
+			if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;	// 念のためのゼロ割回避
 			H = I - 2.0*v*~v/vHv[1];
-			H = ArcsMat<M,M,T>::shiftdown(H, k-1);
-			H = ArcsMat<M,M,T>::shiftright(H, k-1);
-			for(size_t i = 1; i < k; ++i) H(i,i) = 1;
+			H = ArcsMat<M,M,T>::shiftdown(H, k);
+			H = ArcsMat<M,M,T>::shiftright(H, k);
+			for(size_t i = 1; i <= k; ++i) H(i,i) = 1;
 		}
 		
 		//! @brief Householder行列を生成する関数(戻り値返し版)
@@ -2360,31 +2360,20 @@ class ArcsMat {
 			// 事前準備
 			constexpr size_t K = std::min(M,N);	// 縦長か横長か、短い方をKとする
 			constexpr ArcsMat<M,1,T> e = {1};	// 単位ベクトルを生成
-			auto I = ArcsMat<M,M,T>::eye();		// 初期単位行列を生成
-			ArcsMat<M,1,T> a, v;
-			ArcsMat<1,1,T> vHv;
-			ArcsMat<M,M,T> H;
-			ArcsMat<M,N,T> HA;
-			HA = A;
-			Q = I;
+			ArcsMat<M,1,T> a, v;				// "Householder Reflections"のベクトル
+			ArcsMat<M,M,T> H;					// Householder行列
+			Q = ArcsMat<MQ,NQ,TQ>::eye();
+			R = A;
 
 			// "Householder Reflections"を使ったQR分解アルゴリズム(複素数・実数両対応版)
 			for(size_t k = 1; k <= K; ++k){
-				a = ArcsMat<M,N,T>::getcolumn(HA, k);
+				a = ArcsMat<M,N,T>::getcolumn(R, k);
 				a = ArcsMat<M,1,T>::shiftup(a, k - 1);
-				const T norm_a = ArcsMat<M,1,T>::template norm<ArcsMatrix::NormType::AMT_L2>(a);
-				v = a + ArcsMat<M,N,T>::sgn(a[1])*norm_a*e;
-				vHv = ~v*v;
-				if(k != 1) I( M-(k-2), M-(k-2) ) = 0;
-				if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;
-				H = I - 2.0*v*~v/vHv[1];
-				H = ArcsMat<M,M,T>::shiftdown(H, k-1);
-				H = ArcsMat<M,M,T>::shiftright(H, k-1);
-				for(size_t i = 1; i < k; ++i) H(i,i) = 1;
-				HA = H*HA;
+				v = a + ArcsMat<M,N,T>::sgn(a[1])*ArcsMat<M,1,T>::norm(a)*e;
+				ArcsMat<M,1,T>::Householder(v, H, k - 1);
+				R = H*R;
 				Q = Q*H;
 			}
-			R = HA;
 			
 			// Aが縦長を除き、且つ複素数の場合にはRの対角項を実数に変換
 			if constexpr( (M <= N) && ArcsMatrix::IsComplex<T>){
@@ -2868,11 +2857,52 @@ class ArcsMat {
 		}
 		
 		//! @brief Hessenberg分解(引数渡し版)
-		static constexpr void Hess(const ArcsMat<M,N,T>& A){
-			//I = ArcsMat<3,3>::eye();
-			for(size_t k = 1; k <= 3; ++k){
-				
+		//!        複素数の場合、この関数はMATLABとは異なる解を出力する。
+		//! @tparam	MP, NP, TP, MH, NH, TH	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	P	ユニタリ行列
+		//! @param[out]	H	ヘッセンベルグ行列
+		template<size_t MP, size_t NP, typename TP = double, size_t MH, size_t NH, typename TH = double>
+		static constexpr void Hessenberg(const ArcsMat<M,N,T>& A, ArcsMat<MP,NP,TP>& P, ArcsMat<MH,NH,TH>& H){
+			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MP == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NP == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MH == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NH == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TP>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TH>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			ArcsMat<M,N,T> W;
+			ArcsMat<M,1,T> h, u, v;
+			P = ArcsMat<M,N,T>::eye();
+			H = A;
+			for(size_t k = 1; k <= M - 2; ++k){
+				h = ArcsMat<M,1,T>::shiftup( ArcsMat<M,N,T>::getcolumn(H, k), k);
+				if constexpr(ArcsMatrix::IsComplex<T>){
+					u[1] = -std::exp( std::complex( 0.0, std::arg(h[1])) )*std::sqrt( (~h*h)[1] );
+				}else{
+					if(std::abs(h[1]) < EPSILON){
+						u[1] = -std::sqrt( (~h*h)[1] );
+					}else{
+						u[1] = -ArcsMat<M,N,T>::sgn(h[1])*std::sqrt( (~h*h)[1] );
+					}
+				}
+				v = h - u;
+				ArcsMat<M,1,T>::Householder(v, W, k);
+				H = W*H*~W;
+				P = P*~W;
 			}
+		}
+		
+		//! @brief Hessenberg分解(タプル返し版)
+		//!        複素数の場合、この関数はMATLABとは異なる解を出力する。
+		//! @param[in]	A	入力行列
+		//! @return	(ユニタリ行列P, ヘッセンベルグ行列H) のタプル
+		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Hessenberg(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,N,T> P, H;
+			ArcsMat<M,N,T>::Hessenberg(A, P, H);
+			return {P, H};
 		}
 
 		//! @brief Schur分解(引数渡し版)
@@ -2954,40 +2984,6 @@ class ArcsMat {
 				Y = Y*Y;
 			}
 			return Y;	// 最終的に得られる行列指数を返す
-		}
-		
-		//! @brief 指数行列の数値定積分[0,T]をする関数
-		//! @param[in]	U	入力行列
-		//! @param[in]	T	積分範囲の終わり
-		//! @param[in]	DIV	分割数
-		//! @param[in]	P	パデ近似の次数
-		//! @return	結果
-		constexpr friend ArcsMat integral_expm(const ArcsMat& U, const T T, const size_t DIV, const size_t P){
-			static_assert(U.N == U.M, "ArcsMat Size Error");	// 正方行列かチェック
-			const T h = T/((T)(2*DIV));	// 時間ステップ
-			T t = 0;						// 時刻
-			// シンプソン法による定積分の実行
-			ArcsMat<U.N,U.M,T> S1, S2;
-			for(size_t i = 1; i <= DIV; ++i){
-				t = h*(T)(2*i - 1);
-				S1 += expm(U*t, P);
-			}
-			for(size_t i = 1; i <= DIV - 1; ++i){
-				t = h*(T)(2*i);
-				S2 += expm(U*t, P);
-			}
-			return h/3.0*( ArcsMat<U.N,U.N,T>::eye() + 4.0*S1 + 2.0*S2 + expm(U*T,P) );	// 最終的な定積分結果を返す
-		}
-		
-		//! @brief 複素数行列要素の実数部に値をセットする関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr void real(const ArcsMat<N,M,double>& U){
-			static_assert(N == N, "ArcsMat Size Error");
-			static_assert(M == M, "ArcsMat Size Error");
-			for(size_t i = 0; i < N; ++i){
-				for(size_t j = 0; j < M; ++j) Data[i][j] = std::complex(U.Data[i][j], 0.0);
-			}
 		}
 		
 		//! @brief 固有値を返す関数
@@ -4452,6 +4448,27 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<N,M,T> pinv(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::pinv(A);
+	}
+	
+	//! @brief Hessenberg分解(引数渡し版)
+	//!        複素数の場合、この関数はMATLABとは異なる解を出力する。
+	//! @tparam	M, N, T, MP, NP, TP, MH, NH, TH	出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	P	ユニタリ行列
+	//! @param[out]	H	ヘッセンベルグ行列
+	template<size_t M, size_t N, typename T = double, size_t MP, size_t NP, typename TP = double, size_t MH, size_t NH, typename TH = double>
+	constexpr void Hessenberg(const ArcsMat<M,N,T>& A, ArcsMat<MP,NP,TP>& P, ArcsMat<MH,NH,TH>& H){
+		ArcsMat<M,N,T>::Hessenberg(A, P, H);
+	}
+
+	//! @brief Hessenberg分解(タプル返し版)
+	//!        複素数の場合、この関数はMATLABとは異なる解を出力する。
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	(ユニタリ行列P, ヘッセンベルグ行列H) のタプル
+	template<size_t M, size_t N, typename T = double>
+	static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Hessenberg(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::Hessenberg(A);
 	}
 
 	//! @brief Schur分解(引数渡し版)

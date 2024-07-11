@@ -922,7 +922,7 @@ int main(void){
 
 	// Householder行列関連の関数
 	printf("\n★★★★★★★ Householder行列関連の関数\n");
-	constexpr ArcsMat<3,1> vhld1 = {0, 9, 3};
+	constexpr ArcsMat<3,1> vhld1 = {9, 3, 0};
 	dispf(vhld1, "% 8.4f");
 	ArcsMat<3,3> Hhld1;
 	Householder(vhld1, Hhld1);		// ハウスホルダー行列を生成 (引数渡し版)
@@ -936,7 +936,7 @@ int main(void){
 	
 	// QR分解関連の関数
 	printf("\n★★★★★★★ QR分解関連の関数\n");
-	ArcsMat<5,5> Aqr1 = {
+	constexpr ArcsMat<5,5> Aqr1 = {
 		17, 24,  1,  8, 15,
 		23,  5,  7, 14, 16,
 		 4,  6, 13, 20, 22,
@@ -950,7 +950,7 @@ int main(void){
 	dispf(Rqr1, "% 8.4f");
 	dispf(Qqr1*~Qqr1, "% 8.4f");		// Qが直交行列かチェック
 	dispf(Qqr1*Rqr1, "% 8.4f");			// 元に戻るかチェック
-	printf("norm<L2>(Aqr1 - Qqr1*Rqr1) = %e\n\n", norm<NormType::AMT_L2>(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
+	printf("||Aqr1 - Qqr1*Rqr1|| = %e\n\n", norm(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
 	constexpr ArcsMat<3,4> Aqr2 = {
 		12, -51,   4, 39,
 		 6, 167, -68, 22,
@@ -988,7 +988,7 @@ int main(void){
 	dispf(Rqr5, "% 8.4f");
 	dispf(Qqr5*~Qqr5, "% 3.1f");		// Qが直交行列かチェック
 	dispf(Qqr5*Rqr5, "% 3.1f");			// 元に戻るかチェック
-	
+
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
 	constexpr ArcsMat<4,2> As1 = {
@@ -1229,18 +1229,32 @@ int main(void){
 	dispf(Yinv5, "% 8.4f");
 	constexpr auto Yinv5x = pinv(~Aslv3);		// コンパイル時にMoore-Penroseの擬似逆行列を計算
 	dispf(Yinv5x, "% 8.4f");
-	
-	// Schur分解関連の関数
-	printf("\n★★★★★★★ Schur分解関連の関数\n");
+
+	// Hessenberg分解関連の関数
+	printf("\n★★★★★★★ Hessenberg分解関連の関数\n");
 	constexpr ArcsMat<3,3> Asch1 = {
 		-149, -50, -154,
     	 537, 180,  546,
     	 -27,  -9,  -25,
 	};	
-	dispf(Asch1, "% 8.4f");
-
-	ArcsMat<3,3>::Hess(Asch1);
+	dispf(Asch1, "% 10.4f");
+	ArcsMat<3,3> Phes1, Hhes1;
+	Hessenberg(Asch1, Phes1, Hhes1);			// Hessenberg分解を計算 (引数渡し版)
+	std::tie(Phes1, Hhes1) = Hessenberg(Asch1);	// Hessenberg分解を計算 (タプル返し版)
+	dispf(Phes1, "% 8.4f");
+	dispf(Hhes1, "% 10.4f");
+	dispf(Phes1*Hhes1*~Phes1, "% 10.4f");		// 元に戻るかチェック
+	constexpr auto PHhes2 = Hessenberg(Aqr1);	// コンパイル時にHessenberg分解を計算
+	dispf(std::get<0>(PHhes2), "% 10.4f");		// コンパイル時に計算したユニタリ行列Pを表示
+	dispf(std::get<1>(PHhes2), "% 10.4f");		// コンパイル時に計算したヘッセンベルグ行列Hを表示
+	auto [Phes3, Hhes3] = Hessenberg(Acomp1);	// 複素数hessenberg分解を計算
+	dispf(Phes3, "% 8.4f");
+	dispf(Hhes3, "% 8.4f");
+	dispf(Phes3*Hhes3*~Phes3, "% 8.4f");		// 元に戻るかチェック
 	
+	// Schur分解関連の関数
+	printf("\n★★★★★★★ Schur分解関連の関数\n");
+	dispf(Asch1, "% 8.4f");
 	ArcsMat<3,3> Qsch1, Usch1;
 	Schur(Asch1, Qsch1, Usch1);				// Schur分解を計算 (引数渡し版)
 	std::tie(Qsch1, Usch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
@@ -1253,7 +1267,7 @@ int main(void){
 	dispf(Qsch1x, "% 8.4f");
 	dispf(Usch1x, "% 8.4f");
 	dispf(Qsch1x*Usch1x*inv(Qsch1x), "% 8.4f");	// 元に戻るかチェック
-
+	
 	/*
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");
@@ -1291,133 +1305,6 @@ int main(void){
 	printf("exp(tr(A)) = % 16.14e\n\n", exp(tr(A)));	// 公式通りに一致！
 	PrintMatrix(integral_expm(A,100e-6,10,6),"% 16.14e");
 	
-	// 特に意味のないリッカチ方程式のテスト
-	printf("\n★★★★★★★ 特に意味のないリッカチ方程式のテスト\n");
-	Matrix<3,3> P;
-	P.Set(
-		1,  2, -5,
-		2,  1, -1,
-		7, -6,  9
-	);
-	PrintMat(P);
-	auto Q = P*2.71828;
-	auto DP = P*3.14159;
-	auto Z = P*A + tp(A)*P - P*B*tp(B)*P + Q + DP;
-	PrintMatrix(Z,"% 10.3f");
-	
-	// float型のテスト
-	printf("★★★ float型のテスト\n");
-	Matrix<3,3,float> Af = {
-		1,  1,  1,
-		2,  3, -2,
-		3, -1,  1
-	};
-	PrintMat(Af);
-	auto Yf = expm(Af, 6);
-	PrintMatrix(Yf, "%16.14e");
-	printf("det(Y)     = %16.14e\n", det(Yf));
-	printf("exp(tr(A)) = %16.14e\n\n", exp(tr(Af)));	// 公式通りに一致！
-	PrintMatrix(integral_expm(Af,100e-6,10,6),"% 16.14e");
-	
-	// int型のテスト
-	printf("★★★ int型のテスト\n");
-	Matrix<2,2,int> Ai = {
-		1, 2,
-		3, 4
-	};
-	Matrix<2,2,int> Bi = {
-		5, 6,
-		7, 8
-	};
-	PrintMat(Ai);
-	PrintMat(Bi);
-	PrintMat(Ai*Bi);
-	
-	// long型のテスト
-	printf("★★★ long型のテスト\n");
-	Matrix<2,2,long> Al = {
-		1, 2,
-		3, 4
-	};
-	Matrix<2,2,long> Bl = {
-		5, 6,
-		7, 8
-	};
-	PrintMat(Al);
-	PrintMat(Bl);
-	PrintMat(Al*Bl);
-	
-	// 複素数型のテスト
-	printf("★★★ 複素数型のテスト\n");
-	Matrix<2,2,std::complex<double>> Ac = {
-		std::complex(1.0,2.0), std::complex(2.0,3.0),
-		std::complex(3.0,4.0), std::complex(4.0,5.0)
-	};
-	Matrix<2,2,std::complex<double>> Bc = {
-		std::complex(1.0,2.0), std::complex(2.0,3.0),
-		std::complex(3.0,4.0), std::complex(4.0,5.0)
-	};
-	PrintMat(Ac);
-	PrintMat(Bc);
-	PrintMat(Ac*Bc);
-	PrintMat(Ac*Bc - std::complex(0.0,29.0));
-	PrintMat(reale(Ac));	// 実数部
-	PrintMat(image(Ac));	// 虚数部
-	PrintMat(mage(Ac));		// 大きさ
-	PrintMat(arge(Ac));		// 偏角
-	PrintMat(conje(Ac));	// 複素共役
-	PrintMat((Matrix<3,3,std::complex<double>>::eye()));	// 単位行列
-	
-	// 負の平方根のテスト
-	printf("★★★ 負の平方根のテスト\n");
-	Matrix<3,3,std::complex<double>> Acomp = {
-		std::complex(1.0,0.0), std::complex( 1.0,0.0), std::complex( 1.0,0.0),
-		std::complex(2.0,0.0), std::complex( 3.0,0.0), std::complex(-2.0,0.0),
-		std::complex(3.0,0.0), std::complex(-1.0,0.0), std::complex( 1.0,0.0),
-	};
-	PrintMat(Acomp);
-	PrintMatrix(sqrte(A), "% 6.3f");	// double型だとnanになってしまうが，
-	PrintMatrix(sqrte(Acomp), "% 6.3f");// std::complexだとちゃんと計算できる
-	
-	// エルミート転置のテスト
-	printf("★★★ エルミート転置のテスト\n");
-	Matrix<2,3,std::complex<double>> Acomp2 = {
-		std::complex(1.0, 2.0), std::complex(  3.0, -4.0),
-		std::complex(5.0,-6.0), std::complex(  7.0,  8.0),
-		std::complex(9.0,10.0), std::complex(-11.0,-12.0)
-	};
-	PrintMat(Acomp2);
-	PrintMat(Htp(Acomp2));
-	
-	// 複素数LU分解のテスト
-	printf("★★★ 複素数LU分解のテスト\n");
-	Matrix<3,3,std::complex<double>> Acomp3 = {
-		std::complex( 4.0, 6.0), std::complex( 1.0,-3.0), std::complex( 5.0, 2.0),
-		std::complex( 8.0,-5.0), std::complex(-7.0,-6.0), std::complex( 7.0,-1.0),
-		std::complex( 9.0, 9.0), std::complex(-7.0,-5.0), std::complex(-5.0,-3.0)
-	};
-	Matrix<3,3,std::complex<double>> Lcomp, Ucomp;
-	Matrix<1,3,int> vcomp;
-	LU(Acomp3, Lcomp, Ucomp, vcomp);
-	PrintMat(Acomp3);
-	PrintMat(Lcomp);
-	PrintMat(Ucomp);
-	PrintMat(reorderrow(Lcomp*Ucomp, vcomp));
-	
-	// 複素数逆行列のテスト
-	printf("★★★ 複素数逆行列のテスト\n");
-	PrintMat(inv(Acomp3));
-	PrintMatrix(inv(Acomp3)*Acomp3, "% 7.3f");
-	
-	// 複素数QR分解のテスト
-	printf("★★★ 複素数QR分解のテスト\n");
-	Matrix<3,3,std::complex<double>> Qcqr, Rcqr;
-	QR(Acomp3, Qcqr, Rcqr);
-	PrintMatrix(Qcqr, "% 7.3f");
-	PrintMatrix(Rcqr, "% 7.3f");
-	PrintMatrix(Qcqr*Htp(Qcqr), "% 7.3f");	// Qが直交行列かチェック
-	PrintMat(Qcqr*Rcqr);					// 元に戻るかチェック
-	
 	// 固有値計算のテスト1(実数固有値の場合)
 	printf("★★★ 固有値計算のテスト1(実数固有値の場合)\n");
 	Matrix<3,3> Aeig = {
@@ -1439,62 +1326,6 @@ int main(void){
 	PrintMat(Aeig);
 	PrintMat(eigen(Aeig));
 	PrintMat(eigenvec(Aeig));
-	
-	// 2乗のコンパイル時定数演算のテスト
-	printf("\n★★★★★★★ 2乗のコンパイル時定数演算のテスト\n");
-	constexpr Matrix<3,3> Cx = {
-		1,  1,  1,
-		2,  3, -2,
-		3, -1,  1
-	};
-	constexpr Matrix<3,3> Cxsq = Cx^2;			// 2乗のコンパイル時計算
-	PrintMat(Cxsq);
-	
-	// 逆行列のコンパイル時定数演算のテスト
-	printf("\n★★★★★★★ 逆行列のコンパイル時定数演算のテスト\n");
-	constexpr Matrix<3,3> Cxinv = inv(Cx);		// 逆行列のコンパイル時計算
-	PrintMat(Cxinv);
-	
-	// 状態遷移行列のコンパイル時定数演算のテスト
-	printf("\n★★★★★★★ 状態遷移行列のコンパイル時定数演算のテスト\n");
-	constexpr Matrix<3,3> Cxexp = expm(Cx, 6);	// 状態遷移行列のコンパイル時計算
-	PrintMatrix(Cxexp, "% 16.14e");
-	printf("det(Y)     = % 16.14e\n", det(Cxexp));
-	printf("exp(tr(A)) = % 16.14e\n\n", exp(tr(Cx)));	// 公式通りに一致！
-	
-	// 状態遷移行列の定積分のコンパイル時定数演算のテスト
-	printf("\n★★★★★★★ 状態遷移行列の定積分のコンパイル時定数演算のテスト\n");
-	constexpr Matrix<3,3> Cxexpint = integral_expm(Cx, 100e-6, 10, 6);	// 状態遷移行列の定積分のコンパイル時計算
-	PrintMatrix(Cxexpint, "% 16.14e");
-	
-	// SVD特異値分解のコンパイル時定数演算のテスト
-	printf("\n★★★★★★★ SVD特異値分解のコンパイル時定数演算のテスト\n");
-	constexpr Matrix<2,4> Axsvd = {
-		1, 2,
-		3, 4,
-		5, 6,
-		7, 8
-	};
-	constexpr auto USVx = SVD(Axsvd);
-	constexpr Matrix<4,4> Uxsvd = std::get<0>(USVx);
-	constexpr Matrix<2,4> Sxsvd = std::get<1>(USVx);
-	constexpr Matrix<2,2> Vxsvd = std::get<2>(USVx);
-	PrintMat(Uxsvd);
-	PrintMat(Sxsvd);
-	PrintMat(Vxsvd);
-	PrintMat(Uxsvd*Sxsvd*tp(Vxsvd));	// 元に戻るかチェック
-	
-	// 行列のランクのコンパイル時定数演算のテスト
-	printf("\n★★★★★★★ 行列のランクのコンパイル時定数演算のテスト\n");
-	constexpr Matrix<3,3> Ark = {
-		 2,  0,  2,
-		 0,  1,  0,
-		 0,  0,  0
-	};
-	constexpr size_t RankOfArk = rank(Ark);
-	PrintMat(Ark);
-	printf("rank(Ark) = %zu\n", RankOfArk);
-	static_assert(rank(Ark) == 2);
 	
 	// クロネッカー積のテスト
 	printf("\n★★★★★★★ クロネッカー積のテスト\n");
