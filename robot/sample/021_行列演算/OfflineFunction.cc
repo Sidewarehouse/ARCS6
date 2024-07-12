@@ -319,6 +319,23 @@ int main(void){
 	constexpr auto w2x = Ax.GetHorizontalVec<2>(3,1);	// コンパイル時に抜き出す
 	disp(v2x);
 	disp(w2x);
+
+	// ゼロの取り扱い関連の関数
+	printf("\n★★★★★★★ ゼロの取り扱い関連の関数\n");
+	const ArcsMat<3,3> Azero1 = {
+		 ArcsMat<3,3>::EPSILON, -ArcsMat<3,3>::EPSILON, ArcsMat<3,3>::EPSILON,
+		-ArcsMat<3,3>::EPSILON,  ArcsMat<3,3>::EPSILON, ArcsMat<3,3>::EPSILON,
+		 ArcsMat<3,3>::EPSILON, -ArcsMat<3,3>::EPSILON, ArcsMat<3,3>::EPSILON
+	};
+	dispf(Azero1, "% 16.15e");
+	auto Azero2 = Azero1;
+	Azero2.Zeroing();			// ゼロに近い要素を完全にゼロにする
+	dispf(Azero2, "% 16.15e");
+	Azero2.Zeroing(1e-11);		// ゼロに近い要素を完全にゼロにする (許容誤差指定版)
+	dispf(Azero2, "% 16.15e");
+	Azero2 = Azero1;
+	Azero2.ZeroingTriLo(1e-11);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (許容誤差指定版)
+	dispf(Azero2, "% 16.15e");
 	
 	// ベクトルの埋め込み
 	printf("\n★★★★★★★ ベクトルの埋め込み\n");
@@ -538,6 +555,13 @@ int main(void){
 	};
 	constexpr auto Fx6 = setsubmatrix(F23x, 3, 3, Fx4);	// コンパイル時に小行列を書き込む
 	disp(Fx6);
+
+	// 行列間のコピー操作関連の関数
+	printf("\n★★★★★★★ 行列間のコピー操作関連の関数\n");
+	ArcsMat<10,10> Acpy1;
+	copymatrix(Fx, 2,6, 3,4, Acpy1, 5,7);	// 行列Fxから行列Acpy1にコピー (引数渡し版のみ)
+	disp(Fx);								// 等価なMATLABコード: Acpy1(5:9, 7:8) = Fx(2:6, 3:4)
+	disp(Acpy1);
 	
 	// シフト関連の関数
 	printf("\n★★★★★★★ シフト関連の関数\n");
@@ -669,7 +693,6 @@ int main(void){
 	disp(getdiag(~Hx64,  2));				// 主対角より2つ上の対角成分を取得
 	disp(getdiag(~Hx64, -1));				// 主対角より1つ下の対角成分を取得
 	disp(getdiag(~Hx64, -2));				// 主対角より2つ下の対角成分を取得
-/*	
 	printf("trace(Jx2) = %f\n", trace(Jx2));// トレースを計算する (戻り値渡し版のみ)
 	constexpr double trJx2 = trace(Jx2);				// コンパイル時にトレースを計算
 	printf("trJx2 = %f\n", trJx2);
@@ -1269,11 +1292,13 @@ int main(void){
 	// Schur分解関連の関数
 	printf("\n★★★★★★★ Schur分解関連の関数\n");
 	dispf(Asch1, "% 8.4f");
-	ArcsMat<3,3> Qsch1, Usch1;
-	Schur(Asch1, Qsch1, Usch1);				// Schur分解を計算 (引数渡し版)
-	std::tie(Qsch1, Usch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
-	dispf(Qsch1, "% 8.4f");
+	ArcsMat<3,3> Usch1, Tsch1;
+	Schur(Asch1, Usch1, Tsch1);				// Schur分解を計算 (引数渡し版)
+	//std::tie(Qsch1, Usch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
 	dispf(Usch1, "% 8.4f");
+	dispf(Tsch1, "% 8.4f");
+
+	/*
 	dispf(Qsch1*Usch1*inv(Qsch1), "% 8.4f");	// 元に戻るかチェック
 	constexpr auto QUsch1x = Schur(Asch1);		// コンパイル時にSchur分解を計算 (実行時と符号が異なる場合がある)
 	constexpr auto Qsch1x = std::get<0>(QUsch1x);	// Qを取り出す
@@ -1281,7 +1306,8 @@ int main(void){
 	dispf(Qsch1x, "% 8.4f");
 	dispf(Usch1x, "% 8.4f");
 	dispf(Qsch1x*Usch1x*inv(Qsch1x), "% 8.4f");	// 元に戻るかチェック
-*/
+	*/
+	
 	/*
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");

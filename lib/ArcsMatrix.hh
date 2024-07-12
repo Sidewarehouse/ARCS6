@@ -624,7 +624,7 @@ class ArcsMat {
 			size_t ret = 0;
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
-					if(eps < std::abs( (*this)(j, i) )) ++ret;
+					if(eps < std::abs( (*this)(j,i) )) ++ret;
 				}
 			}
 			return ret;
@@ -852,6 +852,28 @@ class ArcsMat {
 			arcs_assert(0 < m && m <= M);			// サイズチェック
 			arcs_assert(0 < n && Q + n - 1 <= N);	// はみ出しチェック
 			for(size_t i = 1; i <= Q; ++i) (*this)(m, n + i - 1) = w(1,i);
+		}
+		
+		//! @brief ゼロに近い要素を完全にゼロにする関数
+		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
+		//! @return 結果
+		constexpr void Zeroing(const T eps = ArcsMat<M,N,T>::EPSILON){
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j){
+					if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
+				}
+			}
+		}
+		
+		//! @brief 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする関数
+		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
+		//! @return 結果
+		constexpr void ZeroingTriLo(const T eps = ArcsMat<M,N,T>::EPSILON){
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = i + 1; j <= M; ++j){
+					if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
+				}
+			}
 		}
 
 	public:
@@ -1357,6 +1379,38 @@ class ArcsMat {
 			return Y;
 		}
 		
+		//! @brief 行列Uから別の行列Yへ位置とサイズを指定してコピーする関数(引数渡し版のみ)
+		//! 等価なMATLABコード: Y(my:my+(m2-m1), ny:ny+(n2-n1)) = U(m1:m2, n1:n2)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型, 入力行列の高さ, 幅, 要素の型
+		//! @param[in]	U	コピー元の行列
+		//! @param[in]	m1	コピー元の縦方向の抽出開始位置
+		//! @param[in]	m2	コピー元の縦方向の抽出終了位置
+		//! @param[in]	n1	コピー元の横方向の抽出開始位置
+		//! @param[in]	n2	コピー元の横方向の抽出終了位置
+		//! @param[in,out]	Y	コピー先の行列
+		//! @param[in]	my	コピー先の縦方向の書き込み開始位置
+		//! @param[in]	ny	コピー先の横方向の書き込み開始位置
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void copymatrix(
+			const ArcsMat<M,N,T>& U, const size_t m1, const size_t m2, const size_t n1, const size_t n2,
+			ArcsMat<P,Q,R>& Y, const size_t my, const size_t ny
+		){
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			arcs_assert(m1 < m2);	// サイズチェック
+			arcs_assert(n1 < n2);	// サイズチェック
+			arcs_assert(m2 <= M);	// サイズチェック
+			arcs_assert(n2 <= N);	// サイズチェック
+			arcs_assert(my+(m2-m1) <= P);	// サイズチェック
+			arcs_assert(ny+(n2-n1) <= Q);	// サイズチェック
+
+			for(size_t i = 0; i <= (n2 - n1); ++i){
+				for(size_t j = 0; j <= (m2 - m1); ++j){
+					Y(my + j, ny + i) = U(m1 + j, n1 + i);
+				}
+			}
+		}
+
 		//! @brief 行列の各要素を上にm行分シフトする関数(下段の行はゼロになる)(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
@@ -1633,7 +1687,7 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 
 			// オフセット条件設定
-			size_t m = 1, j, i;
+			size_t m = 1, j = 0, i = 0;
 			if(0 <= k){
 				// 主対角 or 主対角より上を取る場合
 				j = 1;
@@ -2928,24 +2982,25 @@ class ArcsMat {
 			return {P, H};
 		}
 
-		//! @brief Schur分解(引数渡し版)
-		//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = QUQ^(-1) は成立
-		//! @tparam	MQ, NQ, TQ, MU, NU, TU	入出力行列の高さ, 幅, 要素の型
+		//! @brief 複素Schur分解(引数渡し版)
+		//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = USU' は成立
+		//! @tparam	MU, NU, TU, MS, NS, TS 	入出力行列の高さ, 幅, 要素の型
 		//! @param[in]	A	入力行列
-		//! @param[out]	Q	ユニタリ行列
-		//! @param[out]	U	上三角行列または疑似上三角行列
-		template<size_t MQ, size_t NQ, typename TQ = double, size_t MU, size_t NU, typename TU = double>
-		static constexpr void Schur(const ArcsMat<M,N,T>& A, ArcsMat<MQ,NQ,TQ>& Q, ArcsMat<MU,NU,TU>& U){
+		//! @param[out]	U	ユニタリ行列
+		//! @param[out]	S	上三角行列または疑似上三角行列
+		template<size_t MU, size_t NU, typename TU = double, size_t MS, size_t NS, typename TS = double>
+		static constexpr void Schur(const ArcsMat<M,N,T>& A, ArcsMat<MU,NU,TU>& U, ArcsMat<MS,NS,TS>& S){
 			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
-			static_assert(MQ == M, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(NQ == N, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(MU == M, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(NU == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MS == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NS == N, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
-			static_assert(ArcsMatrix::IsApplicable<TQ>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TU>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TS>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
 			// QR法によるシュール分解
+			/*
 			U = A; 
 			Q = ArcsMat<M,N,T>::eye();
 			ArcsMat<M,N,T> Qk, Rk;
@@ -2955,16 +3010,59 @@ class ArcsMat {
 				Q = Q*Qk;
 				if( std::abs(U(M,1)) < EPSILON*EPSILON ) break;
 			}
+			*/
+			const auto I = ArcsMat<M,N,T>::eye();
+			auto [P, H] = ArcsMat<M,N,T>::Hessenberg(A);
+			size_t k = M;
+			U = P;
+			S = H;
+			U.Zeroing();
+			S.Zeroing();
+			U.Set(
+     1.000000000000000e+00,                         0.0,                         0.0,
+                         0.0,    -9.987383860342247e-01,     5.021589650451409e-02,
+                         0.0,     5.021589650451409e-02,     9.987383860342246e-01);
+S.Set(
+    -1.490000000000000e+02,     4.220367124001606e+01,    -1.563165062744963e+02,
+    -5.376783425060005e+02,     1.525511487454082e+02,    -5.549271527302162e+02,
+                         0.0,     7.284726978394929e-02,     2.448851254591872e+00);
+			U.Disp("% 16.15e");
+			S.Disp("% 16.15e");
+			T a;
+			ArcsMat<M,N,T> W, Q, R, V;
+			while(1 < k){
+				(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
+				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero(1e-20) + 1;
+				printf("k = %zu\n", k);
+				if(1 < k){
+					a = ( S(k-1,k-1) + S(k,k) + std::sqrt( std::pow(S(k-1,k-1) + S(k,k), 2) - 4.0*(S(k-1,k-1)*S(k,k) - (S(k-1,k)*S(k,k-1))) ) )/2.0;
+					printf("  a = % 16.15e\n", a);
+					W = S - a*I;
+					W.Disp("% 16.15e");
+					ArcsMat<M,N,T>::QR(W, Q, R);
+					Q.Disp("% 16.15e");
+					//R.Disp("% 10.4f");
+					V = I;
+					ArcsMat<M,N,T>::copymatrix(Q,1,k,1,k, V,1,1);
+					V.Disp("% 16.15e");
+					U = U*V;
+					S = ~V*S*V;
+					U.Disp("% 16.15e");
+					//S.Disp("% 10.4f");
+					S.ZeroingTriLo(1e-20);
+					S.Disp("% 16.15e");
+				}
+			}
 		}
 
-		//! @brief Schur分解(タプル返し版)
-		//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = QUQ^(-1) は成立
+		//! @brief 複素Schur分解(タプル返し版)
+		//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = USU' は成立
 		//! @param[in]	A	入力行列
-		//! @return	(ユニタリ行列Q, 上三角行列または疑似上三角行列U)のタプル
+		//! @return	(ユニタリ行列U, 上三角行列または疑似上三角行列S)のタプル
 		static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Schur(const ArcsMat<M,N,T>& A){
-			ArcsMat<M,N,T> Q, U;
-			ArcsMat<M,N,T>::Schur(A, Q, U);
-			return {Q, U};
+			ArcsMat<M,N,T> U, S;
+			ArcsMat<M,N,T>::Schur(A, U, S);
+			return {U, S};
 		}
 
 /*		
@@ -3663,7 +3761,26 @@ namespace ArcsMatrix {
 	constexpr ArcsMat<M,N,T> setsubmatrix(const ArcsMat<P,Q,R>& Us, const size_t m, const size_t n, const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::setsubmatrix(Us, m, n, U);
 	}
-	
+
+	//! @brief 行列Uから別の行列Yへ位置とサイズを指定してコピーする関数(引数渡し版のみ)
+	//! 等価なMATLABコード: Y(my:my+(m2-m1), ny:ny+(n2-n1)) = U(m1:m2, n1:n2)
+	//! @tparam	M, N, T, P, Q, R	入出力行列の高さ, 幅, 要素の型, 入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	コピー元の行列
+	//! @param[in]	m1	コピー元の縦方向の抽出開始位置
+	//! @param[in]	m2	コピー元の縦方向の抽出終了位置
+	//! @param[in]	n1	コピー元の横方向の抽出開始位置
+	//! @param[in]	n2	コピー元の横方向の抽出終了位置
+	//! @param[in,out]	Y	コピー先の行列
+	//! @param[in]	my	コピー先の縦方向の書き込み開始位置
+	//! @param[in]	ny	コピー先の横方向の書き込み開始位置
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void copymatrix(
+		const ArcsMat<M,N,T>& U, const size_t m1, const size_t m2, const size_t n1, const size_t n2,
+		ArcsMat<P,Q,R>& Y, const size_t my, const size_t ny
+	){
+		ArcsMat<M,N,T>::copymatrix(U, m1, m2, n1, n2, Y, my, ny);
+	}
+
 	//! @brief 行列の各要素を上に1行分シフトする関数(下段の行はゼロになる)(引数渡し版)
 	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
@@ -4492,26 +4609,26 @@ namespace ArcsMatrix {
 	//! @param[in]	A	入力行列
 	//! @return	(ユニタリ行列P, ヘッセンベルグ行列H) のタプル
 	template<size_t M, size_t N, typename T = double>
-	static constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Hessenberg(const ArcsMat<M,N,T>& A){
+	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Hessenberg(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::Hessenberg(A);
 	}
 
-	//! @brief Schur分解(引数渡し版)
-	//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = QUQ^(-1) は成立
-	//! @tparam	M, N, T, MQ, NQ, TQ, MU, NU, TU	入出力行列の高さ, 幅, 要素の型
+	//! @brief 複素Schur分解(引数渡し版)
+	//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = USU' は成立
+	//! @tparam	M, N, T, MU, NU, TU, MS, NS, TS 	入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	A	入力行列
-	//! @param[out]	Q	ユニタリ行列
-	//! @param[out]	U	上三角行列または疑似上三角行列
-	template<size_t M, size_t N, typename T = double, size_t MQ, size_t NQ, typename TQ = double, size_t MU, size_t NU, typename TU = double>
-	constexpr void Schur(const ArcsMat<M,N,T>& A, ArcsMat<MQ,NQ,TQ>& Q, ArcsMat<MU,NU,TU>& U){
-		ArcsMat<M,N,T>::Schur(A, Q, U);
+	//! @param[out]	U	ユニタリ行列
+	//! @param[out]	S	上三角行列または疑似上三角行列
+	template<size_t M, size_t N, typename T = double, size_t MU, size_t NU, typename TU = double, size_t MS, size_t NS, typename TS = double>
+	constexpr void Schur(const ArcsMat<M,N,T>& A, ArcsMat<MU,NU,TU>& U, ArcsMat<MS,NS,TS>& S){
+		ArcsMat<M,N,T>::Schur(A, U, S);
 	}
 
 	//! @brief Schur分解(タプル返し版)
-	//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = QUQ^(-1) は成立
+	//!        この関数はMATLABとは異なる解を出力する、ただしもちろん、A = USU' は成立
 	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	A	入力行列
-	//! @return	(ユニタリ行列Q, 上三角行列または疑似上三角行列U)のタプル
+	//! @return	(ユニタリ行列U, 上三角行列または疑似上三角行列S)のタプル
 	template<size_t M, size_t N, typename T = double>
 	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Schur(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::Schur(A);

@@ -2,7 +2,8 @@
 % Yokokura, Yuki 2024/07/02
 clc;
 clear;
-format short
+%format short
+format longE
 
 disp '◆ 行列宣言とセットのテスト'
 A = [
@@ -75,8 +76,22 @@ C = A./B
 C = 3 + A
 C = 3 - A
 C = 2*A
-fprintf('\n');
 
+fprintf('\n');
+disp '★ 行列間のコピー操作関連の関数'
+Fx = [
+		10, 20, 30, 40, 50, 60;
+		70, 80, 90, 10, 11, 12;
+		13, 14, 15, 16, 17, 18;
+		19, 20, 21, 22, 23, 24;
+		25, 26, 27, 28, 29, 30;
+		31, 32, 33, 34, 35, 36;
+		37, 38, 39, 40, 41, 42
+]
+Acpy1(1:10,1:10) = 0;
+Acpy1(5:9, 7:8) = Fx(2:6, 3:4)
+
+fprintf('\n');
 disp '★ ノルム関連の関数(行列版)'
 Ax1 = [
 	     1.0,      2.0,      3.0,    4.0 ;
@@ -464,15 +479,17 @@ norm(Acomp1 - P*H*P')
 
 fprintf('\n');
 disp '★ Schur分解関連の関数'
-[Qsch1, Usch1] = schur(Asch1)
-[Qsch2, Usch2] = schur(Acomp1)
-[Qsch3, Usch3] = schur(magic(4))
+[Usch1, Tsch1] = schur(Asch1)
+[Usch2, Tsch2] = schur(Acomp1)
+[Usch3, Tsch3] = schur(magic(4))
+UTU = Usch3*Tsch3*Usch3'
 
-A = magic(4)
+A = Asch1
 [n, m] = size(A);
-[P, S] = hess(A);
+[P, H] = hess(A);
 k = n;
-U = P;
+U = P
+S = H
 tol = 1e-20;
 reshape(1:n^2,n,n)
 %lowt = tril(reshape(1:n^2,n,n),-1) > 0
@@ -481,21 +498,22 @@ while k > 1
 	%k=find((diag(S,-1)~=0)(1:k-1),1,'last')+1;
 	%f = (diag(S,-1) ~= 0);
 	%k = find( f(1:k-1), 1, 'last') + 1
-	%diag(S,-1)
+	diag(S,-1)
 	k = nnz(diag(S,-1)) + 1
 	if k > 1
-		a = (S(k-1,k-1)+S(k,k)+((S(k-1,k-1)+S(k,k))^2-4*(S(k-1,k-1)*S(k,k)-(S(k-1,k)*S(k,k-1))))^.5)/2;
-		M = S(1:k,1:k) - a*eye(k);
-		[Q R] = qr(M);
-		T = [               Q, zeros(k-1+1,n-k) ;
-		     zeros(n-k,k-1+1),         eye(n-k) ];
-		U = U*T;
-		S = T'*S*T;
+		a = (S(k-1,k-1)+S(k,k)+((S(k-1,k-1)+S(k,k))^2-4*(S(k-1,k-1)*S(k,k)-(S(k-1,k)*S(k,k-1))))^.5)/2
+		W = S(1:k,1:k) - a*eye(k)
+		[Q R] = qr(W);
+		Q
+		V = [               Q, zeros(k-1+1,n-k) ;
+		     zeros(n-k,k-1+1),         eye(n-k) ]
+		U = U*V
+		S = V'*S*V;
 		%(abs(S) < tol & lowt)
-		Z = 1 - tril(abs(S) < tol, -1)
+		Z = 1 - tril(abs(S) < tol, -1);
 		%S
 		%S(abs(S) < tol & lowt) = 0
-		S = S.*Z;
+		S = S.*Z
 	end
 end
 U
