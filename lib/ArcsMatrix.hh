@@ -1624,23 +1624,46 @@ class ArcsMat {
 		//! @brief 行列の対角要素を縦ベクトルとして取得する関数(引数渡し版)
 		//! @tparam	P, Q, R, L	出力行列の高さ, 幅, 要素の型, 対角要素の数
 		//! @param[in]	U	入力行列
+		//! @param[in]	k	k番目の対角, k=0で主対角、K<0で主対角より下、0<kで主対角より上 (デフォルト値 = 0)
 		//! @param[out]	y	出力ベクトル
 		template<size_t P, size_t Q, typename R = double, size_t L = std::min(M,N)>
-		static constexpr void getdiag(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y){
+		static constexpr void getdiag(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y, const ssize_t k = 0){
 			static_assert(Q == 1, "ArcsMat: Vector Error");	// 縦ベクトルチェック
 			static_assert(P == L, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
-			for(size_t j = 1; j <= L; ++j) y(j,1) = static_cast<R>( U(j,j) );
+
+			// オフセット条件設定
+			size_t m = 1, j, i;
+			if(0 <= k){
+				// 主対角 or 主対角より上を取る場合
+				j = 1;
+				i = static_cast<size_t>( 1 + k );
+			}else if(k < 0){
+				// 主対角より下の対角を取る場合
+				j = static_cast<size_t>( 1 - k );
+				i = 1;
+			}else{
+				arcs_assert(false);	// ここには来ない
+			}
+
+			// 対角要素を抽出
+			while((j <= M) && (i <= N)){
+				y(m,1) = static_cast<R>( U(j,i) );
+				++m;
+				++j;
+				++i;
+			}
 		}
 				
 		//! @brief 行列の対角要素を縦ベクトルとして取得する関数(戻り値渡し版)
 		//! @tparam	L	対角要素の数
 		//! @param[in]	U	入力行列
+		//! @param[in]	k	k番目の対角, k=0で主対角、K<0で主対角より下、0<kで主対角より上 (デフォルト値 = 0)
 		//! @return	出力ベクトル
 		template<size_t L = std::min(M,N)>
-		static constexpr ArcsMat<L,1,T> getdiag(const ArcsMat<M,N,T>& U){
+		static constexpr ArcsMat<L,1,T> getdiag(const ArcsMat<M,N,T>& U, const ssize_t k = 0){
 			ArcsMat<L,1,T> y;
-			getdiag(U, y);
+			getdiag(U, y, k);
 			return y;
 		}
 		
@@ -3806,19 +3829,21 @@ namespace ArcsMatrix {
 	//! @brief 行列の対角要素を縦ベクトルとして取得する関数(引数渡し版)
 	//! @tparam	M, N, T, P, Q, R, L	入力行列と出力ベクトルの高さ, 幅, 要素の型, 対角要素の数
 	//! @param[in]	U	入力行列
+	//! @param[in]	k	k番目の対角, k=0で主対角、K<0で主対角より下、0<kで主対角より上 (デフォルト値 = 0)
 	//! @param[out]	y	出力ベクトル
 	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double, size_t L = std::min(M,N)>
-	constexpr void getdiag(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y){
-		ArcsMat<M,N,T>::getdiag(U, y);
+	constexpr void getdiag(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& y, const ssize_t k = 0){
+		ArcsMat<M,N,T>::getdiag(U, y, k);
 	}
 	
 	//! @brief 行列の対角要素を縦ベクトルとして取得する関数(戻り値渡し版)
 	//! @tparam	M, N, T, L	入力行列の高さ, 幅, 要素の型, 対角要素の数
 	//! @param[in]	U	入力行列
+	//! @param[in]	k	k番目の対角, k=0で主対角、K<0で主対角より下、0<kで主対角より上 (デフォルト値 = 0)
 	//! @return	出力ベクトル
 	template<size_t M, size_t N, typename T = double, size_t L = std::min(M,N)>
-	constexpr ArcsMat<L,1,T> getdiag(const ArcsMat<M,N,T>& U){
-		return ArcsMat<M,N,T>::getdiag(U);
+	constexpr ArcsMat<L,1,T> getdiag(const ArcsMat<M,N,T>& U, const ssize_t k = 0){
+		return ArcsMat<M,N,T>::getdiag(U, k);
 	}
 	
 	//! @brief 行列のトレースを返す関数(戻り値渡し版のみ)

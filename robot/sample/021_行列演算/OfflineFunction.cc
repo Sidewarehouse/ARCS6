@@ -656,6 +656,20 @@ int main(void){
 	disp(Jx3);
 	disp(getdiag(Jx3));						// 縦長の場合の主対角要素を取得
 	disp(getdiag(tp(Jx3)));					// 横長の場合の主対角要素を取得
+	disp(B);
+	disp(getdiag(B,  1));					// 主対角より1つ上の対角成分を取得
+	disp(getdiag(B, -1));					// 主対角より1つ下の対角成分を取得
+	disp(Hx64);
+	disp(getdiag(Hx64,  2));				// 主対角より2つ上の対角成分を取得
+	disp(getdiag(Hx64,  1));				// 主対角より1つ上の対角成分を取得
+	disp(getdiag(Hx64, -2));				// 主対角より2つ下の対角成分を取得
+	disp(getdiag(Hx64, -3));				// 主対角より3つ下の対角成分を取得
+	dispf(~Hx64, "% 4.0f");
+	disp(getdiag(~Hx64,  3));				// 主対角より3つ上の対角成分を取得
+	disp(getdiag(~Hx64,  2));				// 主対角より2つ上の対角成分を取得
+	disp(getdiag(~Hx64, -1));				// 主対角より1つ下の対角成分を取得
+	disp(getdiag(~Hx64, -2));				// 主対角より2つ下の対角成分を取得
+/*	
 	printf("trace(Jx2) = %f\n", trace(Jx2));// トレースを計算する (戻り値渡し版のみ)
 	constexpr double trJx2 = trace(Jx2);				// コンパイル時にトレースを計算
 	printf("trJx2 = %f\n", trJx2);
@@ -1267,7 +1281,7 @@ int main(void){
 	dispf(Qsch1x, "% 8.4f");
 	dispf(Usch1x, "% 8.4f");
 	dispf(Qsch1x*Usch1x*inv(Qsch1x), "% 8.4f");	// 元に戻るかチェック
-	
+*/
 	/*
 	// Schur分解のテスト1(実数固有値の場合)
 	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");

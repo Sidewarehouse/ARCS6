@@ -466,18 +466,23 @@ fprintf('\n');
 disp 'š Schur•ª‰ðŠÖ˜A‚ÌŠÖ”'
 [Qsch1, Usch1] = schur(Asch1)
 [Qsch2, Usch2] = schur(Acomp1)
+[Qsch3, Usch3] = schur(magic(4))
 
-A = Asch1;
+A = magic(4)
 [n, m] = size(A);
 [P, S] = hess(A);
 k = n;
 U = P;
 tol = 1e-20;
-lowt = tril(reshape(1:n^2,n,n),-1)>0;
+reshape(1:n^2,n,n)
+%lowt = tril(reshape(1:n^2,n,n),-1) > 0
+%Z = tril(ones(n,n), -1)
 while k > 1
-	diag(S,-1);
-	f = (diag(S,-1) ~= 0);
-	k = find( f(1:k-1), 1, 'last') + 1
+	%k=find((diag(S,-1)~=0)(1:k-1),1,'last')+1;
+	%f = (diag(S,-1) ~= 0);
+	%k = find( f(1:k-1), 1, 'last') + 1
+	%diag(S,-1)
+	k = nnz(diag(S,-1)) + 1
 	if k > 1
 		a = (S(k-1,k-1)+S(k,k)+((S(k-1,k-1)+S(k,k))^2-4*(S(k-1,k-1)*S(k,k)-(S(k-1,k)*S(k,k-1))))^.5)/2;
 		M = S(1:k,1:k) - a*eye(k);
@@ -486,7 +491,11 @@ while k > 1
 		     zeros(n-k,k-1+1),         eye(n-k) ];
 		U = U*T;
 		S = T'*S*T;
-		S(abs(S) < tol & lowt) = 0;
+		%(abs(S) < tol & lowt)
+		Z = 1 - tril(abs(S) < tol, -1)
+		%S
+		%S(abs(S) < tol & lowt) = 0
+		S = S.*Z;
 	end
 end
 U
