@@ -553,6 +553,8 @@ class ArcsMat {
 		
 		//! @brief 行列要素の各メモリアドレスを表示する関数
 		constexpr void DispAddress(void) const{
+			if(__builtin_constant_p(Data) == true) return;	// コンパイル時には処理を行わない
+
 			printf("Mem addr of matrix:\n");
 			for(size_t j = 0; j < M; ++j){
 				printf("[ ");
@@ -568,6 +570,8 @@ class ArcsMat {
 		//! @tparam	M, N, T	行列の高さ, 幅, 要素の型
 		//! @param[in] format	表示形式 (%1.3e とか %5.3f とか printfと同じ)
 		constexpr void Disp(const std::string& format) const{
+			if(__builtin_constant_p(Data) == true) return;	// コンパイル時には処理を行わない
+
 			for(size_t j = 0; j < M; ++j){
 				printf("[ ");
 				for(size_t i = 0; i < N; ++i){
@@ -602,6 +606,8 @@ class ArcsMat {
 		
 		//! @brief 行列のサイズを表示
 		constexpr void DispSize(void) const{
+			if(__builtin_constant_p(Data) == true) return;	// コンパイル時には処理を行わない
+
 			printf("[ Height: %zu  x  Width: %zu ]\n\n", M, N);
 		}
 		
@@ -624,7 +630,7 @@ class ArcsMat {
 			size_t ret = 0;
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
-					if(eps < std::abs( (*this)(j,i) )) ++ret;
+					if( std::abs(eps) < std::abs( (*this)(j,i) )) ++ret;
 				}
 			}
 			return ret;
@@ -860,7 +866,12 @@ class ArcsMat {
 		constexpr void Zeroing(const T eps = ArcsMat<M,N,T>::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
-					if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
+					if constexpr(ArcsMatrix::IsComplex<T>){
+						if(std::real( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).real(0);
+						if(std::imag( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).imag(0);
+					}else{
+						if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
+					}
 				}
 			}
 		}
@@ -871,7 +882,12 @@ class ArcsMat {
 		constexpr void ZeroingTriLo(const T eps = ArcsMat<M,N,T>::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = i + 1; j <= M; ++j){
-					if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
+					if constexpr(ArcsMatrix::IsComplex<T>){
+						if(std::real( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).real(0);
+						if(std::imag( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).imag(0);
+					}else{
+						if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
+					}
 				}
 			}
 		}
@@ -2177,7 +2193,6 @@ class ArcsMat {
 				if constexpr(M == 1 || N == 1){
 					// ベクトル版
 					ArcsMat<M,N,R> v = ArcsMat<M,N,T>::abs(U);
-					//v.Disp("%g");
 					ret = std::sqrt( ArcsMat<M,N,R>::sum( v & v ) );
 				}else{
 					// 行列版
@@ -2402,7 +2417,7 @@ class ArcsMat {
 			
 			const auto I = ArcsMat<MH,NH,TH>::eye();
 			auto vHv = ~v*v;
-			if(std::abs(vHv[1]) < EPSILON) vHv[1] = EPSILON;	// 念のためのゼロ割回避
+			if( std::abs(vHv[1]) == 0 ) vHv[1] = EPSILON;	// ゼロ割回避
 			H = I - 2.0*v*~v/vHv[1];
 			H = ArcsMat<M,M,T>::shiftdown(H, k);
 			H = ArcsMat<M,M,T>::shiftright(H, k);
@@ -2462,6 +2477,7 @@ class ArcsMat {
 				Q = Q*D;
 				R = Di*R;
 			}
+			R.ZeroingTriLo();	// 主対角より下の下三角のゼロイング
 		}
 
 		//! @brief QR分解(タプル返し版)
@@ -3012,45 +3028,47 @@ class ArcsMat {
 			}
 			*/
 			const auto I = ArcsMat<M,N,T>::eye();
+			printf("I = \n");
+			I.Disp("% 8.4f");
 			auto [P, H] = ArcsMat<M,N,T>::Hessenberg(A);
 			size_t k = M;
 			U = P;
 			S = H;
-			U.Zeroing();
-			S.Zeroing();
-			U.Set(
-     1.000000000000000e+00,                         0.0,                         0.0,
-                         0.0,    -9.987383860342247e-01,     5.021589650451409e-02,
-                         0.0,     5.021589650451409e-02,     9.987383860342246e-01);
-S.Set(
-    -1.490000000000000e+02,     4.220367124001606e+01,    -1.563165062744963e+02,
-    -5.376783425060005e+02,     1.525511487454082e+02,    -5.549271527302162e+02,
-                         0.0,     7.284726978394929e-02,     2.448851254591872e+00);
-			U.Disp("% 16.15e");
-			S.Disp("% 16.15e");
+			//U.Zeroing();
+			//S.Zeroing();
+			printf("U = \n");
+			U.Disp("% 8.4f");
+			printf("S = \n");
+			S.Disp("% 8.4f");
 			T a;
 			ArcsMat<M,N,T> W, Q, R, V;
 			while(1 < k){
-				(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
+				//(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
 				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero(1e-20) + 1;
-				printf("k = %zu\n", k);
+				printf("------- k = %zu -------\n", k);
 				if(1 < k){
 					a = ( S(k-1,k-1) + S(k,k) + std::sqrt( std::pow(S(k-1,k-1) + S(k,k), 2) - 4.0*(S(k-1,k-1)*S(k,k) - (S(k-1,k)*S(k,k-1))) ) )/2.0;
-					printf("  a = % 16.15e\n", a);
+					//printf("a = % 16.15e\n", a);
+					printf("a = % 8.4f + j % 8.4f\n", std::real(a), std::imag(a));
 					W = S - a*I;
-					W.Disp("% 16.15e");
+						W.Zeroing();
+						printf("W = \n");
+						W.Disp("% 10.4f");
 					ArcsMat<M,N,T>::QR(W, Q, R);
-					Q.Disp("% 16.15e");
-					//R.Disp("% 10.4f");
+						printf("Q = \n");
+						Q.Disp("% 10.4f");
+						//R.Disp("% 10.4f");
 					V = I;
 					ArcsMat<M,N,T>::copymatrix(Q,1,k,1,k, V,1,1);
-					V.Disp("% 16.15e");
+						printf("V = \n");
+						V.Disp("% 10.4f");
 					U = U*V;
 					S = ~V*S*V;
-					U.Disp("% 16.15e");
-					//S.Disp("% 10.4f");
-					S.ZeroingTriLo(1e-20);
-					S.Disp("% 16.15e");
+						printf("U = \n");
+						U.Disp("% 10.4f");
+					S.ZeroingTriLo();
+						printf("S = \n");
+						S.Disp("% 10.4f");
 				}
 			}
 		}
@@ -3248,8 +3266,8 @@ S.Set(
 */		
 	public:
 		// 公開版基本定数
-		static constexpr double EPSILON = 1e-12;		//!< 零とみなす閾値(実数版)
-		static constexpr std::complex<double> EPSLCOMP = std::complex(1e-12, 1e-12);	//!< 零とみなす閾値(複素数版)
+		static constexpr double EPSILON = 1e-14;		//!< 零とみなす閾値(実数版)
+		static constexpr std::complex<double> EPSLCOMP = std::complex(1e-14, 1e-14);	//!< 零とみなす閾値(複素数版)
 
 	private:
 		// 非公開版基本定数

@@ -2,8 +2,8 @@
 % Yokokura, Yuki 2024/07/02
 clc;
 clear;
-%format short
-format longE
+format short
+%format longE
 
 disp '◆ 行列宣言とセットのテスト'
 A = [
@@ -184,8 +184,8 @@ Rqr3 = [
 % MATLABに準拠させるための等価変換
 D  = diag(1./sign(diag(Rqr3)));
 Di = diag(sign(diag(Rqr3)));
-Qqr3 = Qqr3*Di
-Rqr3 = D*Rqr3
+Qqr3 = Qqr3*Di;
+Rqr3 = D*Rqr3;
 
 %ArcsMatrixでの複素数QR分解の結果(横長行列)
 Acmpx2
@@ -201,8 +201,8 @@ Rqr4 = [
 % MATLABに準拠させるための等価変換
 D  = diag(1./sign(diag(Rqr4)));
 Di = diag(sign(diag(Rqr4)));
-Qqr4 = Qqr4*Di
-Rqr4 = D*Rqr4
+Qqr4 = Qqr4*Di;
+Rqr4 = D*Rqr4;
 
 %ArcsMatrixでの複素数QR分解の結果(縦長行列)
 Acmpx2t = Acmpx2'
@@ -211,12 +211,12 @@ Qqr5 = [
   -0.196 +  0.000i,  -0.199 +  0.041i,   0.067 +  0.957i ;
   -0.686 +  0.098i,  -0.663 +  0.040i,  -0.020 -  0.279i ;
    0.098 -  0.686i,  -0.144 +  0.705i,  -0.003 -  0.040i 
-]
+];
 Rqr5 = [
   -5.099 +  5.099i,  -1.177 +  1.569i ;
   -0.000 -  0.000i,   5.239 +  4.551i ;
   -0.000 -  0.000i,   0.000 -  0.000i 
-]
+];
 % MATLABに準拠させるための等価変換
 % しかし、Qが補正できないので今後の課題
 %{
@@ -480,28 +480,33 @@ norm(Acomp1 - P*H*P')
 fprintf('\n');
 disp '★ Schur分解関連の関数'
 [Usch1, Tsch1] = schur(Asch1)
-[Usch2, Tsch2] = schur(Acomp1)
-[Usch3, Tsch3] = schur(magic(4))
-UTU = Usch3*Tsch3*Usch3'
+%[Usch2, Tsch2] = schur(Acomp1)
+%[Usch3, Tsch3] = schur(magic(4))
+%UTU = Usch3*Tsch3*Usch3'
+Asch2 = [
+	 4, -8,  1;
+	 1, -5,  1;
+	-9,  8, -6
+]
+[Usch2, Tsch2] = schur(Asch2)
 
-A = Asch1
+A = Asch2
 [n, m] = size(A);
 [P, H] = hess(A);
 k = n;
 U = P
 S = H
-tol = 1e-20;
-reshape(1:n^2,n,n)
+tol = 1e-14;
 %lowt = tril(reshape(1:n^2,n,n),-1) > 0
 %Z = tril(ones(n,n), -1)
 while k > 1
 	%k=find((diag(S,-1)~=0)(1:k-1),1,'last')+1;
 	%f = (diag(S,-1) ~= 0);
 	%k = find( f(1:k-1), 1, 'last') + 1
-	diag(S,-1)
+	%diag(S,-1)
 	k = nnz(diag(S,-1)) + 1
 	if k > 1
-		a = (S(k-1,k-1)+S(k,k)+((S(k-1,k-1)+S(k,k))^2-4*(S(k-1,k-1)*S(k,k)-(S(k-1,k)*S(k,k-1))))^.5)/2
+		a = ( S(k-1,k-1)+S(k,k) + sqrt( (S(k-1,k-1) + S(k,k))^2 - 4*(S(k-1,k-1)*S(k,k) - S(k-1,k)*S(k,k-1)) ) )/2
 		W = S(1:k,1:k) - a*eye(k)
 		[Q R] = qr(W);
 		Q
@@ -520,14 +525,9 @@ U
 S
 U*S*U'
 
+
 %{
 % Schur分解
-Asr1 = [
-	 4, -8,  1,
-	 1, -5,  1,
-	-9,  8, -6
-]
-[Qsr,Usr] = schur(Asr1)
 Qsr*Usr*inv(Qsr)
 
 % クロネッカー積のテスト

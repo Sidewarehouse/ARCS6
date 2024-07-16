@@ -331,12 +331,23 @@ int main(void){
 	auto Azero2 = Azero1;
 	Azero2.Zeroing();			// ゼロに近い要素を完全にゼロにする
 	dispf(Azero2, "% 16.15e");
-	Azero2.Zeroing(1e-11);		// ゼロに近い要素を完全にゼロにする (許容誤差指定版)
+	Azero2.Zeroing(1e-12);		// ゼロに近い要素を完全にゼロにする (許容誤差指定版)
 	dispf(Azero2, "% 16.15e");
 	Azero2 = Azero1;
-	Azero2.ZeroingTriLo(1e-11);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (許容誤差指定版)
+	Azero2.ZeroingTriLo(1e-12);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (許容誤差指定版)
 	dispf(Azero2, "% 16.15e");
-	
+	const ArcsMat<2,2,std::complex<double>> Azero3 = {
+		std::complex(ArcsMat<3,3>::EPSILON, 1.0), std::complex(1.0, ArcsMat<3,3>::EPSILON),
+		                  ArcsMat<3,3>::EPSLCOMP, ArcsMat<3,3>::EPSLCOMP
+	};
+	dispf(Azero3, "% 16.15e");
+	auto Azero4 = Azero3;
+	Azero4.Zeroing(1e-12);		// ゼロに近い要素を完全にゼロにする (複素数の場合)
+	dispf(Azero4, "% 16.15e");
+	Azero4 = Azero3;
+	Azero4.ZeroingTriLo(1e-12);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (複素数の場合)
+	dispf(Azero4, "% 16.15e");
+
 	// ベクトルの埋め込み
 	printf("\n★★★★★★★ ベクトルの埋め込み\n");
 	v2.Set(
@@ -1291,12 +1302,35 @@ int main(void){
 	
 	// Schur分解関連の関数
 	printf("\n★★★★★★★ Schur分解関連の関数\n");
-	dispf(Asch1, "% 8.4f");
+	dispf(Asch1, "% 10.4f");
 	ArcsMat<3,3> Usch1, Tsch1;
 	Schur(Asch1, Usch1, Tsch1);				// Schur分解を計算 (引数渡し版)
-	//std::tie(Qsch1, Usch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
-	dispf(Usch1, "% 8.4f");
-	dispf(Tsch1, "% 8.4f");
+	std::tie(Usch1, Tsch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
+	dispf(Usch1, "% 10.4f");
+	dispf(Tsch1, "% 10.4f");
+	dispf(Usch1*Tsch1*~Usch1, "% 10.4f");	// 元に戻るかチェック
+	dispf(~Usch1*Usch1, "% 10.4f");			// ユニタリ行列かチェック
+	ArcsMat<3,3, std::complex<double>> Asch2 = {
+		 4, -8,  1,
+		 1, -5,  1,
+		-9,  8, -6
+	};
+	dispf(Asch2, "% 10.4f");
+	const auto [Usch2, Tsch2] = Schur(Asch2);	// 重根がある場合
+	dispf(Usch2, "% 10.4f");
+	dispf(Tsch2, "% 10.4f");
+	dispf(Usch2*Tsch2*~Usch2, "% 10.4f");	// 元に戻るかチェック
+	dispf(~Usch2*Usch2, "% 10.4f");			// ユニタリ行列かチェック
+	
+	/*
+	ArcsMat<3,3> W = {
+    -2.039207261322640e+00,     7.106155096368991e+00,    -8.161617539766114e+02,
+    -5.733687193064796e-03,    -9.607928087369952e-01,     5.052140520240906e+01,
+                       0.0,    -1.242272970283136e-09,     6.532248830737331e-08
+	};
+	const auto [Qw, Rw] = QR(W);
+	dispf(Qw, "% 16.15e");
+	*/
 
 	/*
 	dispf(Qsch1*Usch1*inv(Qsch1), "% 8.4f");	// 元に戻るかチェック
