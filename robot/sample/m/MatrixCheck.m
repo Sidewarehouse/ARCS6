@@ -2,8 +2,8 @@
 % Yokokura, Yuki 2024/07/02
 clc;
 clear;
-format short
-%format longE
+%format short
+format longE
 
 disp '◆ 行列宣言とセットのテスト'
 A = [
@@ -507,6 +507,8 @@ while k > 1
 	k = nnz(diag(S,-1)) + 1
 	if k > 1
 		a = ( S(k-1,k-1)+S(k,k) + sqrt( (S(k-1,k-1) + S(k,k))^2 - 4*(S(k-1,k-1)*S(k,k) - S(k-1,k)*S(k,k-1)) ) )/2
+		disp 'a*I = '
+		a*eye(k)
 		W = S(1:k,1:k) - a*eye(k)
 		[Q R] = qr(W);
 		Q
@@ -515,7 +517,7 @@ while k > 1
 		U = U*V
 		S = V'*S*V;
 		%(abs(S) < tol & lowt)
-		Z = 1 - tril(abs(S) < tol, -1);
+		Z = 1 - tril(abs(S) < tol, -1)
 		%S
 		%S(abs(S) < tol & lowt) = 0
 		S = S.*Z

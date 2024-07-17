@@ -866,12 +866,7 @@ class ArcsMat {
 		constexpr void Zeroing(const T eps = ArcsMat<M,N,T>::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
-					if constexpr(ArcsMatrix::IsComplex<T>){
-						if(std::real( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).real(0);
-						if(std::imag( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).imag(0);
-					}else{
-						if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
-					}
+					if(std::abs( (*this)(j,i) ) < std::real(eps)) (*this)(j,i) = 0;
 				}
 			}
 		}
@@ -883,8 +878,9 @@ class ArcsMat {
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = i + 1; j <= M; ++j){
 					if constexpr(ArcsMatrix::IsComplex<T>){
-						if(std::real( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).real(0);
-						if(std::imag( (*this)(j,i) ) < std::real(eps)) ((*this)(j,i)).imag(0);
+						//if(std::abs( std::real((*this)(j,i)) ) < std::real(eps)) ((*this)(j,i)).real(0);
+						//if(std::abs( std::imag((*this)(j,i)) ) < std::real(eps)) ((*this)(j,i)).imag(0);
+						if(std::abs( (*this)(j,i) ) < std::real(eps)) (*this)(j,i) = 0;
 					}else{
 						if(std::abs( (*this)(j,i) ) < eps) (*this)(j,i) = 0;
 					}
@@ -3044,31 +3040,34 @@ class ArcsMat {
 			ArcsMat<M,N,T> W, Q, R, V;
 			while(1 < k){
 				//(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
-				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero(1e-20) + 1;
+				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero() + 1;
 				printf("------- k = %zu -------\n", k);
 				if(1 < k){
 					a = ( S(k-1,k-1) + S(k,k) + std::sqrt( std::pow(S(k-1,k-1) + S(k,k), 2) - 4.0*(S(k-1,k-1)*S(k,k) - (S(k-1,k)*S(k,k-1))) ) )/2.0;
 					//printf("a = % 16.15e\n", a);
-					printf("a = % 8.4f + j % 8.4f\n", std::real(a), std::imag(a));
+					printf("a = % 16.15e + j % 16.15e\n", std::real(a), std::imag(a));
+					printf("a*I = \n");
+					(a*I).Disp("% 16.15e");
 					W = S - a*I;
-						W.Zeroing();
+						//W.Zeroing();
 						printf("W = \n");
-						W.Disp("% 10.4f");
+						W.Disp("% 16.15e");
 					ArcsMat<M,N,T>::QR(W, Q, R);
 						printf("Q = \n");
-						Q.Disp("% 10.4f");
-						//R.Disp("% 10.4f");
+						Q.Disp("% 16.15e");
 					V = I;
 					ArcsMat<M,N,T>::copymatrix(Q,1,k,1,k, V,1,1);
 						printf("V = \n");
 						V.Disp("% 10.4f");
+						//V.Zeroing();
+						//U.Zeroing();
 					U = U*V;
 					S = ~V*S*V;
 						printf("U = \n");
 						U.Disp("% 10.4f");
 					S.ZeroingTriLo();
 						printf("S = \n");
-						S.Disp("% 10.4f");
+						S.Disp("% 16.15e");
 				}
 			}
 		}
