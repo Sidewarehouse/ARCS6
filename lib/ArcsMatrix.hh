@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/07/02
+//! @date 2024/07/18
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -1255,7 +1255,7 @@ class ArcsMat {
 		//! @param[in]	m	先頭位置 m行目
 		//! @param[in]	n	先頭位置 n列目
 		//! @return	縦ベクトル
-		template<size_t P>
+		template<size_t P = M>
 		static constexpr ArcsMat<P,1,T> getvvector(const ArcsMat<M,N,T>& U, const size_t m, const size_t n){
 			return U.GetVerticalVec<P>(m, n);
 		}
@@ -2413,8 +2413,11 @@ class ArcsMat {
 			
 			const auto I = ArcsMat<MH,NH,TH>::eye();
 			auto vHv = ~v*v;
-			if( std::abs(vHv[1]) == 0 ) vHv[1] = EPSILON;	// ゼロ割回避
-			H = I - 2.0*v*~v/vHv[1];
+			if( std::abs(vHv[1]) != 0 ){
+				H = I - 2.0*v*~v/vHv[1];
+			}else{
+				H = I - 2.0*v*~v;
+			}
 			H = ArcsMat<M,M,T>::shiftdown(H, k);
 			H = ArcsMat<M,M,T>::shiftright(H, k);
 			for(size_t i = 1; i <= k; ++i) H(i,i) = 1;
@@ -2447,7 +2450,7 @@ class ArcsMat {
 
 			// 事前準備
 			constexpr size_t K = std::min(M,N);	// 縦長か横長か、短い方をKとする
-			constexpr ArcsMat<M,1,T> e = {1};	// 単位ベクトルを生成
+			ArcsMat<M,1,T> e = {1};	// 単位ベクトルを生成
 			ArcsMat<M,1,T> a, v;				// "Householder Reflections"のベクトル
 			ArcsMat<M,M,T> H;					// Householder行列
 			Q = ArcsMat<MQ,NQ,TQ>::eye();
@@ -2457,13 +2460,21 @@ class ArcsMat {
 			for(size_t k = 1; k <= K; ++k){
 				a = ArcsMat<M,N,T>::getcolumn(R, k);
 				a = ArcsMat<M,1,T>::shiftup(a, k - 1);
-				v = a + ArcsMat<M,N,T>::sgn(a[1])*ArcsMat<M,1,T>::norm(a)*e;
+				
+				if constexpr(ArcsMatrix::IsComplex<T>){
+					v = a + std::exp( std::complex( 0.0, std::arg(a[1])) )*std::sqrt( (~a*a)[1] )*e;
+				}else{
+					v = a + ArcsMat<M,N,T>::sgn(a[1])*std::sqrt( (~a*a)[1] )*e;
+				}
+				//v = a + ArcsMat<M,N,T>::sgn(a[1])*ArcsMat<M,1,T>::norm(a)*e;
+				
 				ArcsMat<M,1,T>::Householder(v, H, k - 1);
 				R = H*R;
-				Q = Q*H;
+				Q = Q*~H;
 			}
 			
 			// Aが縦長を除き、且つ複素数の場合にはRの対角項を実数に変換
+			/* (複素Schur分解で不具合が出たのでPending)
 			if constexpr( (M <= N) && ArcsMatrix::IsComplex<T>){
 				const auto l  = ArcsMat<K,1,T>::ones();	// C++20移行時にconstexprに改修すべし！	
 				const auto d  = ArcsMat<K,1,T>::sign( ArcsMat<MR,NR,T>::getdiag(R) );
@@ -2473,6 +2484,7 @@ class ArcsMat {
 				Q = Q*D;
 				R = Di*R;
 			}
+			*/
 			R.ZeroingTriLo();	// 主対角より下の下三角のゼロイング
 		}
 
@@ -3024,52 +3036,47 @@ class ArcsMat {
 			}
 			*/
 			const auto I = ArcsMat<M,N,T>::eye();
-			printf("I = \n");
-			I.Disp("% 8.4f");
 			auto [P, H] = ArcsMat<M,N,T>::Hessenberg(A);
 			size_t k = M;
 			U = P;
 			S = H;
-			//U.Zeroing();
-			//S.Zeroing();
-			printf("U = \n");
-			U.Disp("% 8.4f");
-			printf("S = \n");
-			S.Disp("% 8.4f");
-			T a;
+				//printf("U = \n");
+				//U.Disp("% 8.4f");
+				//printf("S = \n");
+				//S.Disp("% 8.4f");
+			T a = 0;
 			ArcsMat<M,N,T> W, Q, R, V;
 			while(1 < k){
-				//(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
+					//(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
 				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero() + 1;
-				printf("------- k = %zu -------\n", k);
+					//printf("------- k = %zu -------\n", k);
 				if(1 < k){
 					a = ( S(k-1,k-1) + S(k,k) + std::sqrt( std::pow(S(k-1,k-1) + S(k,k), 2) - 4.0*(S(k-1,k-1)*S(k,k) - (S(k-1,k)*S(k,k-1))) ) )/2.0;
-					//printf("a = % 16.15e\n", a);
-					printf("a = % 16.15e + j % 16.15e\n", std::real(a), std::imag(a));
-					printf("a*I = \n");
-					(a*I).Disp("% 16.15e");
-					W = S - a*I;
-						//W.Zeroing();
-						printf("W = \n");
-						W.Disp("% 16.15e");
+						//printf("a = % 16.15e\n", a);
+						//printf("a = % 8.4f %+8.4fi\n", std::real(a), std::imag(a));
+						//printf("a*I = \n");
+						//(a*I).Disp("% 8.4f");
+					W.FillAllZero();
+					ArcsMat<M,N,T>::copymatrix(S - a*I,1,k,1,k, W,1,1);
+						//printf("W = \n");
+						//W.Disp("% 8.4f");
 					ArcsMat<M,N,T>::QR(W, Q, R);
-						printf("Q = \n");
-						Q.Disp("% 16.15e");
+						//printf("Q = \n");
+						//Q.Disp("% 8.4f");
 					V = I;
 					ArcsMat<M,N,T>::copymatrix(Q,1,k,1,k, V,1,1);
-						printf("V = \n");
-						V.Disp("% 10.4f");
-						//V.Zeroing();
-						//U.Zeroing();
+						//printf("V = \n");
+						//V.Disp("% 8.4f");
 					U = U*V;
 					S = ~V*S*V;
-						printf("U = \n");
-						U.Disp("% 10.4f");
+						//printf("U = \n");
+						//U.Disp("% 8.4f");
 					S.ZeroingTriLo();
-						printf("S = \n");
-						S.Disp("% 16.15e");
+						//printf("S = \n");
+						//S.Disp("% 8.4f");
 				}
 			}
+			// ↑実装確認用の残骸。後々消去予定。
 		}
 
 		//! @brief 複素Schur分解(タプル返し版)
@@ -3080,6 +3087,75 @@ class ArcsMat {
 			ArcsMat<M,N,T> U, S;
 			ArcsMat<M,N,T>::Schur(A, U, S);
 			return {U, S};
+		}
+		
+		//! @brief 固有値を返す関数(引数渡し版)
+		//! @tparam	MV, NV, TV	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	v	固有値の縦ベクトル
+		template<size_t MV, size_t NV, typename TV = std::complex<double>>
+		static constexpr void eig(const ArcsMat<M,N,T>& A, ArcsMat<MV,NV,TV>& v){
+			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MV == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NV == 1, "ArcsMat: Vector Error");// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");				// 対応可能型チェック
+			static_assert(ArcsMatrix::IsComplex<TV>, "ArcsMat: Type Error (Not Complex)");	// 出力は複素数型のみ対応
+
+			const ArcsMat<M,M,TV> U = A;
+			const auto [W, S] = ArcsMat<M,N,TV>::Schur(U);	// シュール分解を実行
+			v = ArcsMat<M,M,TV>::getdiag(S);				// シュール分解の対角要素が固有値
+		}
+
+		//! @brief 固有値を返す関数(戻り値返し版)
+		//! @tparam	TV	出力行列の要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	v	固有値の縦ベクトル
+		template<typename TV = std::complex<double>>
+		static constexpr ArcsMat<M,1,TV> eig(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,1,TV> v;
+			ArcsMat<M,N,T>::eig(A, v);
+			return v;
+		}
+
+		//! @brief 固有値を持つ対角行列Dと、各々の固有値に対応する固有ベクトルを持つ行列Vを返す関数(引数渡し版)
+		//! @tparam	MV, NV, TV, MD, ND, TD	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	A	入力行列
+		//! @param[out]	V	各々の固有ベクトルを縦ベクトルとして持つ行列V
+		//! @param[out]	D	固有値を対角に持つ対角行列D
+		template<size_t MV, size_t NV, typename TV = std::complex<double>, size_t MD, size_t ND, typename TD = std::complex<double>>
+		static constexpr void eigvec(const ArcsMat<M,N,T>& A, ArcsMat<MV,NV,TV>& V, ArcsMat<MD,ND,TD>& D){
+			static_assert(M == N, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MV == NV, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MD == ND, "ArcsMat: Size Error");	// 正方行列チェック
+			static_assert(MV == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MD == M, "ArcsMat: Vector Error");// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");				// 対応可能型チェック
+			static_assert(ArcsMatrix::IsComplex<TV>, "ArcsMat: Type Error (Not Complex)");	// 出力は複素数型のみ対応
+			static_assert(ArcsMatrix::IsComplex<TD>, "ArcsMat: Type Error (Not Complex)");	// 出力は複素数型のみ対応
+
+			// シュール分解による固有値と固有ベクトルの計算
+			const ArcsMat<M,M,TV> Ax = A;			// 予め複素行列として読み込み
+			const auto l = ArcsMat<M,M,TV>::eig(A);	// シュール分解で固有値を先に求める
+			ArcsMat<M,1,TV>::diag(l, D);			// 固有値を対角に持つ対角行列を生成
+			const auto I = ArcsMat<M,M,TV>::eye();
+			ArcsMat<M,M,TV> Q, R;
+			for(size_t k = 1; k <= M; ++k){
+					//(~(Ax - l[k]*I)).Disp("% 8.4f");
+				ArcsMat<M,M,TV>::QR( ~(Ax - l[k]*I), Q, R );
+					//Q.Disp("% 8.4f");
+				ArcsMat<M,M,TV>::setvvector(V, ArcsMat<M,M,TV>::getvvector(Q, 1, M), 1, k);
+			}
+		}
+
+		//! @brief 固有値を持つ対角行列Dと、各々の固有値に対応する固有ベクトルを持つ行列Vを返す関数(タプル返し版)
+		//! @tparam	TV	出力行列の要素の型
+		//! @param[in]	A	入力行列
+		//! @return	(V, D)	(各々の固有ベクトルを縦ベクトルとして持つ行列V, 固有値を対角に持つ対角行列D) のタプル
+		template<typename TV = std::complex<double>>
+		static constexpr std::tuple< ArcsMat<M,N,TV>, ArcsMat<M,N,TV> > eigvec(const ArcsMat<M,N,T>& A){
+			ArcsMat<M,N,TV> V, D;
+			ArcsMat<M,N,T>::eigvec(A, V, D);
+			return {V, D};
 		}
 
 /*		
@@ -3122,70 +3198,6 @@ class ArcsMat {
 				Y = Y*Y;
 			}
 			return Y;	// 最終的に得られる行列指数を返す
-		}
-		
-		//! @brief 固有値を返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<1,N,std::complex<double>> eigen(const ArcsMat<N,M,T>& U){
-			static_assert(N == M, "ArcsMat Size Error");		// 正方行列のみ対応
-			constexpr size_t LoopMax = 100*N;					// ループ打ち切り最大回数
-			auto I = ArcsMat<N,N,std::complex<double>>::eye();	// 単位行列
-			ArcsMat<N,N,std::complex<double>> A, Q, R;
-			std::complex<double> a, b, c, d, mu;
-			
-			if constexpr(std::is_same_v<T, std::complex<double>>){
-				// 入力が複素数型の場合
-				A = U;
-			}else{
-				// 入力が実数型の場合
-				A.real(U);
-			}
-			
-			// 複素数QR法による固有値計算
-			for(size_t k = 1; k < LoopMax; ++k){
-				// Aの最右下2×2小行列の固有値を求める
-				a = A.GetElement(N - 1, N - 1);
-				b = A.GetElement(N    , N - 1);
-				c = A.GetElement(N - 1, N    );
-				d = A.GetElement(N    , N    );
-				mu = ( (a + d) + std::sqrt((a + d)*(a + d) - 4.0*(a*d - b*c)) )/2.0;
-				
-				// QR分解と収束計算
-				QR(A - mu*I, Q, R);
-				A = R*Q + mu*I;
-				
-				if(std::abs(std::abs(tr(Q)) - (double)N) < epsilon) break;	// 単位行列に漸近したらループ打ち切り
-			}
-			
-			return diag(A);	// Aの対角要素が固有値
-		}
-		
-		//! @brief 最大固有値の固有ベクトルを返す関数
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<1,N,std::complex<double>> eigenvec(const ArcsMat<N,M,T>& U){
-			static_assert(N == M, "ArcsMat Size Error");	// 正方行列のみ対応
-			constexpr size_t LoopMax = 100*std::max(N,M);	// ループ打ち切り最大回数
-			ArcsMat<N,N,std::complex<double>> A;
-			
-			if constexpr(std::is_same_v<T, std::complex<double>>){
-				// 入力が複素数型の場合
-				A = U;
-			}else{
-				// 入力が実数型の場合
-				A.real(U);
-			}
-			
-			// べき乗法による固有ベクトル計算
-			auto x = ArcsMat<1,N,std::complex<double>>::ones();
-			auto y = ArcsMat<1,N,std::complex<double>>::ones();
-			for(size_t k = 1; k < LoopMax; ++k){
-				y = A*x;
-				x = y/euclidnorm(y);
-			}
-			
-			return x;
 		}
 		
 		//! @brief クロネッカー積
@@ -3271,7 +3283,7 @@ class ArcsMat {
 	private:
 		// 非公開版基本定数
 		static constexpr size_t ITERATION_MAX = 10000;	//!< 反復計算の最大値
-		static constexpr char CMPLX_UNIT = 'j';			//!< 虚数単位記号
+		static constexpr char CMPLX_UNIT = 'i';			//!< 虚数単位記号
 		
 		// 内部処理用
 		size_t Nindex;	//!< 横方向カウンタ
@@ -3335,7 +3347,7 @@ namespace ArcsMatrix {
 		// データ型によって書式指定子を変える
 		// 浮動小数点型の場合
 		if constexpr(std::is_floating_point_v<T>){
-			dispf_macro(U, "% g", varname);
+			dispf_macro(U, "% 4g", varname);
 			return;
 		}
 		
@@ -3359,7 +3371,7 @@ namespace ArcsMatrix {
 		
 		// 複素数型の場合
 		if constexpr(std::is_same_v<T, std::complex<double>> || std::is_same_v<T, std::complex<float>>){
-			dispf_macro(U, "% g", varname);
+			dispf_macro(U, "% 4g", varname);
 			return;
 		}
 	}
@@ -4649,6 +4661,43 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr std::tuple<ArcsMat<M,N,T>, ArcsMat<M,N,T>> Schur(const ArcsMat<M,N,T>& A){
 		return ArcsMat<M,N,T>::Schur(A);
+	}
+
+	//! @brief 固有値を返す関数
+	//! @tparam	M, N, T, MV, NV, TV	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	v	固有値の縦ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MV, size_t NV, typename TV = std::complex<double>>
+	constexpr void eig(const ArcsMat<M,N,T>& A, ArcsMat<MV,NV,TV>& v){
+		ArcsMat<M,N,T>::eig(A, v);
+	}
+
+	//! @brief 固有値を返す関数(戻り値返し版)
+	//! @tparam	M, N, T, TV	入力行列の高さ, 幅, 要素の型, 出力行列の要素の型
+	//! @param[in]	A	入力行列
+	//! @return	固有値の縦ベクトル
+	template<size_t M, size_t N, typename T = double, typename TV = std::complex<double>>
+	constexpr ArcsMat<M,1,TV> eig(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::eig(A);
+	}
+
+	//! @brief 固有値を持つ対角行列Dと、各々の固有値に対応する固有ベクトルを持つ行列Vを返す関数(引数渡し版)
+	//! @tparam	M, N, T, MV, NV, TV, MD, ND, TD	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @param[out]	V	各々の固有ベクトルを縦ベクトルとして持つ行列V
+	//! @param[out]	D	固有値を対角に持つ対角行列D
+	template<size_t M, size_t N, typename T = double, size_t MV, size_t NV, typename TV = std::complex<double>, size_t MD, size_t ND, typename TD = std::complex<double>>
+	constexpr void eigvec(const ArcsMat<M,N,T>& A, ArcsMat<MV,NV,TV>& V, ArcsMat<MD,ND,TD>& D){
+		ArcsMat<M,N,T>::eigvec(A, V, D);
+	}
+
+	//! @brief 固有値を持つ対角行列Dと、各々の固有値に対応する固有ベクトルを持つ行列Vを返す関数(タプル返し版)
+	//! @tparam	M, N, T, TV	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	A	入力行列
+	//! @return	(V, D)	(各々の固有ベクトルを縦ベクトルとして持つ行列V, 固有値を対角に持つ対角行列D) のタプル
+	template<size_t M, size_t N, typename T = double, typename TV = std::complex<double>>
+	constexpr std::tuple< ArcsMat<M,N,TV>, ArcsMat<M,N,TV> > eigvec(const ArcsMat<M,N,T>& A){
+		return ArcsMat<M,N,T>::eigvec(A);
 	}
 
 }

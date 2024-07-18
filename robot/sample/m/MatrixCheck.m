@@ -2,8 +2,8 @@
 % Yokokura, Yuki 2024/07/02
 clc;
 clear;
-%format short
-format longE
+format short
+%format longE
 
 disp '◆ 行列宣言とセットのテスト'
 A = [
@@ -230,6 +230,63 @@ Q = Qqr5*Di
 R = D*Rqr5
 %}
 
+% ↓実装確認用の残骸↓
+Aqr9 = [
+	0, 0, 0 ;
+	1, 0, 0 ;
+	0, 1, 0 ];
+A = Acomp1
+[Q,R] = qr(A)
+[m,n]=size(A);
+shouldpermut=false;
+isrealA = isreal(A);
+notreal = ~all(isrealA(:));
+Q = eye(m);
+R=A;
+P=eye(n);
+cols=1:n;
+numloop=(m*(m<n)+n*(m>=n));
+for k=1:numloop
+	col=k;
+	if shouldpermut
+		%nor2 = sumsq(R(k:m,k:n),1);
+		nor2 = sum( R(k:m,k:n).^2 );
+		[~,kk] = max(nor2);
+		kn = (k:n);
+		col = kn(kk);
+	end
+	a = R(k:m,col);
+	if notreal
+		alpha = -exp( angle(a(1))*1i )*sqrt(a'*a);
+	else
+		alpha = sqrt(a'*a);
+	end
+	e = eye(m-k+1,1)*alpha;
+	u = a - e;
+	sumsqu = u'*u;
+	if sumsqu~=0
+		v = u/sumsqu^.5;
+	else
+		v = u;
+	end
+	Qk=[eye(k-1) zeros(k-1,m-k+1);zeros(m-k+1,k-1) eye(m-k+1) - 2*v*v'];
+	R=Qk*R;
+	if col~=k
+		Rt=R(:,k);
+		R(:,k)=R(:,col);
+		R(:,col)=Rt;
+		ct=cols(k);
+		cols(k)=cols(col);
+		cols(col)=ct;
+	end
+	Q = Q*Qk';
+end
+Q
+R
+P = P(:,cols);
+
+%return;	% スクリプトをココで中断
+
 fprintf('\n');
 disp '★ SVD特異値分解関連の関数'
 As1 = [
@@ -436,7 +493,6 @@ Asch1 = [
 [Phes1, Hhes1] = hess(Asch1)
 [Phes2, Hhes2] = hess(Aqr1)
 [Phes3, Hhes3] = hess(Acomp1)
-
 % ↓実装確認用の残骸↓
 %{
 %A = Asch1;
@@ -489,21 +545,22 @@ Asch2 = [
 	-9,  8, -6
 ]
 [Usch2, Tsch2] = schur(Asch2)
-
-A = Asch2
+Asch3 = [
+	 1,  2,  3 ;
+	-5,  9, -1 ;
+	 2,  6,  8
+]
+[Usch2, Tsch2] = schur(Asch3)
+% ↓実装確認用の残骸↓
+%{
+A = Asch3
 [n, m] = size(A);
 [P, H] = hess(A);
 k = n;
 U = P
 S = H
 tol = 1e-14;
-%lowt = tril(reshape(1:n^2,n,n),-1) > 0
-%Z = tril(ones(n,n), -1)
 while k > 1
-	%k=find((diag(S,-1)~=0)(1:k-1),1,'last')+1;
-	%f = (diag(S,-1) ~= 0);
-	%k = find( f(1:k-1), 1, 'last') + 1
-	%diag(S,-1)
 	k = nnz(diag(S,-1)) + 1
 	if k > 1
 		a = ( S(k-1,k-1)+S(k,k) + sqrt( (S(k-1,k-1) + S(k,k))^2 - 4*(S(k-1,k-1)*S(k,k) - S(k-1,k)*S(k,k-1)) ) )/2
@@ -516,22 +573,51 @@ while k > 1
 		     zeros(n-k,k-1+1),         eye(n-k) ]
 		U = U*V
 		S = V'*S*V;
-		%(abs(S) < tol & lowt)
 		Z = 1 - tril(abs(S) < tol, -1)
-		%S
-		%S(abs(S) < tol & lowt) = 0
 		S = S.*Z
 	end
 end
 U
 S
 U*S*U'
+%}
 
+fprintf('\n');
+disp '★ 固有値関連の関数'
+Aeig1 = gallery("lehmer",4)
+veig1 = eig(Aeig1)
+Aeig2 = gallery("circul",3)
+veig2 = eig(Aeig2)
+Aeig3 = [3 1 0; 0 3 1; 0 0 3]
+veig3 = eig(Aeig3)
+Aeig4 = [-3, -4,  2; -7,  1, -5; 6, -7,  3]
+veig4 = eig(Aeig4)
+Aeig5 = [10,  -8,   5; -8,   9,   6; -1, -10,   7]
+veig5 = eig(Aeig5)
+[Veig1, Deig1] = eig(Aeig1)
+[Veig2, Deig2] = eig(Aeig2)
+[Veig2, Deig2] = eig(Aeig3)
+
+% ↓実装確認用の残骸↓
+%{
+A = Aeig3;
+[m, n]=size(A);
+I = eye(n);
+[U, S] = schur(A,'complex');
+l = diag(S);
+V = zeros(n);
+for k = 1:n
+	(A - l(k)*I)'
+	[Q,~] = qr( (A - l(k)*I)' );
+	Q
+	V(:,k) = Q(:,n);
+end
+V
+D = diag(l)
+ll_AV_VD_ll = norm(A*V - V*D)
+%}
 
 %{
-% Schur分解
-Qsr*Usr*inv(Qsr)
-
 % クロネッカー積のテスト
 kron([1,2;3,4], [0,5;6,7])
 Axsvd = [

@@ -993,12 +993,12 @@ int main(void){
 	};
 	ArcsMat<5,5> Qqr1, Rqr1;
 	QR(Aqr1, Qqr1, Rqr1);				// QR分解を計算 (引数渡し版)
-	dispf(Aqr1, "% 8.4f");
+	disp(Aqr1);
 	dispf(Qqr1, "% 8.4f");
 	dispf(Rqr1, "% 8.4f");
 	dispf(Qqr1*~Qqr1, "% 8.4f");		// Qが直交行列かチェック
-	dispf(Qqr1*Rqr1, "% 8.4f");			// 元に戻るかチェック
-	printf("||Aqr1 - Qqr1*Rqr1|| = %e\n\n", norm(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
+	disp(Qqr1*Rqr1);					// 元に戻るかチェック
+	printf("||A - Q R|| = %e\n\n", norm(Aqr1 - Qqr1*Rqr1));	// ユークリッドL2ノルムでチェック
 	constexpr ArcsMat<3,4> Aqr2 = {
 		12, -51,   4, 39,
 		 6, 167, -68, 22,
@@ -1036,6 +1036,17 @@ int main(void){
 	dispf(Rqr5, "% 8.4f");
 	dispf(Qqr5*~Qqr5, "% 3.1f");		// Qが直交行列かチェック
 	dispf(Qqr5*Rqr5, "% 3.1f");			// 元に戻るかチェック
+	ArcsMat<3,3,std::complex<double>> Aqr9 = {
+		0, 0, 0,
+		1, 0, 0,
+		0, 1, 0
+	};
+	disp(Aqr9);
+	const auto [Qqr9, Rqr9] = QR(Aqr9);	// 複素数QR分解を計算 不完全な場合
+	disp(Qqr9);
+	disp(Rqr9);
+	disp(~Qqr9*Qqr9);					// Qが直交行列かチェック
+	disp(Qqr9*Rqr9);					// 元に戻るかチェック
 
 	// SVD特異値分解関連の関数
 	printf("\n★★★★★★★ SVD特異値分解関連の関数\n");
@@ -1302,98 +1313,101 @@ int main(void){
 	
 	// Schur分解関連の関数
 	printf("\n★★★★★★★ Schur分解関連の関数\n");
-	dispf(Asch1, "% 10.4f");
+	disp(Asch1);
 	ArcsMat<3,3> Usch1, Tsch1;
 	Schur(Asch1, Usch1, Tsch1);				// Schur分解を計算 (引数渡し版)
 	std::tie(Usch1, Tsch1) = Schur(Asch1);	// Schur分解を計算 (戻り値返し版)
 	dispf(Usch1, "% 10.4f");
 	dispf(Tsch1, "% 10.4f");
-	dispf(Usch1*Tsch1*~Usch1, "% 10.4f");	// 元に戻るかチェック
+	disp(Usch1*Tsch1*~Usch1);				// 元に戻るかチェック
 	dispf(~Usch1*Usch1, "% 10.4f");			// ユニタリ行列かチェック
 	ArcsMat<3,3, std::complex<double>> Asch2 = {
 		 4, -8,  1,
 		 1, -5,  1,
 		-9,  8, -6
 	};
-	dispf(Asch2, "% 10.4f");
-	const auto [Usch2, Tsch2] = Schur(Asch2);	// 重根がある場合
+	disp(Asch2);
+	auto [Usch2, Tsch2] = Schur(Asch2);		// 重根がある場合
 	dispf(Usch2, "% 10.4f");
 	dispf(Tsch2, "% 10.4f");
-	dispf(Usch2*Tsch2*~Usch2, "% 10.4f");	// 元に戻るかチェック
-	dispf(~Usch2*Usch2, "% 10.4f");			// ユニタリ行列かチェック
-	
-	/*
-	ArcsMat<3,3,std::complex<double>> W = {
-    //  7.999969692773528e+00 + 1.948225823816006e-05i,      1.110050330609571e+01 + 2.206680393669198e+00i,     -7.461730710781218e+00 - 6.650710597105427e+00i,
-    // -4.420436685259013e-07 + 0.000000000000000e+00i,     -5.983267807767589e-04 + 2.099030934880886e-03i,      1.218668892726340e+00 + 7.175223818089258e-01i,
-    //  0.000000000000000e+00 + 0.000000000000000e+00i,      3.285785894646676e-06 + 2.081668171172169e-17i,      5.358724637432033e-04 - 2.060432663765527e-03i
-	//
-    //  7.999999945669873e+00 - 5.398562073865004e-08i,      5.173452162608178e+00 - 1.006182110283082e+01i,     -6.182832594946469e+00 - 7.859244869587903e+00i,
-    //  1.206006677520544e-10 - 1.058791184067875e-22i,     -3.037418098461586e-05 + 1.941180308185587e-05i,     -5.886540951227720e-01 + 1.285879603035898e+00i,
-    //  0.000000000000000e+00 + 0.000000000000000e+00i,      9.179894041103087e-10 + 8.673617379884035e-19i,      3.026575469888826e-05 - 1.952022936847189e-05i
-	//
-	//  7.999999959479601e+00 - 7.178045377127894e-08i, -5.173452380254978e+00 + 1.006182099125384e+01i,  6.182828436875149e+00 + 7.859248140299954e+00i, 
- 	// -1.206006670270339e-10 + 0.000000000000000e+00i, -3.036041271720080e-05 + 1.939398384635372e-05i, -5.886547476029835e-01 + 1.285879304341209e+00i, 
-  	//  0.000000000000000e+00 + 0.000000000000000e+00i,  9.179896755945327e-10 + 0.000000000000000e+00i,  3.027960590795686e-05 - 1.953799979989904e-05i 
-	};
-	const auto [Qw, Rw] = QR(W);
-	dispf(W, "% 16.15e");
-	dispf(Qw, "% 16.15e");
-	ArcsMat<3,3,std::complex<double>> Qref = {
-     -1.000000000000000e+00 + 6.748202638160094e-09i,      1.270254411668508e-11 - 8.118098145535705e-12i,      2.160275893754007e-16 + 3.173553184897171e-16i,
-     -1.507508357138571e-11 + 1.323488989072919e-23i,     -8.426184910557613e-01 + 5.385109821372153e-01i,     -1.433010876597376e-05 - 2.105164581307551e-05i,
-      0.000000000000000e+00 + 0.000000000000000e+00i,      2.546613061860435e-05 + 2.406165815638933e-14i,     -2.899035388025403e-02 - 9.995796910368747e-01i
-	};
-	dispf(Qref, "% 16.15e");
-	*/
-	/*
-	ArcsMat<3,3> W = {
-    -2.039207261322640e+00,     7.106155096368991e+00,    -8.161617539766114e+02,
-    -5.733687193064796e-03,    -9.607928087369952e-01,     5.052140520240906e+01,
-                       0.0,    -1.242272970283136e-09,     6.532248830737331e-08
-	};
-	const auto [Qw, Rw] = QR(W);
-	dispf(Qw, "% 16.15e");
-	*/
-
-	/*
-	dispf(Qsch1*Usch1*inv(Qsch1), "% 8.4f");	// 元に戻るかチェック
-	constexpr auto QUsch1x = Schur(Asch1);		// コンパイル時にSchur分解を計算 (実行時と符号が異なる場合がある)
-	constexpr auto Qsch1x = std::get<0>(QUsch1x);	// Qを取り出す
-	constexpr auto Usch1x = std::get<1>(QUsch1x);	// Uを取り出す
-	dispf(Qsch1x, "% 8.4f");
-	dispf(Usch1x, "% 8.4f");
-	dispf(Qsch1x*Usch1x*inv(Qsch1x), "% 8.4f");	// 元に戻るかチェック
-	*/
-	
-	/*
-	// Schur分解のテスト1(実数固有値の場合)
-	printf("\n★★★★★★★ Schur分解のテスト1(実数固有値の場合)\n");
-	Matrix<3,3> Asr1 = {
-		 4, -8,  1,
-		 1, -5,  1,
-		-9,  8, -6
-	};
-	Matrix<3,3> Qsr, Usr;
-	Schur(Asr1, Qsr, Usr);
-	PrintMat(Asr1);
-	PrintMatrix(Qsr, "%6.3f");
-	PrintMatrix(Usr, "%6.3f");
-	PrintMat(Qsr*Usr*inv(Qsr));
-	
-	// Schur分解のテスト2(複素数固有値の場合)
-	printf("\n★★★★★★★ Schur分解のテスト2(複素数固有値の場合)\n");
-	Matrix<3,3> Asr2 = {
+	disp(Usch2*Tsch2*~Usch2);				// 元に戻るかチェック
+	dispf(~Usch2*Usch2, "% 12g");			// ユニタリ行列かチェック
+	ArcsMat<3,3, std::complex<double>> Asch3 = {
 		 1,  2,  3,
 		-5,  9, -1,
 		 2,  6,  8
 	};
-	Schur(Asr2, Qsr, Usr);
-	PrintMat(Asr2);
-	PrintMatrix(Qsr, "%6.3f");
-	PrintMatrix(Usr, "%6.3f");
-	PrintMat(Qsr*Usr*inv(Qsr));
-	
+	disp(Asch3);
+	std::tie(Usch2, Tsch2) = Schur(Asch3);	// 複素数固有値の場合
+	dispf(Usch2, "% 10.4f");
+	dispf(Tsch2, "% 10.4f");
+	dispf(Usch2*Tsch2*~Usch2, "% 4g");		// 元に戻るかチェック
+	dispf(~Usch2*Usch2, "% 12g");			// ユニタリ行列かチェック
+	constexpr auto UTsch1x = Schur(Asch1);			// コンパイル時にSchur分解を計算 (実行時とは符号が入れ替わる場合がある)
+	constexpr auto Usch1x = std::get<0>(UTsch1x);	// Uを取り出す
+	constexpr auto Tsch1x = std::get<1>(UTsch1x);	// Tを取り出す
+	dispf(Usch1x, "% 8.4f");
+	dispf(Tsch1x, "% 8.4f");
+	dispf(Usch1x*Tsch1x*~Usch1x, "% 4g");			// 元に戻るかチェック
+	dispf(~Usch1x*Usch1x, "% 12g");			// ユニタリ行列かチェック
+
+	// 固有値関連の関数
+	printf("\n★★★★★★★ 固有値関連の関数\n");
+	ArcsMat<4,4> Aeig1 = {
+		1.00000, 0.50000, 0.33333, 0.25000,
+		0.50000, 1.00000, 0.66667, 0.50000,
+		0.33333, 0.66667, 1.00000, 0.75000,
+		0.25000, 0.50000, 0.75000, 1.00000
+	};
+	dispf(Aeig1, "% 8.4f");
+	ArcsMat<4,1,std::complex<double>> veig1;
+	eig(Aeig1, veig1);						// 固有値を計算 (引数渡し版)
+	veig1 = eig(Aeig1);						// 固有値を計算 (戻り値返し版)
+	dispf(veig1, "% 8.4f");
+	ArcsMat<3,3> Aeig2 = {
+		 1,  2,  3,
+		 3,  1,  2,
+		 2,  3,  1
+	};
+	disp(Aeig2);
+	dispf(eig(Aeig2), "% 8.4f");			// 実根1個と複素根2個がある場合
+	ArcsMat<3,3> Aeig3 = {
+		3, 1, 0,
+		0, 3, 1,
+		0, 0, 3
+	};
+	disp(Aeig3);
+	dispf(eig(Aeig3), "% 8.4f");			// 3重根の場合
+	ArcsMat<3,3> Aeig4 = {
+		-3, -4,  2,
+		-7,  1, -5,
+		 6, -7,  3
+	};
+	disp(Aeig4);
+	dispf(eig(Aeig4), "% 8.4f");			// 実根3個の場合
+	ArcsMat<3,3> Aeig5 = {
+		10,  -8,   5,
+		-8,   9,   6,
+		-1, -10,   7
+	};
+	disp(Aeig5);
+	dispf(eig(Aeig5), "% 8.4f");			// 実根1個と複素根2個がある場合
+	ArcsMat<4,4,std::complex<double>> Veig1, Deig1;
+	eigvec(Aeig1, Veig1, Deig1);			// 固有値と固有ベクトルを計算 (引数渡し版)
+	std::tie(Veig1, Deig1) = eigvec(Aeig1);	// 固有値と固有ベクトルを計算 (タプル返し版)
+	dispf(Veig1, "% 8.4f");
+	dispf(Deig1, "% 8.4f");
+	printf("||AV - VD|| = %e\n\n", norm(static_cast< ArcsMat<4,4,std::complex<double>> >(Aeig1)*Veig1 - Veig1*Deig1) );
+	auto [Veig2, Deig2] = eigvec(Aeig2);	// 実根1個と複素根2個がある場合
+	dispf(Veig2, "% 8.4f");
+	dispf(Deig2, "% 8.4f");
+	printf("||AV - VD|| = %e\n\n", norm(static_cast< ArcsMat<3,3,std::complex<double>> >(Aeig2)*Veig2 - Veig2*Deig2) );
+	auto [Veig3, Deig3] = eigvec(Aeig3);	// 3重根の場合
+	dispf(Veig3, "% 8.4f");
+	dispf(Deig3, "% 8.4f");
+	printf("||AV - VD|| = %e\n\n", norm(static_cast< ArcsMat<3,3,std::complex<double>> >(Aeig3)*Veig3 - Veig3*Deig3) );
+
+	/*
 	// 行列指数関数のテスト
 	printf("\n★★★★★★★ 行列指数関数のテスト\n");
 	Matrix<3,3> Y = expm(A, 6);
