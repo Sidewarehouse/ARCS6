@@ -1407,6 +1407,90 @@ int main(void){
 	dispf(Deig3, "% 8.4f");
 	printf("||AV - VD|| = %e\n\n", norm(static_cast< ArcsMat<3,3,std::complex<double>> >(Aeig3)*Veig3 - Veig3*Deig3) );
 
+	// その他の「積」関連の関数
+	printf("\n★★★★★★★ その他の「積」関連の関数\n");
+	constexpr ArcsMat<2,2> Lkrn1 = {
+		1, 2,
+		3, 4
+	};
+	constexpr ArcsMat<2,2> Rkrn1 = {
+		0, 5,
+		6, 7
+	};
+	ArcsMat<4,4> Ykrn1;
+	Kron(Lkrn1, Rkrn1, Ykrn1);	// クロネッカー積 (引数渡し版)
+	Ykrn1 = Kron(Lkrn1, Rkrn1);	// クロネッカー積 (戻り値返し版)
+	dispf(Ykrn1, "% 4g");
+	constexpr ArcsMat<3,3> Lkrn2 = {
+		1,  1,  1,
+		2,  3, -2,
+		3, -1,  1
+	};
+	constexpr ArcsMat<4,2> Rkrn2 = {
+		1, 2,
+		3, 4,
+		5, 6,
+		7, 8
+	};
+	ArcsMat<12,6> Ykrn2;
+	Kron(Lkrn2, Rkrn2, Ykrn2);	// クロネッカー積 (引数渡し版)
+	Ykrn2 = Kron(Lkrn2, Rkrn2);	// クロネッカー積 (戻り値返し版)
+	dispf(Ykrn2, "% 4g");
+	dispf(Kron(Rkrn2, Lkrn2), "% 4g");	// クロネッカー積  (戻り値返し版)
+	constexpr auto Ykrn2x = Kron(Lkrn2, Rkrn2);		// コンパイル時にクロネッカー積を計算
+	dispf(Ykrn2x, "% 4g");
+	constexpr ArcsMat<3,1> acrs1 = {
+		 4,
+		-2,
+		 1
+	};
+	constexpr ArcsMat<3,1> bcrs1 = {
+		 1,
+		-1,
+		 3
+	};
+	ArcsMat<3,1> ycrs1;
+	cross(acrs1, bcrs1, ycrs1);		// クロス積 ベクトルの場合 (引数渡し版)
+	ycrs1 = cross(acrs1, bcrs1);	// クロス積 ベクトルの場合 (戻り値返し版)
+	dispf(ycrs1, "% 4g");
+	constexpr ArcsMat<3,5> Acrs2 = {
+		13, 14,  5, 15, 15,
+		14, 10,  9,  3,  8,
+		 2,  2, 15, 15, 13
+	};
+	constexpr ArcsMat<3,5> Bcrs2 = {
+		 4, 20,  1, 17, 10,
+		11, 24, 22, 19, 17,
+		23, 17, 24, 19,  5
+	};
+	ArcsMat<3,5> Ycrs2;
+	cross(Acrs2, Bcrs2, Ycrs2);		// クロス積 行列の場合 (引数渡し版)
+	Ycrs2 = cross(Acrs2, Bcrs2);	// クロス積 行列の場合 (戻り値返し版)
+	dispf(Ycrs2, "% 4g");
+	constexpr auto Ycrs2x = cross(Acrs2, Bcrs2);	// コンパイル時にクロス積を計算
+	dispf(Ycrs2x, "% 4g");
+
+	// vec作用素関連の関数
+	printf("\n★★★★★★★ vec作用素関連の関数\n");
+	dispf(Rkrn2, "% 4g");
+	ArcsMat<8,1> yvec1;
+	vec(Rkrn2, yvec1);				// vec作用素 (引数渡し版)
+	yvec1 = vec(Rkrn2);				// vec作用素 (戻り値返し版)
+	dispf(yvec1, "% 4g");
+	constexpr auto yvec1x = vec(Rkrn2);				// コンパイル時にvec作用素を計算
+	dispf(yvec1x, "% 4g");
+	ArcsMat<4,2> Yvec2;
+	vecinv(yvec1, Yvec2);			// vec作用素の逆 (引数渡し版)
+	Yvec2 = vecinv<4,2>(yvec1);		// vec作用素の逆 (戻り値返し版) テンプレート引数で復元サイズを要指定
+	dispf(Yvec2, "% 4g");
+	constexpr auto Yvec2x = vecinv<4,2>(yvec1x);	// コンパイル時にvec作用素の逆を計算
+	dispf(Yvec2x, "% 4g");
+	constexpr ArcsMat<2,2> Akrn1 = {
+		7, 1,
+		5, 2
+	};
+	dispf(vec(Akrn1*Lkrn1*Rkrn1) - Kron(~Rkrn1, Akrn1)*vec(Lkrn1), "% 4g");	// vec作用素とクロネッカー積のデモ（公式通り！）
+
 	/*
 	// 行列指数関数のテスト
 	printf("\n★★★★★★★ 行列指数関数のテスト\n");
@@ -1416,54 +1500,6 @@ int main(void){
 	printf("det(Y)     = % 16.14e\n", det(Y));
 	printf("exp(tr(A)) = % 16.14e\n\n", exp(tr(A)));	// 公式通りに一致！
 	PrintMatrix(integral_expm(A,100e-6,10,6),"% 16.14e");
-	
-	// 固有値計算のテスト1(実数固有値の場合)
-	printf("★★★ 固有値計算のテスト1(実数固有値の場合)\n");
-	Matrix<3,3> Aeig = {
-		-3, -4,  2,
-		-7,  1, -5,
-		 6, -7,  3
-	};
-	PrintMat(Aeig);
-	PrintMat(eigen(Aeig));
-	PrintMat(eigenvec(Aeig));
-	
-	// 固有値計算のテスト2(複素数固有値の場合)
-	printf("★★★ 固有値計算のテスト2(複素数固有値の場合)\n");
-	Aeig.Set(
-		10,  -8,   5,
-		-8,   9,   6,
-		-1, -10,   7
-	);
-	PrintMat(Aeig);
-	PrintMat(eigen(Aeig));
-	PrintMat(eigenvec(Aeig));
-	
-	// クロネッカー積のテスト
-	printf("\n★★★★★★★ クロネッカー積のテスト\n");
-	constexpr Matrix<2,2> Ukl = {
-		1, 2,
-		3, 4
-	};
-	constexpr Matrix<2,2> Ukr = {
-		0, 5,
-		6, 7
-	};
-	PrintMat(Kronecker(Ukl, Ukr));
-	PrintMat(A);
-	PrintMat(Axsvd);
-	PrintMat(Kronecker(A, Axsvd));
-	PrintMat(Kronecker(Axsvd, A));
-	
-	// vec作用素のテスト
-	printf("\n★★★★★★★ vec作用素のテスト\n");
-	PrintMat(vec(A));
-	PrintMat(vec(Axsvd));
-	Matrix<1,9>::vecinv(vec(A), A);			// 引数で返す版
-	A = Matrix<1,9>::vecinv<3,3>(vec(A));	// 戻り値で返す版
-	PrintMat(A);
-	auto Avec = Matrix<1,8>::vecinv<2,4>(vec(Axsvd));	// 戻り値で返す版
-	PrintMat(Avec);
 	*/
 	return EXIT_SUCCESS;	// 正常終了
 }

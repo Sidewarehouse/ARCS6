@@ -617,16 +617,22 @@ D = diag(l)
 ll_AV_VD_ll = norm(A*V - V*D)
 %}
 
-%{
-% クロネッカー積のテスト
-kron([1,2;3,4], [0,5;6,7])
-Axsvd = [
+fprintf('\n');
+disp '★ その他の「積」関連の関数'
+Lkrn1 = [1,2;3,4];
+Rkrn1 = [0,5;6,7];
+Ykrn1 =  kron(Lkrn1, Rkrn1)	% クロネッカー積
+Lkrn2 = [
+	1,  1,  1 ;
+	2,  3, -2 ;
+	3, -1,  1
+];
+Rkrn2 = [
 	1, 2;
 	3, 4;
 	5, 6;
 	7, 8
 ];
-kron(A,Axsvd)
-kron(Axsvd,A)
-%}
+Ykrn2 = kron(Lkrn2, Rkrn2)
+Ykrn2 = kron(Rkrn2, Lkrn2)
 

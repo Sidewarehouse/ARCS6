@@ -2411,7 +2411,7 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<TH>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(k <= M);	// 次元チェック
 			
-			const auto I = ArcsMat<MH,NH,TH>::eye();
+			const auto I = ArcsMat<MH,NH,TH>::eye();	// [C++20移行時にconstexprに改修]
 			auto vHv = ~v*v;
 			if( std::abs(vHv[1]) != 0 ){
 				H = I - 2.0*v*~v/vHv[1];
@@ -2450,7 +2450,7 @@ class ArcsMat {
 
 			// 事前準備
 			constexpr size_t K = std::min(M,N);	// 縦長か横長か、短い方をKとする
-			ArcsMat<M,1,T> e = {1};	// 単位ベクトルを生成
+			constexpr ArcsMat<M,1,T> e = {1};	// 単位ベクトルを生成
 			ArcsMat<M,1,T> a, v;				// "Householder Reflections"のベクトル
 			ArcsMat<M,M,T> H;					// Householder行列
 			Q = ArcsMat<MQ,NQ,TQ>::eye();
@@ -2461,14 +2461,16 @@ class ArcsMat {
 				a = ArcsMat<M,N,T>::getcolumn(R, k);
 				a = ArcsMat<M,1,T>::shiftup(a, k - 1);
 				
+				// 単位行列部分の生成を実数と複素数で変える
 				if constexpr(ArcsMatrix::IsComplex<T>){
+					// 複素数の場合
 					v = a + std::exp( std::complex( 0.0, std::arg(a[1])) )*std::sqrt( (~a*a)[1] )*e;
 				}else{
+					// 実数の場合
 					v = a + ArcsMat<M,N,T>::sgn(a[1])*std::sqrt( (~a*a)[1] )*e;
 				}
-				//v = a + ArcsMat<M,N,T>::sgn(a[1])*ArcsMat<M,1,T>::norm(a)*e;
 				
-				ArcsMat<M,1,T>::Householder(v, H, k - 1);
+				ArcsMat<M,1,T>::Householder(v, H, k - 1);	// ハウスホルダー行列を生成
 				R = H*R;
 				Q = Q*~H;
 			}
@@ -2476,7 +2478,7 @@ class ArcsMat {
 			// Aが縦長を除き、且つ複素数の場合にはRの対角項を実数に変換
 			/* (複素Schur分解で不具合が出たのでPending)
 			if constexpr( (M <= N) && ArcsMatrix::IsComplex<T>){
-				const auto l  = ArcsMat<K,1,T>::ones();	// C++20移行時にconstexprに改修すべし！	
+				const auto l  = ArcsMat<K,1,T>::ones();	// [C++20移行時にconstexprに改修]
 				const auto d  = ArcsMat<K,1,T>::sign( ArcsMat<MR,NR,T>::getdiag(R) );
 				const auto di = l % d;
 				const auto D  = ArcsMat<K,1,T>::diag(d);
@@ -2563,7 +2565,7 @@ class ArcsMat {
 
 			// Aが正方で且つ複素数の場合には、MATLABに準拠させるための等価変換を実行
 			if constexpr((M == N) && ArcsMatrix::IsComplex<T>){
-				const auto l  = ArcsMat<1,NV,T>::ones();	// C++20移行時にconstexprに改修すべし！	
+				const auto l  = ArcsMat<1,NV,T>::ones();	// [C++20移行時にconstexprに改修]
 				const ArcsMat<1,NV,TV> d = l % ArcsMat<1,NV,TV>::sign( ArcsMat<MV,NV,TV>::getrow(V, 1) );	// V行列の一番上の横ベクトルの符号の逆数を計算
 				for(size_t i = 1; i <= NV; ++i){
 					ArcsMat<MU,NU,TU>::setcolumn(U, d(1,i)*ArcsMat<MU,NU,TU>::getcolumn(U, i), i);	// U行列の等価変換
@@ -2624,7 +2626,7 @@ class ArcsMat {
 			}
 			
 			// MATLABに準拠させるための等価変換を実行
-			const auto l = ArcsMat<M,1,T>::ones();						// C++20移行時にconstexprに改修すべし！	
+			const auto l = ArcsMat<M,1,T>::ones();						// [C++20移行時にconstexprに改修]
 			const ArcsMat<M,1,T> d = l % ArcsMat<M,N,T>::getdiag(D);	// 対角要素の逆数を抽出
 			L = L*D;
 			D = ArcsMat<M,1,T>::diag(d);
@@ -2866,7 +2868,7 @@ class ArcsMat {
 		template<size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
 		static constexpr void linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MX,NX,TX>& X){
 			// 行列のサイズでアルゴリズムを変える
-			if constexpr(M == 1){
+			if constexpr(M == 1 && N == 1){
 				// スカラーの場合
 				X[1] = B[1]/A(1,1);	// スカラーのときはそのまま単純に除算
 			}else if constexpr((M == N) && (NB == 1)){
@@ -2896,7 +2898,7 @@ class ArcsMat {
 		//! @tparam	MB, NB, TB	B行列の高さ, 幅, 要素の型
 		//! @param[in]	A	係数行列(正方行列・非正方行列)
 		//! @param[in]	B	係数ベクトル・行列
-		//! @param[out]	X	解ベクトル・行列
+		//! @return	解ベクトル・行列
 		template<size_t MB, size_t NB, typename TB = double>
 		static constexpr ArcsMat<N,NB,T> linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
 			ArcsMat<N,NB,T> X;
@@ -2915,7 +2917,7 @@ class ArcsMat {
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
-			const auto I = ArcsMat<M,N,T>::eye();			// 単位行列の生成 ← C++20移行時にconstexprに改修すべし！	
+			const auto I = ArcsMat<M,N,T>::eye();			// 単位行列の生成 [C++20移行時にconstexprに改修]
 			Y = ArcsMat<M,N,T>::linsolve(A, I);				// AX = I となる行列Xを linsolve で見つける
 		}
 
@@ -3035,7 +3037,7 @@ class ArcsMat {
 				if( std::abs(U(M,1)) < EPSILON*EPSILON ) break;
 			}
 			*/
-			const auto I = ArcsMat<M,N,T>::eye();
+			const auto I = ArcsMat<M,N,T>::eye();		// [C++20移行時にconstexprに改修]
 			auto [P, H] = ArcsMat<M,N,T>::Hessenberg(A);
 			size_t k = M;
 			U = P;
@@ -3137,7 +3139,7 @@ class ArcsMat {
 			const ArcsMat<M,M,TV> Ax = A;			// 予め複素行列として読み込み
 			const auto l = ArcsMat<M,M,TV>::eig(A);	// シュール分解で固有値を先に求める
 			ArcsMat<M,1,TV>::diag(l, D);			// 固有値を対角に持つ対角行列を生成
-			const auto I = ArcsMat<M,M,TV>::eye();
+			const auto I = ArcsMat<M,M,TV>::eye();	// [C++20移行時にconstexprに改修]
 			ArcsMat<M,M,TV> Q, R;
 			for(size_t k = 1; k <= M; ++k){
 					//(~(Ax - l[k]*I)).Disp("% 8.4f");
@@ -3156,6 +3158,181 @@ class ArcsMat {
 			ArcsMat<M,N,TV> V, D;
 			ArcsMat<M,N,T>::eigvec(A, V, D);
 			return {V, D};
+		}
+		
+		//! @brief クロネッカー積(引数渡し版)
+		//! @tparam	MR, NR, TR, MY, NY, TY	入出力行列の高さ, 幅, 要素の型
+		//! @param[in] L 演算子の左側
+		//! @param[in] R 演算子の右側
+		//! @param[out]	Y 結果
+		template<size_t MR, size_t NR, typename TR = double, size_t MY, size_t NY, typename TY = double>
+		static constexpr void Kron(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R, ArcsMat<MY,NY,TY>& Y){
+			static_assert(MY == M*MR, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == N*NR, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TR>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			ArcsMat<MR,NR,T> A;
+			
+			// 横方向に小行列で埋めていく
+			for(size_t i = 1; i <= N; ++i){
+				// 縦方向に小行列で埋めていく
+				for(size_t j = 1; j <= M; ++j){
+					A = L(j,i)*R;
+					ArcsMat<MY,NY,TY>::setsubmatrix(Y, A, (j - 1)*MR + 1, (i - 1)*NR + 1);
+				}
+			}
+		}
+
+		//! @brief クロネッカー積(戻り値返し版)
+		//! @tparam	MR, NR, TR, MY, NY, TY	入力行列の高さ, 幅, 要素の型
+		//! @param[in] L 演算子の左側
+		//! @param[in] R 演算子の右側
+		//! @return 結果
+		template<size_t MR, size_t NR, typename TR = double>
+		static constexpr ArcsMat<M*MR,N*NR,T> Kron(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R){
+			ArcsMat<M*MR,N*NR,T> Y;
+			ArcsMat<M,N,T>::Kron(L, R, Y);
+			return Y;
+		}
+
+		//! @brief クロス積 ベクトル版 (内部用引数渡し版のみ)
+		//! @tparam	MR, NR, TR, MY, NY, TY	入出力行列の高さ, 幅, 要素の型
+		//! @param[in] l 演算子の左側縦ベクトル
+		//! @param[in] r 演算子の右側縦ベクトル
+		//! @param[out]	y 結果縦ベクトル
+		template<size_t MR, size_t NR, typename TR = double, size_t MY, size_t NY, typename TY = double>
+		static constexpr void cross_vec(const ArcsMat<M,N,T>& l, const ArcsMat<MR,NR,TR>& r, ArcsMat<MY,NY,TY>& y){
+			static_assert(M  == 3, "ArcsMat: Size Error");	// 行列のサイズチェック(3次元のみ)
+			static_assert(MR == 3, "ArcsMat: Size Error");	// 行列のサイズチェック(3次元のみ)
+			static_assert(MY == 3, "ArcsMat: Size Error");	// 行列のサイズチェック(3次元のみ)
+			static_assert(N  == 1, "ArcsMat: Vector Error");	// 行列のサイズチェック
+			static_assert(NR == 1, "ArcsMat: Vector Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Vector Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TR>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			y[1] = l[2]*r[3] - l[3]*r[2];
+			y[2] = l[3]*r[1] - l[1]*r[3];
+			y[3] = l[1]*r[2] - l[2]*r[1];
+		}
+
+		//! @brief クロス積 行列版 (内部用引数渡し版のみ)
+		//! @tparam	MR, NR, TR, MY, NY, TY	入出力行列の高さ, 幅, 要素の型
+		//! @param[in] L 演算子の左側
+		//! @param[in] R 演算子の右側
+		//! @param[out]	Y 結果
+		template<size_t MR, size_t NR, typename TR = double, size_t MY, size_t NY, typename TY = double>
+		static constexpr void cross_mat(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R, ArcsMat<MY,NY,TY>& Y){
+			static_assert(M  == 3, "ArcsMat: Size Error");	// 行列のサイズチェック(3次元のみ)
+			static_assert(MR == 3, "ArcsMat: Size Error");	// 行列のサイズチェック(3次元のみ)
+			static_assert(MY == 3, "ArcsMat: Size Error");	// 行列のサイズチェック(3次元のみ)
+			static_assert(NR == N, "ArcsMat: Vector Error");	// 行列のサイズチェック
+			static_assert(NY == N, "ArcsMat: Vector Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TR>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// 列ごとにクロス積を計算
+			ArcsMat<MY,1,TY> y;
+			for(size_t i = 1; i <= N; ++i){
+				ArcsMat<M,1,T>::cross_vec(ArcsMat<M,N,T>::getcolumn(L, i), ArcsMat<MR,NR,TR>::getcolumn(R, i), y);
+				ArcsMat<MY,NY,TY>::setcolumn(Y, y, i);
+			}
+		}
+
+		//! @brief クロス積 (引数渡し版)
+		//! @tparam	MR, NR, TR, MY, NY, TY	入出力行列の高さ, 幅, 要素の型
+		//! @param[in] L 演算子の左側
+		//! @param[in] R 演算子の右側
+		//! @param[out]	Y 結果
+		template<size_t MR, size_t NR, typename TR = double, size_t MY, size_t NY, typename TY = double>
+		static constexpr void cross(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R, ArcsMat<MY,NY,TY>& Y){
+			// ベクトル入力か行列入力かによってアルゴリズムを変える
+			if constexpr(N == 1){
+				// ベクトルの場合
+				ArcsMat<M,N,T>::cross_vec(L, R, Y);	// ベクトル版を使用
+			}else{
+				// 行列の場合
+				ArcsMat<M,N,T>::cross_mat(L, R, Y);	// 行列版を使用
+			}
+		}
+
+		//! @brief クロス積 (戻り値返し版)
+		//! @tparam	MR, NR, TR 入力行列の高さ, 幅, 要素の型
+		//! @param[in] L 演算子の左側
+		//! @param[in] R 演算子の右側
+		//! @return	結果
+		template<size_t MR, size_t NR, typename TR = double>
+		static constexpr ArcsMat<M,N,T> cross(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::cross(L, R, Y);
+			return Y;
+		}
+		
+		//! @brief vec作用素(行列→縦ベクトル) (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void vec(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == M*N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Vector Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			
+			// 横方向に走査
+			size_t k = 0;
+			for(size_t i = 1; i <= N; ++i){
+				// 縦方向に走査
+				for(size_t j = 1; j <= M; ++j){
+					k++;
+					y[k] = U(j,i);
+				}
+			}
+		}
+
+		//! @brief vec作用素(行列→縦ベクトル) (戻り値返し版)
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		static constexpr ArcsMat<M*N,1,T> vec(const ArcsMat<M,N,T>& U){
+			ArcsMat<M*N,1,T> y;
+			ArcsMat<M,N,T>::vec(U, y);
+			return y;
+		}
+		
+		//! @brief vec作用素の逆(縦ベクトル→行列) (引数渡し版)
+		//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
+		//! @param[in]	u	入力縦ベクトル
+		//! @param[out]	Y	再構成後の行列
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void vecinv(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& Y){
+			static_assert(M == MY*NY, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == 1, "ArcsMat: Vector Error");		// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			
+			// 横方向に走査
+			size_t k = 0;
+			for(size_t i = 1; i <= NY; ++i){
+				// 縦方向に走査
+				for(size_t j = 1; j <= MY; ++j){
+					k++;
+					Y(j,i) = u[k];
+				}
+			}
+		}
+		
+		//! @brief vec作用素の逆(縦ベクトル→行列) (戻り値返し版)
+		//! @tparam	MY, NY	出力行列の高さ, 幅
+		//! @param[in]	u	入力縦ベクトル
+		//! @return	再構成後の行列
+		template<size_t MY, size_t NY>
+		static constexpr ArcsMat<MY,NY,T> vecinv(const ArcsMat<M,N,T>& u){
+			ArcsMat<MY,NY,T> Y;
+			ArcsMat<M,N,T>::vecinv(u, Y);
+			return Y;
 		}
 
 /*		
@@ -3198,81 +3375,6 @@ class ArcsMat {
 				Y = Y*Y;
 			}
 			return Y;	// 最終的に得られる行列指数を返す
-		}
-		
-		//! @brief クロネッカー積
-		//! @tparam	P	右側の幅
-		//! @tparam Q	右側の高さ
-		//! @param[in] Ul 演算子の左側
-		//! @param[in] Ur 演算子の右側
-		//! @return 結果
-		template<size_t P, size_t Q>
-		constexpr friend ArcsMat<N*P, M*Q, T> Kronecker(const ArcsMat<N,M,T>& Ul, const ArcsMat<P,Q,T>& Ur){
-			ArcsMat<N*P, M*Q, T> Y;
-			ArcsMat<P,Q,T> A;
-			
-			// 縦方向に小行列で埋めていく
-			for(size_t j = 1; j <= M; ++j){
-				// 横方向に小行列で埋めていく
-				for(size_t i = 1; i <= N; ++i){
-					A = Ul(j,i)*Ur;
-					setsubmatrix(Y, (i - 1)*P + 1, (j - 1)*Q + 1, A);
-				}
-			}
-			
-			return Y;
-		}
-		
-		//! @brief vec作用素(行列→縦ベクトル)
-		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat<1,N*M,T> vec(const ArcsMat<N,M,T>& U){
-			ArcsMat<1,N*M,T> Y;
-			
-			// 横方向に走査
-			size_t k = 0;
-			for(size_t i = 1; i <= N; ++i){
-				// 縦方向に走査
-				for(size_t j = 1; j <= M; ++j){
-					k++;
-					Y(k,1) = U(j,i);
-				}
-			}
-			
-			return Y;
-		}
-		
-		//! @brief vec作用素の逆(縦ベクトル→行列)
-		//! @tparam	P	再構成後の幅
-		//! @tparam Q	再構成後の高さ
-		//! @param[in]		v	入力ベクトル
-		//! @param[in,out]	Y	再構成後の行列
-		template<size_t P, size_t Q>
-		constexpr static void vecinv(const ArcsMat<N,M,T>& v, ArcsMat<P,Q,T>& Y){
-			static_assert(N == 1);		// 入力は縦ベクトルかチェック
-			static_assert(P*Q == M);	// 要素数が同じかチェック
-			
-			// 横方向に走査
-			size_t k = 0;
-			for(size_t i = 1; i <= P; ++i){
-				// 縦方向に走査
-				for(size_t j = 1; j <= Q; ++j){
-					k++;
-					Y(j,i) = v(k,1);
-				}
-			}
-		}
-		
-		//! @brief vec作用素の逆(縦ベクトル→行列)
-		//! @tparam	P	再構成後の幅
-		//! @tparam Q	再構成後の高さ
-		//! @param[in]		v	入力ベクトル
-		//! @return	再構成後の行列
-		template<size_t P, size_t Q>
-		constexpr static ArcsMat<P,Q,T> vecinv(const ArcsMat<N,M,T>& v){
-			ArcsMat<P,Q,T> Y;
-			vecinv(v, Y);
-			return Y;
 		}
 */		
 	public:
@@ -4700,10 +4802,84 @@ namespace ArcsMatrix {
 		return ArcsMat<M,N,T>::eigvec(A);
 	}
 
-}
+	//! @brief クロネッカー積(引数渡し版)
+	//! @tparam	M, N, T, MR, NR, TR, MY, NY, TY	入出力行列の高さ, 幅, 要素の型
+	//! @param[in] L 演算子の左側
+	//! @param[in] R 演算子の右側
+	//! @param[out]	Y 結果
+	template<size_t M, size_t N, typename T = double, size_t MR, size_t NR, typename TR = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void Kron(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R, ArcsMat<MY,NY,TY>& Y){
+		ArcsMat<M,N,T>::Kron(L, R, Y);
+	}
+
+	//! @brief クロネッカー積(戻り値返し版)
+	//! @tparam	M, N, T, MR, NR, TR	入力行列の高さ, 幅, 要素の型
+	//! @param[in] L 演算子の左側
+	//! @param[in] R 演算子の右側
+	//! @return 結果
+	template<size_t M, size_t N, typename T = double, size_t MR, size_t NR, typename TR = double>
+	constexpr ArcsMat<M*MR,N*NR,T> Kron(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R){
+		return ArcsMat<M,N,T>::Kron(L, R);
+	}
+
+	//! @brief クロス積 (引数渡し版)
+	//! @tparam	M, N, T, MR, NR, TR, MY, NY, TY	入出力行列の高さ, 幅, 要素の型
+	//! @param[in] L 演算子の左側
+	//! @param[in] R 演算子の右側
+	//! @param[out]	Y 結果
+	template<size_t M, size_t N, typename T = double, size_t MR, size_t NR, typename TR = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void cross(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R, ArcsMat<MY,NY,TY>& Y){
+		ArcsMat<M,N,T>::cross(L, R, Y);
+	}
+
+	//! @brief クロス積 (戻り値返し版)
+	//! @tparam	M, N, T, MR, NR, TR 入力行列の高さ, 幅, 要素の型
+	//! @param[in] L 演算子の左側
+	//! @param[in] R 演算子の右側
+	//! @return 結果
+	template<size_t M, size_t N, typename T = double, size_t MR, size_t NR, typename TR = double>
+	constexpr ArcsMat<M,N,T> cross(const ArcsMat<M,N,T>& L, const ArcsMat<MR,NR,TR>& R){
+		return ArcsMat<M,N,T>::cross(L, R);
+	}
+
+	//! @brief vec作用素(行列→縦ベクトル) (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入力行列と出力ベクトルの高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void vec(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::vec(U, y);
+	}
+
+	//! @brief vec作用素(行列→縦ベクトル) (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M*N,1,T> vec(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::vec(U);
+	}
+
+	//! @brief vec作用素の逆(縦ベクトル→行列) (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入力縦ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	u	入力縦ベクトル
+	//! @param[out]	Y	再構成後の行列
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void vecinv(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& Y){
+		ArcsMat<M,N,T>::vecinv(u, Y);
+	}
+
+	//! @brief vec作用素の逆(縦ベクトル→行列) (戻り値返し版)
+	//! @tparam	MY, NY	出力行列の高さ, 幅
+	//! @tparam M, N, T	入力縦ベクトルの高さ, 幅, 要素の型
+	//! @param[in]	u	入力縦ベクトル
+	//! @return	再構成後の行列
+	template<size_t MY, size_t NY, size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<MY,NY,T> vecinv(const ArcsMat<M,N,T>& u){
+		return ArcsMat<M,N,T>::template vecinv<MY,NY>(u);
+	}
 
 }
-
+}
 
 #endif
-
