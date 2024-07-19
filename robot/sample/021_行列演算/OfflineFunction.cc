@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/06/26
+//! @date 2024/07/19
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -786,18 +786,22 @@ int main(void){
 	dispf(tan(Ax1), "% 12.3e");				// 行列要素の正接関数 (戻り値渡し版)
 	constexpr auto Yx6 = tan(Ax1);						// コンパイル時に行列要素の正接関数を計算
 	dispf(Yx6, "% 12.3e");
+	tanh(Ax1, Y1);							// 行列要素の双曲線正接関数 (引数渡し版)
+	dispf(tanh(Ax1), "% 12.3e");			// 行列要素の双曲線正接関数 (戻り値渡し版)
+	constexpr auto Yx7 = tanh(Ax1);						// コンパイル時に行列要素の双曲線正接関数を計算
+	dispf(Yx7, "% 12.3e");
 	sqrt(Ax1, Y1);							// 行列要素の平方根 (引数渡し版)
 	dispf(sqrt(Ax1), "% 8.3f");				// 行列要素の平方根 (戻り値渡し版)
-	constexpr auto Yx7 = sqrt(Ax1);						// コンパイル時に行列要素の平方根を計算
-	dispf(Yx7, "% 8.3f");
+	constexpr auto Yx8 = sqrt(Ax1);						// コンパイル時に行列要素の平方根を計算
+	dispf(Yx8, "% 8.3f");
 	sqrt(Ax1, Y1);							// 行列要素の符号関数 (引数渡し版)
 	dispf(sqrt(Ax1), "% 8.3f");				// 行列要素の符号関数 (戻り値渡し版)
-	constexpr auto Yx8 = sign(Ax1);						// コンパイル時に行列要素の符号関数を計算
-	dispf(Yx8, "% 8.3f");
+	constexpr auto Yx9 = sign(Ax1);						// コンパイル時に行列要素の符号関数を計算
+	dispf(Yx9, "% 8.3f");
 	abs(Yx5, Y1);							// 行列要素の絶対値 (引数渡し版)
 	dispf(abs(Yx5), "% 12.3f");				// 行列要素の絶対値 (戻り値渡し版)
-	constexpr auto Yx9 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
-	dispf(Yx9, "% 12.3f");
+	constexpr auto Yx10 = abs(Yx5);						// コンパイル時に行列要素の絶対値を計算
+	dispf(Yx10, "% 12.3f");
 
 	// 複素数関連の関数
 	printf("\n★★★★★★★ 複素数関連の関数\n");
@@ -1491,16 +1495,23 @@ int main(void){
 	};
 	dispf(vec(Akrn1*Lkrn1*Rkrn1) - Kron(~Rkrn1, Akrn1)*vec(Lkrn1), "% 4g");	// vec作用素とクロネッカー積のデモ（公式通り！）
 
-	/*
-	// 行列指数関数のテスト
-	printf("\n★★★★★★★ 行列指数関数のテスト\n");
-	Matrix<3,3> Y = expm(A, 6);
-	PrintMat(A);
-	PrintMatrix(Y,"% 16.14e");
-	printf("det(Y)     = % 16.14e\n", det(Y));
-	printf("exp(tr(A)) = % 16.14e\n\n", exp(tr(A)));	// 公式通りに一致！
-	PrintMatrix(integral_expm(A,100e-6,10,6),"% 16.14e");
-	*/
+	// 行列指数関数
+	printf("\n★★★★★★★ 行列指数関数\n");
+	ArcsMat<3,3> Aexp1 = {
+		1,  1,  0,
+		0,  0,  2,
+		0,  0, -1
+	};
+	ArcsMat<3,3> Yexp1;
+	expm(Aexp1, Yexp1);			// 行列指数関数 (引数渡し版)
+	Yexp1 = expm(Aexp1);		// 行列指数関数 (戻り値返し版)
+	dispf(Yexp1, "% 8.4f");
+	dispf(Yexp1, "% 16.15e");
+	Yexp1 = expm(Aexp1, 2);		// パデ近似の次数を2次まで落とした場合
+	dispf(Yexp1, "% 16.15e");	// 精度が落ちるが計算は速い
+	constexpr auto Yexp2x = expm(Lkrn2);		// コンパイル時に行列指数関数を計算
+	dispf(Yexp2x, "% 8.4f");
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 

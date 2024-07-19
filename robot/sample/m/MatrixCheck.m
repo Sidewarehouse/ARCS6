@@ -78,6 +78,16 @@ C = 3 - A
 C = 2*A
 
 fprintf('\n');
+disp '★ 要素ごとの数学関数'
+Ax1 = [
+		     1.0,      2.0,      3.0,    4.0 ;
+		    pi/4,     pi/2, 3.0*pi/4,     pi ;
+		5.0*pi/4, 3.0*pi/2, 7.0*pi/4, 2.0*pi ]
+Yx1 = exp(Ax1)
+Yx6 = tan(Ax1)
+Yx7 = tanh(Ax1)
+
+fprintf('\n');
 disp '★ 行列間のコピー操作関連の関数'
 Fx = [
 		10, 20, 30, 40, 50, 60;
@@ -635,4 +645,16 @@ Rkrn2 = [
 ];
 Ykrn2 = kron(Lkrn2, Rkrn2)
 Ykrn2 = kron(Rkrn2, Lkrn2)
+
+fprintf('\n');
+disp '★ 行列指数関数'
+Aexp1 = [
+	1,  1,  0 ;
+	0,  0,  2 ;
+	0,  0, -1 ];
+Yexp1 = expm(Aexp1)
+format longE
+Yexp1 = expm(Aexp1)
+format short
+Yexp2x = expm(Lkrn2)
 

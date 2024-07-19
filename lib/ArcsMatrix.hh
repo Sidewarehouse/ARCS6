@@ -3,17 +3,19 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/07/18
+//! @date 2024/07/19
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 //
-// 以下，コメント。
-// ・各々の関数における計算結果はMATLAB/Maximaと比較して合っていることを確認している。
-// ・ただし，LU分解やコレスキー分解などの一見した表現が定まらない関数では，当然，MATLABとは異なる結果を出力するように見える。
+// ・各関数における計算結果はMATLAB/Maximaと比較して合っていることを確認済み。
+// ・下記に関して、MATLABと異なる結果を出力する場合がある：
+// 　- 行列分解の符号関係
+//　 - 複素数のときの行列分解
+// 　- 劣決定のときの線形方程式の解
 // ・動的メモリ版に比べてかなり高速の行列演算が可能。
-// ・旧来のMatrixクラスの不具合と不満を一掃。
+// ・旧来のMatrixクラスのバグ・不具合・不満を一掃。
 
 #ifndef ARCSMATRIX
 #define ARCSMATRIX
@@ -472,13 +474,10 @@ class ArcsMat {
 		//! @return 結果
 		constexpr ArcsMat<M,N,T> operator^(const int& right) const{
 			static_assert(M == N, "ArcsMat: Size Error");		// 正方行列チェック
-			ArcsMat<M,N,T> ret;
-			if(0 < right){
-				// 正のときはべき乗を計算
+			ArcsMat<M,N,T> ret = ArcsMat<M,N,T>::eye();
+			if(0 <= right){
+				// 非負のときはべき乗を計算
 				for(size_t k = 1; k <= static_cast<size_t>(right); ++k) ret *= (*this);
-			}else if(right == 0){
-				// ゼロ乗は単位行列
-				ret = ArcsMat<M,N,T>::eye();
 			}else if(right == -1){
 				// -1乗のときは逆行列を返す
 				ret = ArcsMat<M,N,T>::inv((*this));
@@ -1970,18 +1969,29 @@ class ArcsMat {
 			return Y;
 		}
 
-		/*
-		//! @brief 行列要素のtanhを返す関数
+		//! @brief 行列要素の双曲線正接関数を計算する関数(引数渡し版)
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
-		//! @return	結果
-		constexpr friend ArcsMat tanhe(const ArcsMat& U){
-			ArcsMat Y;
-			for(size_t i = 0; i < U.N; ++i){
-				for(size_t j = 0; j < U.M; ++j) Y.Data[i][j] = std::tanh(U.Data[i][j]);
+		//! @param[out]	Y	出力行列
+		template<size_t P, size_t Q, typename R = double>
+		static constexpr void tanh(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(std::is_floating_point_v<T>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			static_assert(std::is_floating_point_v<R>, "ArcsMat: Type Error (Floating Point)");	// 型チェック
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::tanh( U(j,i) ) );
 			}
+		}
+
+		//! @brief 行列要素の双曲線正接関数を計算する関数(戻り値渡し版)
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		static constexpr ArcsMat<M,N,T> tanh(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::tanh(U, Y);
 			return Y;
 		}
-		*/
 		
 		//! @brief 行列要素の平方根を計算する関数(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
@@ -2884,10 +2894,10 @@ class ArcsMat {
 				// Aが縦長行列で、Bが行列の場合
 				ArcsMat<M,N,T>::linsolve_mat_nsqv(A, B ,X);	// QR分解を使った線形方程式の行列版の解法を使用
 			}else if constexpr((M < N) && (NB == 1)){
-				// Aが縦長行列で、Bが縦ベクトルの場合
+				// Aが横長行列で、Bが縦ベクトルの場合
 				ArcsMat<M,N,T>::linsolve_vec_nsqh(A, B ,X);	// QR分解を使った線形方程式のベクトル版の解法を使用(この場合はMATLABとは異なる解を出力する、ただしもちろん、Ax = b は成立)
 			}else if constexpr((M < N) && (NB != 1)){
-				// Aが縦長行列で、Bが行列の場合
+				// Aが横長行列で、Bが行列の場合
 				ArcsMat<M,N,T>::linsolve_mat_nsqh(A, B ,X);	// QR分解を使った線形方程式の行列版の解法を使用(この場合はMATLABとは異なる解を出力する、ただしもちろん、AX = B は成立)
 			}else{
 				arcs_assert(false);			// ここには来ない
@@ -3025,60 +3035,28 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<TU>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TS>, "ArcsMat: Type Error");	// 対応可能型チェック
 			
-			// QR法によるシュール分解
-			/*
-			U = A; 
-			Q = ArcsMat<M,N,T>::eye();
-			ArcsMat<M,N,T> Qk, Rk;
-			for(size_t k = 1; k <= ITERATION_MAX; ++k){
-				ArcsMat<M,N,T>::QR(U, Qk, Rk);
-				U = Rk*Qk;
-				Q = Q*Qk;
-				if( std::abs(U(M,1)) < EPSILON*EPSILON ) break;
-			}
-			*/
+			// ヘッセンベルグ分解を用いた複素シュール分解
 			const auto I = ArcsMat<M,N,T>::eye();		// [C++20移行時にconstexprに改修]
 			auto [P, H] = ArcsMat<M,N,T>::Hessenberg(A);
 			size_t k = M;
 			U = P;
 			S = H;
-				//printf("U = \n");
-				//U.Disp("% 8.4f");
-				//printf("S = \n");
-				//S.Disp("% 8.4f");
 			T a = 0;
 			ArcsMat<M,N,T> W, Q, R, V;
 			while(1 < k){
-					//(ArcsMat<M,N,T>::getdiag(S, -1)).Disp("% 16.15e");
 				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero() + 1;
-					//printf("------- k = %zu -------\n", k);
 				if(1 < k){
 					a = ( S(k-1,k-1) + S(k,k) + std::sqrt( std::pow(S(k-1,k-1) + S(k,k), 2) - 4.0*(S(k-1,k-1)*S(k,k) - (S(k-1,k)*S(k,k-1))) ) )/2.0;
-						//printf("a = % 16.15e\n", a);
-						//printf("a = % 8.4f %+8.4fi\n", std::real(a), std::imag(a));
-						//printf("a*I = \n");
-						//(a*I).Disp("% 8.4f");
 					W.FillAllZero();
 					ArcsMat<M,N,T>::copymatrix(S - a*I,1,k,1,k, W,1,1);
-						//printf("W = \n");
-						//W.Disp("% 8.4f");
 					ArcsMat<M,N,T>::QR(W, Q, R);
-						//printf("Q = \n");
-						//Q.Disp("% 8.4f");
 					V = I;
 					ArcsMat<M,N,T>::copymatrix(Q,1,k,1,k, V,1,1);
-						//printf("V = \n");
-						//V.Disp("% 8.4f");
 					U = U*V;
 					S = ~V*S*V;
-						//printf("U = \n");
-						//U.Disp("% 8.4f");
 					S.ZeroingTriLo();
-						//printf("S = \n");
-						//S.Disp("% 8.4f");
 				}
 			}
-			// ↑実装確認用の残骸。後々消去予定。
 		}
 
 		//! @brief 複素Schur分解(タプル返し版)
@@ -3334,49 +3312,62 @@ class ArcsMat {
 			ArcsMat<M,N,T>::vecinv(u, Y);
 			return Y;
 		}
-
-/*		
-		//! @brief 行列指数関数 e^(U)
+		
+		//! @brief 行列指数関数 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
-		//! @param[in]	Order	パデ近似の次数
-		//! @return	結果
-		constexpr friend ArcsMat expm(const ArcsMat& U, size_t Order){
-			static_assert(U.N == U.M, "ArcsMat Size Error");	// 正方行列かチェック
+		//! @param[out]	Y	出力行列
+		//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void expm(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& Y, const size_t k = 13){
+			static_assert(M == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// L∞ノルムでスケーリング
 			int e = 0;
-			T c = 1;
-			bool flag = false;
-			// ノルムでスケーリング
-			frexp(infnorm(U),&e);
-			ArcsMat<U.N,U.M,T> A;
+			std::frexp(ArcsMat<M,N,T>::norm<ArcsMatrix::NormType::AMT_LINF>(U), &e);
+			ArcsMat<M,N,T> A;
 			if(0 < e){
-				A = pow(0.5,e+1)*U;
+				A = std::pow(0.5, e + 1)*U;
 			}else{
 				e = 0;
 				A = 0.5*U;
 			}
-			// 行列のパデ近似の計算
-			ArcsMat<A.N,A.N,T> I = ident();// 単位行列の生成
-			ArcsMat<A.N,A.N,T> L = I, R = I, X = I, cX;
-			for(size_t i = 1; i <= Order; ++i){
-				c = c*(T)(Order - i + 1)/(T)(i*(2*Order - i + 1));	// パデ近似係数の計算
-				X = A*X;		// A^Mの計算
-				cX = c*X;		// cM*A^Mの計算
-				R += cX;		// R = I + c1*A + c2*A*A + c3*A*A*A + ... + cM*A^M
-				if(flag == true){
-					L += cX;	// L = I + c1*A + c2*A*A + c3*A*A*A + ... + cM*A^M の正の係数の場合
-				}else{
-					L -= cX;	// L = I + c1*A + c2*A*A + c3*A*A*A + ... + cM*A^M の負の係数の場合
-				}
-				flag = !flag;	// 正負係数の場合分け用フラグ
+
+			// 指数行列のパデ近似の計算
+			const auto I = ArcsMat<M,N,T>::eye();	// 単位行列の生成
+			ArcsMat<M,N,T> L = I, R = I, X = I, cX;
+			T c = 1;
+			bool signflag = false;					// 係数の符号生成用フラグ
+			int coefsign = -1;						// 係数の符号
+			for(size_t i = 1; i <= k; ++i){
+				c = c*static_cast<T>(k - i + 1) / static_cast<T>(i*(2*k - i + 1));	// 指数行列のパデ近似係数の計算
+				X = A*X;									// A^Mの計算
+				cX = c*X;									// cM*A^Mの計算
+				R += cX;									// R = I + c1*A + c2*A*A + c3*A*A*A + ... + cM*A^M ←パデ近似の分子
+				coefsign = 2*static_cast<int>(signflag) - 1;// 係数の符号
+				L += static_cast<T>(coefsign)*cX;			// L = I + c1*A + c2*A*A + c3*A*A*A + ... + cM*A^M ←パデ近似の分母
+				signflag = !signflag;						// 係数の符号生成用フラグ
 			}
+			ArcsMat<M,N,T>::linsolve(L, R, Y);		// パデ近似 Y = L/R → 行列パデ近似 Y = inv(L)*R → 線形方程式表示 LY = R
+
 			// スケールを元に戻す
-			ArcsMat Y = inv(L)*R;
-			for(size_t i = 0; i < (size_t)e + 1; ++i){
-				Y = Y*Y;
-			}
-			return Y;	// 最終的に得られる行列指数を返す
+			for(size_t i = 0; i < static_cast<size_t>(e) + 1; ++i) Y *= Y;
 		}
-*/		
+		
+		//! @brief 行列指数関数 (戻り値返し版)
+		//! @param[in]	U	入力行列
+		//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
+		//! @return	出力行列
+		static constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U, const size_t k = 13){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::expm(U, Y, k);
+			return Y;
+		}
+
 	public:
 		// 公開版基本定数
 		static constexpr double EPSILON = 1e-14;		//!< 零とみなす閾値(実数版)
@@ -4265,6 +4256,24 @@ namespace ArcsMatrix {
 		return ArcsMat<M,N,T>::tan(U);
 	}
 
+	//! @brief 行列要素の双曲線正接関数を計算する関数(引数渡し版)
+	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void tanh(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::tanh(U, Y);
+	}
+
+	//! @brief 行列要素の双曲線正接関数を計算する関数(戻り値渡し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	Y	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> tanh(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::tanh(U);
+	}
+
 	//! @brief 行列要素の平方根を計算する関数(引数渡し版)
 	//! @tparam	M, N, T, P, Q, R	入力ベクトルと出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
@@ -4879,6 +4888,25 @@ namespace ArcsMatrix {
 		return ArcsMat<M,N,T>::template vecinv<MY,NY>(u);
 	}
 
+	//! @brief 行列指数関数 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void expm(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& Y, const size_t k = 13){
+		ArcsMat<M,N,T>::expm(U, Y, k);
+	}
+		
+	//! @brief 行列指数関数 (戻り値返し版)
+	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U, const size_t k = 13){
+		return ArcsMat<M,N,T>::expm(U, k);
+	}
 }
 }
 
