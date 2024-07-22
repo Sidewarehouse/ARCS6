@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/06/25
+//! @date 2024/07/22
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -47,10 +47,10 @@ int main(void){
 	RandomGenerator Rnd(-1, 1);
 	ArcsMat<N,N> A1;
 	Rnd.GetRandomMatrix(A1);
-	dispf(A1, "% 3.2f");
+	dispf(A1, "% 4.3f");
 	Matrix<N,N> A2;
 	Rnd.GetRandomMatrix(A2);
-	PrintMatrix(A2, "% 3.2f");
+	PrintMatrix(A2, "% 4.3f");
 	
 	// ArcsMatrixでの計算
 	ArcsMat<N,N> Y1;

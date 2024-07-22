@@ -3,13 +3,11 @@
 //!
 //! メルセンヌ・ツイスタによって行列のランダムシャッフルを行うクラス
 //!
-//! @date 2020/04/19
+//! @date 2024/07/22
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef SHUFFLE
 #define SHUFFLE
@@ -63,7 +61,7 @@ class Shuffle {
 			// フィッシャー-イェーツのシャッフルアルゴリズム
 			size_t j = 0;
 			for(size_t i = M - 1; i != 0; --i){
-				j = std::floor(Rand.GetDoubleRandom()*i);
+				j = std::floor(Rand.GetRandom()*i);
 				swaprow(U, j+1, i+1);
 			}
 		}
@@ -76,7 +74,7 @@ class Shuffle {
 			// フィッシャー-イェーツのシャッフルアルゴリズム
 			size_t j = 0;
 			for(size_t i = M - 1; i != 0; --i){
-				j = std::floor(Rand.GetDoubleRandom()*i);
+				j = std::floor(Rand.GetRandom()*i);
 				swaprow(U1, j+1, i+1);
 				swaprow(U2, j+1, i+1);
 			}
@@ -85,7 +83,7 @@ class Shuffle {
 	private:
 		Shuffle(const Shuffle&) = delete;					//!< コピーコンストラクタ使用禁止
 		const Shuffle& operator=(const Shuffle&) = delete;	//!< 代入演算子使用禁止
-		RandomGenerator Rand;	//!< メルセンヌ・ツイスタ乱数生成器
+		RandomGenerator<double> Rand;	//!< メルセンヌ・ツイスタ乱数生成器
 };
 }
 

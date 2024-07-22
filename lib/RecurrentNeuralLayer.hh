@@ -224,7 +224,7 @@ class RecurrentNeuralLayer {
 		Matrix<P,P> dWt;		//!< 時刻方向の重み更新差分値
 		Matrix<1,P> db;			//!< バイアス更新差分値
 		Matrix<1,P> fpu;		//!< 活性化関数の微分通過後のベクトル
-		RandomGenerator DropRand;	//!< ドロップアウト用メルセンヌ・ツイスタ
+		RandomGenerator<double> DropRand;	//!< ドロップアウト用メルセンヌ・ツイスタ
 		Matrix<1,P> DropMask;		//!< ドロップアウト用マスクベクトル
 		
 		static constexpr double DropRate = 0.5;	//!< ドロップアウト率

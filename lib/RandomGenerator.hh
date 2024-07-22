@@ -7,9 +7,7 @@
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// MIT License. For details, see the LICENSE file.
 
 #ifndef RANDOMGENERATOR
 #define RANDOMGENERATOR
@@ -18,8 +16,23 @@
 #include "ArcsMatrix.hh"
 #include "Matrix.hh"
 
+// ARCS組込み用マクロ
+#ifdef ARCS_IN
+	// ARCSに組み込まれる場合
+	#include "ARCSassert.hh"
+	#include "ARCSeventlog.hh"
+#else
+	// ARCSに組み込まれない場合
+	#define arcs_assert(a) (assert(a))
+	#define PassedLog()
+	#define EventLog(a)
+	#define EventLogVar(a)
+#endif
+
 namespace ARCS {	// ARCS名前空間
 //! @brief 乱数生成器
+//! @tparam	T	乱数生成の型 (デフォルト値 = double型)
+template<typename T = double>
 class RandomGenerator {
 	public:
 		//! @brief コンストラクタ
@@ -31,7 +44,7 @@ class RandomGenerator {
 				RandomDouble(MinOrMean, MaxOrStdDev),
 				GaussianRandom(MinOrMean, MaxOrStdDev)
 		{
-			
+			PassedLog();
 		}
 
 		//! @brief ムーブコンストラクタ
@@ -40,32 +53,36 @@ class RandomGenerator {
 			: RandomDevice(), MersenneTwister(r.MersenneTwister),
 				RandomInt(r.RandomInt), RandomDouble(r.RandomDouble), GaussianRandom(r.GaussianRandom)
 		{
-			
+
 		}
 
 		//! @brief デストラクタ
 		~RandomGenerator(){
-			
+			PassedLog();
 		}
 		
-		//! @brief 一様乱数を返す関数(整数版)
-		//! @return	整数乱数
-		int GetIntegerRandom(void){
-			return RandomInt(MersenneTwister);
+		//! @brief 一様乱数を返す関数
+		//! @return	一様乱数
+		T GetRandom(void){
+			// 型によって呼び出す関数を変える
+			if constexpr(std::is_same_v<T,int>){
+				// int型の場合
+				return RandomInt(MersenneTwister);
+			}else if constexpr(std::is_same_v<T,double>){
+				// double型の場合
+				return RandomDouble(MersenneTwister);
+			}else{
+				arcs_assert(false);	// ここには来ない
+			}
 		}
 
-		//! @brief 一様乱数を返す関数(浮動小数点版)
-		//! @return 浮動小数点乱数
-		double GetDoubleRandom(void){
-			return RandomDouble(MersenneTwister);
-		}
-		
 		//! @brief 正規分布(ガウシアン)乱数を返す関数
-		//! @return 浮動小数点乱数
-		double GetGaussianRandom(void){
+		//! @return	一様乱数
+		T GetGaussRandom(void){
+			static_assert(std::is_same_v<T,double>, "RandomGen: Type Error");	// doubleのみ対応
 			return GaussianRandom(MersenneTwister);
 		}
-
+		
 		//! @brief 乱数シードのリセット
 		void ResetSeed(void){
 			RandomDevice.entropy();
@@ -73,12 +90,23 @@ class RandomGenerator {
 		}
 
 		//! @brief 乱数行列を生成する関数
-		//! @param[out]	Y	乱数行列
-		template <size_t M, size_t N, typename T = double>
+		//! @param[out]	Y	乱数で埋められた行列
+		template <size_t M, size_t N>
 		void GetRandomMatrix(ArcsMat<M,N,T>& Y){
 			for(size_t n = 1; n <= N; ++n){
 				for(size_t m = 1; m <= M; ++m){
-					Y(m,n) = GetDoubleRandom();	// 行列の各要素に乱数値を書き込む
+					Y(m,n) = GetRandom();	// 行列の各要素に乱数値を書き込む
+				}
+			}
+		}
+
+		//! @brief ガウシアン乱数行列を生成する関数
+		//! @param[out]	Y	ガウシアン乱数で埋められた行列
+		template <size_t M, size_t N>
+		void GetGaussRandomMatrix(ArcsMat<M,N,T>& Y){
+			for(size_t n = 1; n <= N; ++n){
+				for(size_t m = 1; m <= M; ++m){
+					Y(m,n) = GetGaussRandom();	// 行列の各要素に乱数値を書き込む
 				}
 			}
 		}
@@ -89,7 +117,7 @@ class RandomGenerator {
 		void GetRandomMatrix(Matrix<N,M>& Y){
 			for(size_t n = 1; n <= N; ++n){
 				for(size_t m = 1; m <= M; ++m){
-					Y.SetElement(n, m, GetDoubleRandom());	// 行列の各要素に乱数値を書き込む
+					Y.SetElement(n, m, GetRandom());	// 行列の各要素に乱数値を書き込む
 				}
 			}
 		}
@@ -100,7 +128,7 @@ class RandomGenerator {
 		void GetGaussianRandomMatrix(Matrix<N,M>& Y){
 			for(size_t n = 1; n <= N; ++n){
 				for(size_t m = 1; m <= M; ++m){
-					Y.SetElement(n, m, GetGaussianRandom());// 行列の各要素に乱数値を書き込む
+					Y.SetElement(n, m, GetGaussRandom());// 行列の各要素に乱数値を書き込む
 				}
 			}
 		}

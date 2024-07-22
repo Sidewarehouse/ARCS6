@@ -395,7 +395,7 @@ class SingleLayerPerceptron {
 		Matrix<1,P> Hbhat;	//!< Adam用
 		Matrix<1,P>	Gbhat;	//!< Adam用
 		size_t SGDcount;	//!< Adam勾配降下法用のカウンタ
-		RandomGenerator DropRand;	//!< ドロップアウト用メルセンヌ・ツイスタ
+		RandomGenerator<double> DropRand;	//!< ドロップアウト用メルセンヌ・ツイスタ
 		Matrix<1,P> DropMask;		//!< ドロップアウト用マスクベクトル
 		double xbar;		//!< データセット正規化(標準化)用の平均値
 		double sigma;		//!< データセット正規化(標準化)用の標準偏差
