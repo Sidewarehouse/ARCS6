@@ -64,10 +64,7 @@ int main(void){
 	dispf(Pi, "% 16.15f");	// 行列Piを書式指定して表示
 	disp(Aint);				// 整数行列Aintを表示
 	A.DispAddress();		// 行列Aのメモリアドレスを表示
-
-	// 行列のサイズと要素情報の取得
 	printf("H = %zu, W = %zu\n", A.GetHeight(), A.GetWidth());	// 行列Aの高さと幅を表示
-	printf("Non-Zero = %zu\n", A.GetNumOfNonZero());			// 行列Aの非ゼロ要素の数を表示
 
 	// 行列要素からの取得
 	printf("\n★★★★★★★ 行列要素からの取得\n");
@@ -347,6 +344,7 @@ int main(void){
 	Azero4 = Azero3;
 	Azero4.ZeroingTriLo(1e-12);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (複素数の場合)
 	dispf(Azero4, "% 16.15e");
+	printf("Non-Zero = %zu\n", Azero4.GetNumOfNonZero());	// 行列Aの非ゼロ要素の数を表示
 
 	// ベクトルの埋め込み
 	printf("\n★★★★★★★ ベクトルの埋め込み\n");
