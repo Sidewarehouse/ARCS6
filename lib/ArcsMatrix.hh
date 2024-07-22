@@ -2928,7 +2928,7 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			const auto I = ArcsMat<M,N,T>::eye();			// 単位行列の生成 [C++20移行時にconstexprに改修]
-			Y = ArcsMat<M,N,T>::linsolve(A, I);				// AX = I となる行列Xを linsolve で見つける
+			ArcsMat<M,N,T>::linsolve(A, I, Y);				// AX = I となる行列Xを linsolve で見つける
 		}
 
 		//! @brief 逆行列を返す関数(戻り値返し版)
