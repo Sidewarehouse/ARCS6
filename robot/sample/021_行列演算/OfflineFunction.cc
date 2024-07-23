@@ -1505,7 +1505,7 @@ int main(void){
 	Yexp1 = expm(Aexp1);		// 行列指数関数 (戻り値返し版)
 	dispf(Yexp1, "% 8.4f");
 	dispf(Yexp1, "% 16.15e");
-	Yexp1 = expm(Aexp1, 2);		// パデ近似の次数を2次まで落とした場合
+	Yexp1 = expm<2>(Aexp1);		// パデ近似の次数を2次まで落とした場合
 	dispf(Yexp1, "% 16.15e");	// 精度が落ちるが計算は速い
 	constexpr auto Yexp2x = expm(Lkrn2);		// コンパイル時に行列指数関数を計算
 	dispf(Yexp2x, "% 8.4f");

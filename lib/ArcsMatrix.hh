@@ -117,16 +117,16 @@ class ArcsMat {
 		//! @brief コンストラクタ(初期化リスト版)
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in]	InitList	初期化リスト
-		template<typename R>
-		constexpr ArcsMat(const std::initializer_list<R> InitList)
+		//template<typename R = T>
+		constexpr ArcsMat(const std::initializer_list<T> InitList)
 			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
 			static_assert(M != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
-			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			//static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 
-			const R* ListVal = InitList.begin();		// 初期化リストの最初のポインタ位置
+			const T* ListVal = InitList.begin();		// 初期化リストの最初のポインタ位置
 			size_t Ni = 0;				// 横方向カウンタ
 			size_t Mi = 0;				// 縦方向カウンタ
 			for(size_t i = 0; i < InitList.size(); ++i){
@@ -3314,17 +3314,18 @@ class ArcsMat {
 		}
 		
 		//! @brief 行列指数関数 (引数渡し版)
+		//! @tparam	K	パデ近似の次数 (デフォルト値 = 13)
 		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
 		//! @param[out]	Y	出力行列
-		//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
-		template<size_t MY, size_t NY, typename TY = double>
-		static constexpr void expm(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& Y, const size_t k = 13){
+		template<size_t K = 13, size_t MY, size_t NY, typename TY = double>
+		static constexpr void expm(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& Y){
 			static_assert(M == N, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(NY == N, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(0 < K, "ArcsMat: Setting Error");	// パデ近似の次数は1次以上
 
 			// L∞ノルムでスケーリング
 			int e = 0;
@@ -3343,8 +3344,8 @@ class ArcsMat {
 			T c = 1;
 			bool signflag = false;					// 係数の符号生成用フラグ
 			int coefsign = -1;						// 係数の符号
-			for(size_t i = 1; i <= k; ++i){
-				c = c*static_cast<T>(k - i + 1) / static_cast<T>(i*(2*k - i + 1));	// 指数行列のパデ近似係数の計算
+			for(size_t i = 1; i <= K; ++i){
+				c = c*static_cast<T>(K - i + 1) / static_cast<T>(i*(2*K - i + 1));	// 指数行列のパデ近似係数の計算
 				X = A*X;									// A^Mの計算
 				cX = c*X;									// cM*A^Mの計算
 				R += cX;									// R = I + c1*A + c2*A*A + c3*A*A*A + ... + cM*A^M ←パデ近似の分子
@@ -3359,12 +3360,13 @@ class ArcsMat {
 		}
 		
 		//! @brief 行列指数関数 (戻り値返し版)
+		//! @tparam	K	パデ近似の次数 (デフォルト値 = 13)
 		//! @param[in]	U	入力行列
-		//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
 		//! @return	出力行列
-		static constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U, const size_t k = 13){
+		template<size_t K = 13>
+		static constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U){
 			ArcsMat<M,N,T> Y;
-			ArcsMat<M,N,T>::expm(U, Y, k);
+			ArcsMat<M,N,T>::expm<K>(U, Y);
 			return Y;
 		}
 
@@ -4889,23 +4891,23 @@ namespace ArcsMatrix {
 	}
 
 	//! @brief 行列指数関数 (引数渡し版)
+	//! @tparam	K	パデ近似の次数 (デフォルト値 = 13)
 	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
 	//! @param[out]	Y	出力行列
-	//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
-	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
-	constexpr void expm(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& Y, const size_t k = 13){
-		ArcsMat<M,N,T>::expm(U, Y, k);
+	template<size_t K = 13, size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void expm(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& Y){
+		ArcsMat<M,N,T>::template expm<K>(U, Y);
 	}
 		
 	//! @brief 行列指数関数 (戻り値返し版)
+	//! @tparam	K	パデ近似の次数 (デフォルト値 = 13)
 	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
-	//! @param[in]	k	パデ近似の次数 (デフォルト値 = 13)
 	//! @return	出力行列
-	template<size_t M, size_t N, typename T = double>
-	constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U, const size_t k = 13){
-		return ArcsMat<M,N,T>::expm(U, k);
+	template<size_t K = 13, size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::template expm<K>(U);
 	}
 }
 }
