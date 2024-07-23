@@ -3,7 +3,7 @@
 //!
 //! メルセンヌ・ツイスタによる指定範囲の一様乱数とガウシアン(正規分布)乱数を生成をするクラス
 //!
-//! @date 2024/07/22
+//! @date 2024/07/23
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -45,6 +45,7 @@ class RandomGenerator {
 				GaussianRandom(MinOrMean, MaxOrStdDev)
 		{
 			PassedLog();
+			static_assert(std::is_same_v<T,int> || std::is_same_v<T,double>, "RandomGen: Type Error");	// int型か、double型のみ対応
 		}
 
 		//! @brief ムーブコンストラクタ
@@ -79,7 +80,7 @@ class RandomGenerator {
 		//! @brief 正規分布(ガウシアン)乱数を返す関数
 		//! @return	一様乱数
 		T GetGaussRandom(void){
-			static_assert(std::is_same_v<T,double>, "RandomGen: Type Error");	// doubleのみ対応
+			static_assert(std::is_same_v<T,double>, "RandomGen: Type Error");	// double型のみ対応
 			return GaussianRandom(MersenneTwister);
 		}
 		

@@ -2,19 +2,18 @@
 //! @brief 統計処理クラス(テンプレート行列＆std::array版)
 //! 平均，分散，標準偏差，共分散，相関係数を計算する
 //!
-//! @date 2021/08/04
+//! @date 2024/07/23
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2021 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef STATISTICS
 #define STATISTICS
 
 #include <cassert>
 #include <cmath>
+#include "ArcsMatrix.hh"
 #include "Matrix.hh"
 
 // ARCS組込み用マクロ
@@ -34,6 +33,73 @@ namespace ARCS {	// ARCS名前空間
 //! @brief 統計処理クラス(テンプレート行列＆std::array版)
 class Statistics {
 	public:
+		//! @brief 行列U全体の平均を計算する
+		//! @tparam	M	行列の高さ
+		//! @tparam	N	行列の横幅
+		//! @tparam	T	行列のデータ型
+		//! @param[in]	U	入力行列
+		//! @return	平均値(スカラー)
+		template <size_t M, size_t N, typename T = double>
+		static constexpr T Mean(const ArcsMat<M,N,T>& U){
+			T Ubar = 0;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) Ubar += U(j,i);
+			}
+			return Ubar/static_cast<T>(M*N);	// 平均値を計算して返す
+		}
+		
+		//! @brief 行列Uの横方向の平均を計算して縦ベクトルを出力する関数 (引数渡し版)
+		//! @tparam	M	行列の高さ
+		//! @tparam	N	行列の横幅
+		//! @tparam	T	行列のデータ型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	行の平均を示す縦ベクトル
+		template <size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+		static constexpr void MeanRow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(M == MY, "Statistics: Size Error");		// サイズチェック
+			static_assert(NY == 1, "Statistics: Vector Error");		// 縦ベクトルチェック
+			y = ArcsMat<M,N,T>::sumrow(U)/static_cast<T>(N);		// 横方向に加算して行列の幅で割って平均を算出
+		}
+
+		//! @brief 行列Uの横方向の平均を計算して縦ベクトルを出力する関数 (戻り値返し版)
+		//! @tparam	M	行列の高さ
+		//! @tparam	N	行列の横幅
+		//! @tparam	T	行列のデータ型
+		//! @param[in]	U	入力行列
+		//! @return	行の平均を示す縦ベクトル
+		template <size_t M, size_t N, typename T = double>
+		static constexpr ArcsMat<M,1> MeanRow(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,1> y;
+			MeanRow(U, y);
+			return y;
+		}
+		
+		//! @brief 行列Uの縦方向の平均を計算して横ベクトルを出力する関数 (引数渡し版)
+		//! @tparam	M	行列の高さ
+		//! @tparam	N	行列の横幅
+		//! @tparam	T	行列のデータ型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	列の平均を示す横ベクトル
+		template <size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+		static constexpr void MeanColumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(N == NY, "Statistics: Size Error");		// サイズチェック
+			static_assert(MY == 1, "Statistics: Vector Error");		// 横ベクトルチェック
+			y = ArcsMat<M,N,T>::sumcolumn(U)/static_cast<double>(M);// 縦方向に加算して行列の高さで割って平均を算出
+		}
+		
+		//! @brief 行列Uの縦方向の平均を計算して横ベクトルを出力する関数 (戻り値返し版)
+		//! @tparam	M	行列の高さ
+		//! @tparam	N	行列の横幅
+		//! @tparam	T	行列のデータ型
+		//! @param[in]	U	入力行列
+		//! @return	列の平均を示す横ベクトル
+		template <size_t M, size_t N, typename T = double>
+		static constexpr ArcsMat<1,N> MeanColumn(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,N> y;
+			MeanColumn(U, y);
+			return y;
+		}
+
 		//! @brief 行列U全体の平均を計算する
 		//! @tparam	N	列の数(行列の横幅)
 		//! @tparam	M	行の数(行列の高さ)
