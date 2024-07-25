@@ -67,6 +67,17 @@ int main(void){
 	dispf(Xpx2, "% 8.4f");
 	printf("|| AXA' - X + Q || = %e\n\n", norm(Ap*Xp*~Ap - Xp + Qp));	// ←ほぼゼロならオーケー
 
+	printf("◆ 原点零点がある場合のリアプノフ方程式の解\n");
+	ArcsMat<2,2> Az = {
+		-3.4182, 0.0,
+		 1.0,    0.0
+	};
+	ArcsMat<2,2> Bz = {
+		4.4545e3, -9.0909e3,
+		0.0,       0.0
+	};
+	dispf(ArcsControl::Lyapunov(Az, Bz*~Bz), "% 8.4f");	// リアプノフ方程式の一意な解が無い。NaNが出現。
+
 	printf("◆ 可制御/可観測グラミアン(MATLABでいうgram)\n");
 	ArcsMat<3,3> Wpc, Wpo;
 	ArcsControl::GramianCtrl(Ap, bp, Wpc);	// 可制御グラミアン (引数渡し版)
@@ -97,17 +108,6 @@ int main(void){
 	const double gram2 = norm(ArcsControl::GramianCtrl(Aph, bph) - ArcsControl::GramianObsrv(Aph, cph));
 	printf("|| Wc - Wo || = %e\n",   gram1);	// 平衡化前は可制御グラミアンと可観測グラミアンは違うが、
 	printf("|| Wc - Wo || = %e\n\n", gram2);	// 平衡化後は可制御グラミアンと可観測グラミアンが一緒になる
-
-	printf("◆ 原点零点がある場合\n");
-	ArcsMat<2,2> Az = {
-		-3.4182, 0.0,
-		 1.0,    0.0
-	};
-	ArcsMat<2,2> Bz = {
-		4.4545e3, -9.0909e3,
-		0.0,       0.0
-	};
-	dispf(ArcsControl::Lyapunov(Az, Bz*~Bz), "% 8.4f");	// リアプノフ方程式の一意な解が無い。NaNが出現。
 	
 	printf("◆ 離散化(MATLABでいうc2d)\n");
 	// 2慣性共振系のパラメータ例
@@ -131,6 +131,9 @@ int main(void){
 		0		, 0	     ,
 		Kt/Jm	, 0
 	};
+	constexpr ArcsMat<3,1> Btc2 = {0, 0, Kt/Jm};
+	constexpr auto Ct = ArcsMat<3,3>::eye();
+	constexpr ArcsMat<1,3> Ct2 = {0, 0, 1};
 	ArcsMat<3,3> Atd;
 	ArcsMat<3,2> Btd;
 	ArcsControl::Discretize(Atc, Btc, Atd, Btd, Ts);			// 離散化 (引数渡し版)
@@ -140,7 +143,39 @@ int main(void){
 	constexpr auto ABtd = ArcsControl::Discretize<13,30>(Atc, Btc, Ts);	// コンパイル時に離散化
 	dispf(std::get<0>(ABtd), "% 8.4f");	// ↑ パデ近似の次数を13, 積分分割数を30に設定
 	dispf(std::get<1>(ABtd), "% 8.4f");	// 積分分割数を増やしすぎると、‘constexpr’ evaluation operation count exceeds limit of 33554432 エラーが出る
-	
+
+	printf("◆ システムの判定\n");
+	const bool StblAtc = ArcsControl::IsStable(Atc);			// 安定性判別 (MATLABでいうisstable)
+	printf("IsStable(Atc) = %s\n", (StblAtc ? "true" : "false"));
+	const bool StblAp = ArcsControl::IsStable(Ap);				// 安定性判別
+	printf("IsStable(Ap)  = %s\n", (StblAp ? "true" : "false"));
+	const bool StblAz = ArcsControl::IsStable(Az);				// 安定性判別
+	printf("IsStable(Az)  = %s\n", (StblAz ? "true" : "false"));
+	ArcsMat<2,2> Ao = {
+		1,  1,
+		4, -2
+	};
+	ArcsMat<2,2> Bo = {
+		1, -1,
+		1, -1
+	};
+	ArcsMat<2,2> Co = {
+		-1,  1,
+		 1, -1
+	};
+	const bool ObsvAo   = ArcsControl::IsObsv(Ao, Co);
+	printf("IsObsv(Ao, Co)   = %s\n", (ObsvAo ? "true" : "false"));		// 可観測性判定 (MATLABでいう length(A) == rank(obsv(A,C))
+	const bool ObsvAtc  = ArcsControl::IsObsv(Atc, Ct);
+	printf("IsObsv(Atc, Ct)  = %s\n", (ObsvAtc ? "true" : "false"));	// 可観測性判定
+	const bool ObsvAtc2 = ArcsControl::IsObsv(Atc, Ct2);
+	printf("IsObsv(Atc, Ct2) = %s\n", (ObsvAtc2 ? "true" : "false"));	// 可観測性判定
+	const bool CtrbAo   = ArcsControl::IsCtrb(Ao, Bo);
+	printf("IsCtrb(Ao, Bo)    = %s\n", (CtrbAo ? "true" : "false"));	// 可制御性判定 (MATLABでいう length(A) == rank(ctrb(A,B))
+	const bool CtrbAtc  = ArcsControl::IsCtrb(Atc, Btc);
+	printf("IsCtrb(Atc, Btc)  = %s\n", (CtrbAtc ? "true" : "false"));	// 可制御性判定
+	const bool CtrbAtc2 = ArcsControl::IsCtrb(Atc, Btc2);
+	printf("IsCtrb(Atc, Btc2) = %s\n", (CtrbAtc2 ? "true" : "false"));	// 可制御性判定
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 

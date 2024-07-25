@@ -300,6 +300,16 @@ class ArcsControl {
 		static constexpr void Discretize(
 			const ArcsMat<M,N,T>& Ac, const ArcsMat<MB,NB,TB>& Bc, ArcsMat<MAD,NAD,TAD>& Ad, ArcsMat<MBD,NBD,TBD>& Bd, const double Ts
 		){
+			static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
+			static_assert(MAD == NAD, "ArcsCtrl: Size Error");	// Ah行列は正方行列
+			static_assert(MB == M , "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MAD == M , "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MBD == MB , "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NBD == NB , "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(0 < Npade, "ArcsCtrl: Setting Error");// 設定チェック
+			static_assert(0 < Nintg, "ArcsCtrl: Setting Error");// 設定チェック
+			arcs_assert(0 < Ts);	// 設定チェック
+
 			expm<Npade>(Ac*Ts, Ad);					// A行列の離散化
 
 			// シンプソン法によるexpmの定積分
@@ -339,6 +349,71 @@ class ArcsControl {
 			ArcsMat<MB,NB,TB> Bd;
 			Discretize<Npade, Nintg>(Ac, Bc, Ad, Bd, Ts);
 			return {Ad, Bd};
+		}
+
+		//! @brief 連続系状態空間モデルのA行列が安定かどうかを返す関数
+		//! @param[in]	Ac	A行列
+		//! @tparam	M	A行列の高さ
+		//! @tparam	N	A行列の幅
+		//! @tparam	T	A行列のデータ型
+		//! @return	安定性： true = 安定、false = 不安定
+		template<size_t M, size_t N, typename T = double>
+		static constexpr bool IsStable(const ArcsMat<M,N,T>& Ac){
+			static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
+
+			auto v = eig(Ac);	// 固有値を計算
+			v.Zeroing();		// 原点にかなり近い極はゼロと扱う
+			bool ret = true;
+			for(size_t i = 1; i <= M; ++i) ret &= (real(v[i]) < 0);	// すべての固有値が負かどうか調べる
+			return ret;
+		}
+
+		//! @brief 連続系状態空間モデルのA行列とC行列が可観測かどうかを返す関数
+		//! @param[in]	Ac	A行列
+		//! @param[in]	C	C行列
+		//! @tparam	M	A行列の高さ
+		//! @tparam	N	A行列の幅
+		//! @tparam	T	A行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @return	可観測性： true = 可観測、false = 不可観測
+		template<size_t M, size_t N, typename T = double, size_t MC, size_t NC, typename TC = double>
+		static constexpr bool IsObsv(const ArcsMat<M,N,T>& Ac, const ArcsMat<MC,NC,TC>& C){
+			static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
+			static_assert(NC == M , "ArcsCtrl: Size Error");	// サイズチェック
+
+			ArcsMat<MC,NC,TC> CA;
+			ArcsMat<MC*M,NC,TC> Ob;
+			for(size_t i = 0; i < M; ++i){
+				CA = C*(Ac^i);
+				copymatrix(CA,1,MC,1,NC, Ob,i*MC+1,1);	// 可観測性行列を生成
+			}
+			return M == rank(Ob);	// ランクを計算して状態数と同一なら可観測
+		}
+
+		//! @brief 連続系状態空間モデルのA行列とB行列が可制御かどうかを返す関数
+		//! @param[in]	Ac	A行列
+		//! @param[in]	Bc	B行列
+		//! @tparam	M	A行列の高さ
+		//! @tparam	N	A行列の幅
+		//! @tparam	T	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @return	可制御性： true = 可制御、false = 不可制御
+		template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double>
+		static constexpr bool IsCtrb(const ArcsMat<M,N,T>& Ac, const ArcsMat<MB,NB,TB>& Bc){
+			static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
+			static_assert(MB == M , "ArcsCtrl: Size Error");	// サイズチェック
+
+			ArcsMat<MB,NB,TB> AB;
+			ArcsMat<MB,NB*M,TB> Co;
+			for(size_t i = 0; i < M; ++i){
+				AB = (Ac^i)*Bc;
+				copymatrix(AB,1,MB,1,NB, Co,1,i*NB+1);	// 可制御性行列を生成
+			}
+			return M == rank(Co);	// ランクを計算して状態数と同一なら可観測
 		}
 
 		//---------------------

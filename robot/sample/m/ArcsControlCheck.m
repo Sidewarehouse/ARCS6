@@ -2,8 +2,8 @@
 % Yokokura, Yuki 2024/07/23
 clc;
 clear;
-format short;
-%format long;
+%format short;
+format longE;
 
 % プラント状態空間モデル(適当)
 Ap = [-1, -2, -9 ;
@@ -45,26 +45,29 @@ Jm = 1e-4;	% [kgm^2]  モータ慣性
 Dm = 0.1;	% [Nms/rad]モータ粘性
 Rg = 100;	%          減速比
 Kt = 0.04;	% [Nm/A]   トルク定数
-Ac = [
+Atc = [
 		-(Dl + Ds)/Jl,	Ks/Jl,			Ds/(Jl*Rg)			  ;
 		-1,				0,				1.0/Rg				  ;
 		Ds/(Jm*Rg),		-Ks/(Jm*Rg),	-(Ds/(Rg*Rg) + Dm)/Jm ];
-Bc = [
+Btc = [
 		0		, -1.0/Jl;
 		0		, 0	     ;
 		Kt/Jm	, 0		 ];
-C = [1, 0, 0];
-D = [0, 0];
-sys3 = ss(Ac, Bc, C, D);
-
+Ct = eye(3);
+Ct2 = [ 0, 0, 1];
+Dt = zeros(3,2);
+sys3 = ss(Atc, Btc, Ct, Dt)
 sys3d = c2d(sys3, Ts);	% そのまま離散化する場合
 Ad = sys3d.a
 bd = sys3d.b
+Ob = obsv(Atc, Ct2)
+
+%{
 
 sys3 = balreal(sys3);	% 平衡化してから離散化する場合
 sys3d = c2d(sys3, Ts);
 Ad = sys3d.a
 bd = sys3d.b
-
+%}
 
 

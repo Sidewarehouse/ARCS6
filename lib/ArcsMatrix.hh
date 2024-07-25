@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/07/19
+//! @date 2024/07/25
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -1408,8 +1408,8 @@ class ArcsMat {
 		){
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
-			arcs_assert(m1 < m2);	// サイズチェック
-			arcs_assert(n1 < n2);	// サイズチェック
+			arcs_assert(m1 <= m2);	// サイズチェック
+			arcs_assert(n1 <= n2);	// サイズチェック
 			arcs_assert(m2 <= M);	// サイズチェック
 			arcs_assert(n2 <= N);	// サイズチェック
 			arcs_assert(my+(m2-m1) <= P);	// サイズチェック
