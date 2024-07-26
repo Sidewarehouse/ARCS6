@@ -176,6 +176,8 @@ int main(void){
 	const bool CtrbAtc2 = ArcsControl::IsCtrb(Atc, Btc2);
 	printf("IsCtrb(Atc, Btc2) = %s\n", (CtrbAtc2 ? "true" : "false"));	// 可制御性判定
 
+	ArcsControl::DiscStateSpace<3, 1, 1> Sys1;
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
