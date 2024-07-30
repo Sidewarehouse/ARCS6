@@ -3370,6 +3370,19 @@ class ArcsMat {
 			return Y;
 		}
 
+		//! @brief MATファイル(MATLAB Level 4)への書き込み
+		static constexpr void savemat(const std::string& FileName, const std::string& VarName, const ArcsMat<M,N,T> U){
+			struct {
+				long Type;
+				long NumOfRows;
+				long NumOfColumn;
+				long HasImag;
+				long LenOfName;
+			} MatHeader;
+			
+			double *var;
+		}
+		
 	public:
 		// 公開版基本定数
 		static constexpr double EPSILON = 1e-14;		//!< 零とみなす閾値(実数版)
