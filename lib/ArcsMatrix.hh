@@ -3371,16 +3371,81 @@ class ArcsMat {
 		}
 
 		//! @brief MATファイル(MATLAB Level 4)への書き込み
-		static constexpr void savemat(const std::string& FileName, const std::string& VarName, const ArcsMat<M,N,T> U){
+		static constexpr void savemat(const std::string& FileName, const std::string& MatName, const ArcsMat<M,N,T> U){
+			// ヘッダデータの定義と初期化
 			struct {
-				long Type;
-				long NumOfRows;
-				long NumOfColumn;
-				long HasImag;
-				long LenOfName;
+				// M = 0 リトルエンディアン, M = 1 ビッグエンディアン
+				// O = 0 予約、常にゼロ
+				// P = 0 double, P = 1 single, P = 2 int32_t, P = 3 int16_t, P = 4 uint16_t, P = 5 uint8_t 
+				// T = 0 Numeric, T = 1 Text, T = 2 Sparse
+				//                     MOPT
+				uint32_t Type		 = 0000;	// データタイプの設定
+				uint32_t NumOfRows	 = M;		// 行数
+				uint32_t NumOfColumn = N;		// 列数
+				uint32_t HasImag	 = 0;		// = 0 実数データ, = 1 複素数データ
+				uint32_t LenOfName	 = 0;		// 変数名の長さ＋１
 			} MatHeader;
-			
-			double *var;
+			MatHeader.LenOfName = MatName.length() + 1;	// 変数名の長さ＋１
+
+			// データ型によってヘッダの設定を変える
+			if constexpr(std::is_same_v<double, T>){
+				//                MOPT
+				MatHeader.Type += 0000;
+			}else if constexpr(std::is_same_v<float, T>){
+				//                MOPT
+				MatHeader.Type += 0010;
+			}else if constexpr(std::is_same_v<int32_t, T>){
+				//                MOPT
+				MatHeader.Type += 0020;
+			}else if constexpr(std::is_same_v<int16_t, T>){
+				//                MOPT
+				MatHeader.Type += 0030;
+			}else if constexpr(std::is_same_v<uint16_t, T>){
+				//                MOPT
+				MatHeader.Type += 0040;
+			}else if constexpr(std::is_same_v<uint8_t, T>){
+				//                MOPT
+				MatHeader.Type += 0050;
+			}else if constexpr(std::is_same_v<std::complex<double>, T>){
+				//                MOPT
+				MatHeader.Type += 0000;
+			}else if constexpr(std::is_same_v<std::complex<float>, T>){
+				//                MOPT
+				MatHeader.Type += 0010;
+			}else{
+				arcs_assert(false);	// ここには来ない
+			}
+
+			// 複素数型か実数型でヘッダの設定を変える
+			if constexpr(ArcsMatrix::IsComplex<T>){
+				MatHeader.HasImag = 1;
+			}else{
+				MatHeader.HasImag = 0;
+			}
+
+			// MATファイルにヘッダ部分を書き出す
+			FILE* fp = std::fopen(FileName.c_str(), "a+");
+			std::fwrite(&MatHeader, sizeof(MatHeader), 1, fp);						// ヘッダ書き出し
+			std::fwrite(MatName.c_str(), sizeof(char), MatHeader.LenOfName, fp);	// 変数名書き出し
+
+			// 複素数型か実数型で書き出し動作を変える
+			if constexpr(ArcsMatrix::IsComplex<T>){
+				// 複素数型の場合
+				const ArcsMat<M*N,1,T> vecU  = ArcsMat<M,N,T>::vec(U);	// 縦ベクトル化
+				/*
+				const auto RealU = real(vecU);	// 実数部を抽出
+				const auto ImagU = imag(vecU);	// 虚数部を抽出
+				const std::array<std::array<T, M*N>, 1> MatReal = RealU.GetData();	// 実数部を1次元配列へ格納
+				const std::array<std::array<T, M*N>, 1> MatImag = ImagU.GetData();	// 虚数部を1次元配列へ格納
+				std::fwrite(MatReal.at(0).data(), sizeof(T), M*N, fp);				// 行列要素書き出し
+				*/
+			}else{
+				// 実数型の場合
+				const std::array<std::array<T, M*N>, 1> MatData = (ArcsMat<M,N,T>::vec(U)).GetData();	// 縦ベクトル化して1次元配列へ格納
+				std::fwrite(MatData.at(0).data(), sizeof(T), M*N, fp);									// 行列要素書き出し
+			}
+
+			std::fclose(fp);
 		}
 		
 	public:

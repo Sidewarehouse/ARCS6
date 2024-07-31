@@ -1510,6 +1510,12 @@ int main(void){
 	constexpr auto Yexp2x = expm(Lkrn2);		// コンパイル時に行列指数関数を計算
 	dispf(Yexp2x, "% 8.4f");
 
+	// MATファイル(MATLAB Level 4)の出力
+	ArcsMat<3,3>::savemat("test.mat", "Aexp1", Aexp1);
+	ArcsMat<3,3>::savemat("test.mat", "Yexp2x", Yexp2x);
+	//ArcsMat<2,3,std::complex<double>>::savemat("test.mat", "Acmpx2", Acmpx2);
+
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
