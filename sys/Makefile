@@ -103,7 +103,7 @@ $(SYSPATH)/%.o: $(SYSPATH)/%.cc
 # オフライン計算モード
 .PHONY: offline
 offline: OfflineFunction.o ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS_OFLN.o
-	@$(LD) -o $(EXENAME) ./OfflineFunction.o ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS_OFLN.o $(LDFLAGS)
+	@$(LD) -o $(EXENAME) ./OfflineFunction.o ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS_OFLN.o $(ADDOBJ) $(LDFLAGS)
 # オフライン計算エントリポイント
 OfflineFunction.o: OfflineFunction.cc
 	@echo -n "ARCS6-ofln: "
@@ -123,7 +123,7 @@ OfflineFunction.s: OfflineFunction.cc
 # デバッグモード
 .PHONY: debug
 debug: ARCS_CTRL_DEBG.o ARCS_EQP_DEBG.o ARCS_EQPC_DEBG.o ARCS_LIB_DEBG.o ARCS_SYS_DEBG.o
-	@$(LD) -o $(EXENAME) ./ARCS_CTRL_DEBG.o $(EQPPATH)/ARCS_EQP_DEBG.o $(EQPCPATH)/ARCS_EQPC_DEBG.o $(LIBPATH)/ARCS_LIB_DEBG.o $(SYSPATH)/ARCS_SYS_DEBG.o $(LDFLAGS)
+	@$(LD) -o $(EXENAME) ./ARCS_CTRL_DEBG.o $(EQPPATH)/ARCS_EQP_DEBG.o $(EQPCPATH)/ARCS_EQPC_DEBG.o $(LIBPATH)/ARCS_LIB_DEBG.o $(SYSPATH)/ARCS_SYS_DEBG.o $(ADDOBJ) $(LDFLAGS)
 	@gdb ARCS
 # 制御コードのコンパイル＆リンク（デバッグモード）
 ARCS_CTRL_DEBG.o: $(CTRLOBJ_DEBG)
