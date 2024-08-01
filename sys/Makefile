@@ -1,5 +1,5 @@
 # ARCS6 メインMakefile
-# 2024/06/25 Yokokura, Yuki
+# 2024/08/01 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -68,7 +68,7 @@ SYSDEP=$(SYS:.cc=)
 
 # 通常モード
 all: ARCS_CTRL.o ARCS_EQP.o ARCS_EQPC.o ARCS_LIB.o ARCS_SYS.o
-	@$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(LDFLAGS)
+	$(LD) -o $(EXENAME) ./ARCS_CTRL.o $(EQPPATH)/ARCS_EQP.o $(EQPCPATH)/ARCS_EQPC.o $(LIBPATH)/ARCS_LIB.o $(SYSPATH)/ARCS_SYS.o $(ADDOBJ) $(LDFLAGS)
 # 制御コードのコンパイル＆リンク（通常モード）
 ARCS_CTRL.o: $(CTRLOBJ)
 	@$(LD1) $(LD1FLAGS) -r -o ARCS_CTRL.o $(CTRLOBJ)
@@ -80,13 +80,13 @@ ARCS_EQP.o: $(EQPOBJ)
 	@$(LD1) -L. -r -o $(EQPPATH)/ARCS_EQP.o $(EQPOBJ)
 $(EQPPATH)/%.o: $(EQPPATH)/%.cc
 	@echo -n "ARCS6-eqp: "
-	$(CC) $(OPTIMLV) $(CFLAGS) -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+	$(CC) $(OPTIMLV) $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 # 実験装置固有C言語コードのコンパイル＆リンク（通常モード）
 ARCS_EQPC.o: $(EQPCOBJ)
 	@$(LD1) $(LD1FLAGS) -r -o $(EQPCPATH)/ARCS_EQPC.o $(EQPCOBJ)
 $(EQPCPATH)/%.o: $(EQPCPATH)/%.c
 	@echo -n "ARCS6-eqpc: "
-	$(CC) $(OPTIMLV) -Wall $(CVER) -march=native -fPIE -I$(EQPCPATH) -c $< -o $@
+	$(CC) $(OPTIMLV) -Wall $(CVER) -march=native -fPIE -I. -I$(EQPCPATH) -c $< -o $@
 # ARCSライブラリのコンパイル＆リンク（通常モード）
 ARCS_LIB.o: $(LIBOBJ)
 	@$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB.o $(LIBOBJ)
@@ -136,13 +136,13 @@ ARCS_EQP_DEBG.o: $(EQPOBJ_DEBG)
 	@$(LD1) -L. -r -o $(EQPPATH)/ARCS_EQP_DEBG.o $(EQPOBJ_DEBG)
 $(EQPPATH)/%_dbg.o: $(EQPPATH)/%.cc
 	@echo -n "ARCS6-debg-eqp: "
-	$(CC) -ggdb3 -Og $(CFLAGS) -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
+	$(CC) -ggdb3 -Og $(CFLAGS) -I. -I$(EQPPATH) -I$(LIBPATH) -I$(SYSPATH) -c $< -o $@
 # 実験装置固有C言語コードのコンパイル＆リンク（デバッグモード）
 ARCS_EQPC_DEBG.o: $(EQPCOBJ_DEBG)
 	@$(LD1) $(LD1FLAGS) -r -o $(EQPCPATH)/ARCS_EQPC_DEBG.o $(EQPCOBJ_DEBG)
 $(EQPCPATH)/%_dbg.o: $(EQPCPATH)/%.c
 	@echo -n "ARCS6-debg-eqpc: "
-	$(CC) -ggdb3 -Og -Wall $(CVER) -march=native -fPIE -I$(EQPCPATH) -c $< -o $@
+	$(CC) -ggdb3 -Og -Wall $(CVER) -march=native -fPIE -I. -I$(EQPCPATH) -c $< -o $@
 # ARCSライブラリのコンパイル＆リンク（デバッグモード）
 ARCS_LIB_DEBG.o: $(LIBOBJ_DEBG)
 	@$(LD1) $(LD1FLAGS) -r -o $(LIBPATH)/ARCS_LIB_DEBG.o $(LIBOBJ_DEBG)
@@ -180,7 +180,7 @@ dep:
 	@echo "ARCS6 DEPENDENCY CHECKING :"
 	@rm -f Makefile.depend
 	@for x in $(CTRLDEP); do $(CC) -I. -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
-	@for x in $(EQPDEP);  do $(CC)     -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
+	@for x in $(EQPDEP);  do $(CC) -I. -I$(EQPPATH) -I$(EQPCPATH) -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
 	@for x in $(EQPCDEP); do $(CC) -I.              -I$(EQPCPATH)                           -MM -MT $$x.o $$x.c  >> Makefile.depend; done
 	@for x in $(LIBDEP);  do $(CC)                                -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
 	@for x in $(SYSDEP);  do $(CC) -I. -I$(EQPPATH)               -I$(LIBPATH) -I$(SYSPATH) -MM -MT $$x.o $$x.cc >> Makefile.depend; done
