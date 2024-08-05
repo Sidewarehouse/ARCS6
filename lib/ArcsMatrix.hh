@@ -2090,6 +2090,17 @@ class ArcsMat {
 				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( std::real( U(j,i) ) );
 			}
 		}
+
+		//! @brief 複素数行列要素の実数部を計算する関数(戻り値渡し版, 複素数版特殊化)
+		//! @tparam	R	入力行列の複素数要素の型
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		template<typename R = double>
+		static constexpr ArcsMat<M,N,R> real(const ArcsMat<M,N,std::complex<R>>& U){
+			ArcsMat<M,N,R> Y;							// 実数返し用
+			ArcsMat<M,N,std::complex<R>>::real(U, Y);	// 入力は複素数、出力は実数
+			return Y;	// 実数で返す
+		}
 		
 		//! @brief 複素数行列要素の虚数部を取得する関数(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型

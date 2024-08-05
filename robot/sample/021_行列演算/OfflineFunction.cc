@@ -838,7 +838,7 @@ int main(void){
 	disp(Y9);
 	ArcsMat<2,3,std::complex<double>> Acmp1 = Pi;		//「実数行列 → 複素数行列」のコピーコンストラクタ
 	disp(Acmp1);
-	
+/*	
 	// 転置行列関連の関数と演算子
 	printf("\n★★★★★★★ 転置行列関連の関数と演算子\n");
 	ArcsMat<2,3> Dt;
@@ -1515,7 +1515,7 @@ int main(void){
 	ArcsMat<3,3>::savemat("test.mat", "Yexp2x", Yexp2x);
 	//ArcsMat<2,3,std::complex<double>>::savemat("test.mat", "Acmpx2", Acmpx2);
 
-
+*/
 	return EXIT_SUCCESS;	// 正常終了
 }
 
