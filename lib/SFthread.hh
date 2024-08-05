@@ -3,7 +3,7 @@
 //!
 //! pthreadのSCHED_FIFOで実時間スレッドを生成＆管理＆破棄する。実際に計測された制御周期や計算消費時間も提供する。
 //!
-//! @date 2024/05/02
+//! @date 2024/08/05
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -519,7 +519,7 @@ class SFthread {
 					EventLog("Kernel param: Set to \"voluntary\" mode on PREEMPT_DYNAMIC");
 				}
 				
-				LinuxCommander::Execute("/bin/dmesg -n 7");	// カーネルメッセージの表示をデフォルト値に戻す
+				LinuxCommander::Execute("/bin/dmesg -n 3");	// カーネルメッセージの表示をデフォルト値に戻す
 				EventLog("Kernel param: Returned to default settings.");
 			#endif
 			
