@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/06/22
+//! @date 2024/08/06
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -16,6 +16,7 @@
 #include <cfloat>
 #include <functional>
 #include "ConstParams.hh"
+#include "ArcsMatrix.hh"
 #include "Matrix.hh"
 
 namespace ARCS {	// ARCS名前空間
@@ -72,10 +73,8 @@ class ARCSgraphics {
 			VarsCount = 0;	// すべての作業が終わったので，再帰カウンタを零に戻しておく
 		}
 		
-		//! @brief 作業空間プロットに位置ベクトルを設定する関数（6軸配列版）
-		void SetWorkspace(const std::array<Matrix<1,6>, 6>& AxPosition);
-		//! @brief 作業空間プロットに位置ベクトルを設定する関数（3軸個別版）
-		void SetWorkspace(const Matrix<1,3>& Pos1, const Matrix<1,3>& Pos2, const Matrix<1,3>& Pos3);
+		//! @brief 作業空間プロットに位置ベクトルを設定する関数
+		void SetWorkspace(const std::array<ArcsMat<6,1>, ConstParams::PLOTXYXZ_NUMPT>& AxPosition);
 		
 		FrameGraphics& GetFGrefs(void);	//!< フレームバッファクラスへの参照を返す関数
 
@@ -111,7 +110,7 @@ class ARCSgraphics {
 		
 		// 作業空間用バッファ
 		pthread_mutex_t WorkspaceMutex;		//!< 作業空間用のMutex
-		std::array<Matrix<1,6>, 6> AxisPos;	//!< [m,m,m,0,0,0] XYZ--- 1軸～6軸の作業空間位置
+		std::array<ArcsMat<6,1>, ConstParams::PLOTXYXZ_NUMPT> AxisPos;	//!< [m,m,m,0,0,0] XYZ--- 1軸～6軸の作業空間位置
 
 		// ユーザカスタムプロット
 		std::function<void(void)> DrawUserPlaneFunc;	//!< ユーザカスタムプロット平面描画関数の関数オブジェクト
