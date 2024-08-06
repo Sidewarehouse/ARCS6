@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/07/25
+//! @date 2024/08/06
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -41,11 +41,20 @@
 #define dispf(a,b) (ArcsMatrix::dispf_macro((a),b,#a))		//!< 行列要素表示マクロ(フォーマット指定あり版)
 #define disp(a) (ArcsMatrix::disp_macro((a),#a))			//!< 行列要素表示マクロ(フォーマット指定なし版)
 
+using namespace std::literals::complex_literals;	// 虚数単位リテラル「i」の使用
+
 // ARCS名前空間
 namespace ARCS {
 
 // ArcsMatrix設定定義
 namespace ArcsMatrix {
+	//! @brief 行列の状態の定義
+	enum class MatStatus {
+		AMT_NA,		//!< 状態定義該当なし
+		AMT_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
+		AMT_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
+	};
+
 	//! @brief ノルム計算方法の定義
 	enum class NormType {
 		AMT_L2,		//!< ユークリッドノルム(2-ノルム)
@@ -53,11 +62,10 @@ namespace ArcsMatrix {
 		AMT_LINF	//!< 無限大ノルム(最大値ノルム)
 	};
 
-	//! @brief 行列の状態の定義
-	enum class MatStatus {
-		AMT_NA,		//!< 状態定義該当なし
-		AMT_LU_ODD,	//!< LU分解したときに並べ替えが奇数回発生
-		AMT_LU_EVEN	//!< LU分解したときに並べ替えが偶数回発生
+	//! @brief ファイル保存方法の定義
+	enum class SaveType {
+		AMT_AS_NEW,	//!< 新規作成して保存
+		AMT_APPEND	//!< 追記保存
 	};
 }
 
@@ -2117,6 +2125,17 @@ class ArcsMat {
 			}
 		}
 		
+		//! @brief 複素数行列要素の虚数部を計算する関数(戻り値渡し版, 複素数版特殊化)
+		//! @tparam	R	入力行列の複素数要素の型
+		//! @param[in]	U	入力行列
+		//! @return	Y	出力行列
+		template<typename R = double>
+		static constexpr ArcsMat<M,N,R> imag(const ArcsMat<M,N,std::complex<R>>& U){
+			ArcsMat<M,N,R> Y;							// 実数返し用
+			ArcsMat<M,N,std::complex<R>>::imag(U, Y);	// 入力は複素数、出力は実数
+			return Y;	// 実数で返す
+		}
+		
 		//! @brief 複素数行列要素の複素共役を取得する関数(引数渡し版)
 		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
@@ -3382,6 +3401,11 @@ class ArcsMat {
 		}
 
 		//! @brief MATファイル(MATLAB Level 4)への書き込み
+		//! @tparam		ST			保存方法の設定 (デフォルト値 = AMT_APPEND 追記保存)
+		//! @param[in]	FileName	MATファイル名 (拡張子matも含むこと)
+		//! @param[in]	MatName		変数名
+		//! @param[in]	U			入力行列
+		template<ArcsMatrix::SaveType ST = ArcsMatrix::SaveType::AMT_APPEND>
 		static constexpr void savemat(const std::string& FileName, const std::string& MatName, const ArcsMat<M,N,T> U){
 			// ヘッダデータの定義と初期化
 			struct {
@@ -3399,10 +3423,10 @@ class ArcsMat {
 			MatHeader.LenOfName = MatName.length() + 1;	// 変数名の長さ＋１
 
 			// データ型によってヘッダの設定を変える
-			if constexpr(std::is_same_v<double, T>){
+			if constexpr(std::is_same_v<double, T> || std::is_same_v<std::complex<double>, T>){
 				//                MOPT
 				MatHeader.Type += 0000;
-			}else if constexpr(std::is_same_v<float, T>){
+			}else if constexpr(std::is_same_v<float, T> || std::is_same_v<std::complex<float>, T>){
 				//                MOPT
 				MatHeader.Type += 0010;
 			}else if constexpr(std::is_same_v<int32_t, T>){
@@ -3417,12 +3441,6 @@ class ArcsMat {
 			}else if constexpr(std::is_same_v<uint8_t, T>){
 				//                MOPT
 				MatHeader.Type += 0050;
-			}else if constexpr(std::is_same_v<std::complex<double>, T>){
-				//                MOPT
-				MatHeader.Type += 0000;
-			}else if constexpr(std::is_same_v<std::complex<float>, T>){
-				//                MOPT
-				MatHeader.Type += 0010;
 			}else{
 				arcs_assert(false);	// ここには来ない
 			}
@@ -3435,7 +3453,14 @@ class ArcsMat {
 			}
 
 			// MATファイルにヘッダ部分を書き出す
-			FILE* fp = std::fopen(FileName.c_str(), "a+");
+			FILE* fp;
+			if constexpr(ST == ArcsMatrix::SaveType::AMT_AS_NEW){
+				// 新規作成して保存する場合
+				fp = std::fopen(FileName.c_str(), "wb");	// wb = バイナリ書き込みモード
+			}else{
+				// 追記保存する場合
+				fp = std::fopen(FileName.c_str(), "ab");	// ab = バイナリ追記書き込みモード
+			}
 			std::fwrite(&MatHeader, sizeof(MatHeader), 1, fp);						// ヘッダ書き出し
 			std::fwrite(MatName.c_str(), sizeof(char), MatHeader.LenOfName, fp);	// 変数名書き出し
 
@@ -3443,13 +3468,12 @@ class ArcsMat {
 			if constexpr(ArcsMatrix::IsComplex<T>){
 				// 複素数型の場合
 				const ArcsMat<M*N,1,T> vecU  = ArcsMat<M,N,T>::vec(U);	// 縦ベクトル化
-				/*
-				const auto RealU = real(vecU);	// 実数部を抽出
-				const auto ImagU = imag(vecU);	// 虚数部を抽出
-				const std::array<std::array<T, M*N>, 1> MatReal = RealU.GetData();	// 実数部を1次元配列へ格納
-				const std::array<std::array<T, M*N>, 1> MatImag = ImagU.GetData();	// 虚数部を1次元配列へ格納
-				std::fwrite(MatReal.at(0).data(), sizeof(T), M*N, fp);				// 行列要素書き出し
-				*/
+				const auto RealU = ArcsMat<M*N,1,T>::real(vecU);		// 実数部を抽出
+				const auto ImagU = ArcsMat<M*N,1,T>::imag(vecU);		// 虚数部を抽出
+				const std::array<std::array<double, M*N>, 1> MatReal = RealU.GetData();	// 実数部を1次元配列へ格納
+				const std::array<std::array<double, M*N>, 1> MatImag = ImagU.GetData();	// 虚数部を1次元配列へ格納
+				std::fwrite(MatReal.at(0).data(), sizeof(double), M*N, fp);				// 行列の実数部要素書き出し
+				std::fwrite(MatImag.at(0).data(), sizeof(double), M*N, fp);				// 行列の虚数部要素書き出し
 			}else{
 				// 実数型の場合
 				const std::array<std::array<T, M*N>, 1> MatData = (ArcsMat<M,N,T>::vec(U)).GetData();	// 縦ベクトル化して1次元配列へ格納
@@ -4997,6 +5021,17 @@ namespace ArcsMatrix {
 	template<size_t K = 13, size_t M, size_t N, typename T = double>
 	constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::template expm<K>(U);
+	}
+
+	//! @brief MATファイル(MATLAB Level 4)への書き込み
+	//! @tparam		ST			保存方法の設定 (デフォルト値 = AMT_APPEND 追記保存)
+	//! @tparam		M, N, T		入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	FileName	MATファイル名 (拡張子matも含むこと)
+	//! @param[in]	MatName		変数名
+	//! @param[in]	U			入力行列
+	template<ArcsMatrix::SaveType ST = ArcsMatrix::SaveType::AMT_APPEND, size_t M, size_t N, typename T = double>
+	static constexpr void savemat(const std::string& FileName, const std::string& MatName, const ArcsMat<M,N,T> U){
+		ArcsMat<M,N,T>::template savemat<ST>(FileName, MatName, U);
 	}
 }
 }

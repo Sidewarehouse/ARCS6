@@ -334,9 +334,9 @@ int main(void){
 	Azero2.ZeroingTriLo(1e-12);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (許容誤差指定版)
 	dispf(Azero2, "% 16.15e");
 	const ArcsMat<2,2,std::complex<double>> Azero3 = {
-		std::complex(ArcsMat<3,3>::EPSILON, 1.0), std::complex(1.0, ArcsMat<3,3>::EPSILON),
-		                  ArcsMat<3,3>::EPSLCOMP, ArcsMat<3,3>::EPSLCOMP
-	};
+		ArcsMat<3,3>::EPSILON + 1.0i, 1.0 + ArcsMat<3,3>::EPSILON*1.0i,
+		      ArcsMat<3,3>::EPSLCOMP,           ArcsMat<3,3>::EPSLCOMP
+	};							// 複素数でゼロに近い行列
 	dispf(Azero3, "% 16.15e");
 	auto Azero4 = Azero3;
 	Azero4.Zeroing(1e-12);		// ゼロに近い要素を完全にゼロにする (複素数の場合)
@@ -741,8 +741,7 @@ int main(void){
 	printf("minidx(Fx) = %ld, %ld\n", kx, ky);
 	constexpr auto kxy2 = minidx(k1);					// コンパイル時に要素番号を計算
 	printf("kxy2 = %ld, %ld\n", std::get<0>(kxy2), std::get<1>(kxy2));
-	using namespace std::literals::complex_literals;	// 虚数単位リテラル「i」の使用
-	ArcsMat<1,3,std::complex<double>> k1comp = {-2.0 + 2.0i, 4.0 + 1.0i, -1.0 - 3.0i};
+	ArcsMat<1,3,std::complex<double>> k1comp = { -2.0 + 2.0i, 4.0 + 1.0i, -1.0 - 3.0i};
 	disp(k1comp);
 	auto k1cmax = max(k1comp);					// 複素数の最大値
 	printf("max(k1comp) = %f + %fj\n", std::real(k1cmax), std::imag(k1cmax));
@@ -822,8 +821,8 @@ int main(void){
 	ArcsMat<2,3,double> Y10;
 	abs(Acmpx2, Y10);						// 複素数行列要素の絶対値 (引数渡し版)
 	disp(abs(Acmpx1));						// 複素数行列要素の絶対値 (戻り値渡し版)
-	arg(Acmpx2, Y10);							// 複素数行列要素の偏角 (引数渡し版)   [rad]
-	dispf(arg(Acmpx2)*180.0/M_PI, "% 6.1f");	// 複素数行列要素の偏角 (戻り値渡し版) [deg]
+	arg(Acmpx2, Y10);						// 複素数行列要素の偏角 (引数渡し版)   [rad]
+	dispf(arg(Acmpx2)*180.0/M_PI, "% 6.1f");// 複素数行列要素の偏角 (戻り値渡し版) [deg]
 	real(Acmpx2, Y10);						// 複素数行列要素の実数部 (引数渡し版)
 	disp(real(Acmpx2));						// 複素数行列要素の実数部 (戻り値渡し版)
 	imag(Acmpx2, Y10);						// 複素数行列要素の実数部 (引数渡し版)
@@ -838,7 +837,7 @@ int main(void){
 	disp(Y9);
 	ArcsMat<2,3,std::complex<double>> Acmp1 = Pi;		//「実数行列 → 複素数行列」のコピーコンストラクタ
 	disp(Acmp1);
-/*	
+	
 	// 転置行列関連の関数と演算子
 	printf("\n★★★★★★★ 転置行列関連の関数と演算子\n");
 	ArcsMat<2,3> Dt;
@@ -1510,12 +1509,15 @@ int main(void){
 	constexpr auto Yexp2x = expm(Lkrn2);		// コンパイル時に行列指数関数を計算
 	dispf(Yexp2x, "% 8.4f");
 
-	// MATファイル(MATLAB Level 4)の出力
-	ArcsMat<3,3>::savemat("test.mat", "Aexp1", Aexp1);
-	ArcsMat<3,3>::savemat("test.mat", "Yexp2x", Yexp2x);
-	//ArcsMat<2,3,std::complex<double>>::savemat("test.mat", "Acmpx2", Acmpx2);
+	// MATファイル(MATLAB Level 4)への保存
+	printf("\n★★★★★★★ MATファイル(MATLAB Level 4)への保存\n");
+	dispf(Aexp1, "% 8.4f");
+	savemat<ArcsMatrix::SaveType::AMT_AS_NEW>("test.mat", "Aexp1", Aexp1);	// MATファイルを新規作成して保存
+	dispf(Yexp2x, "% 8.4f");
+	savemat("test.mat", "Yexp2x", Yexp2x);	// MATファイルに追記保存
+	dispf(Acmpx2, "% 8.4f");
+	savemat("test.mat", "Acmpx2", Acmpx2);	// MATファイルに追記保存
 
-*/
 	return EXIT_SUCCESS;	// 正常終了
 }
 
