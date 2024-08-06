@@ -403,36 +403,34 @@ class ConstParams {
 				CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE, CuiPlotTypes::PLOT_LINE,},	// プロット15
 		}};
 		
+		//! @brief 作業空間プロット共通の設定
+		static constexpr bool PLOTXYXZ_VISIBLE = false;	//!< プロット可視/不可視設定
+		static constexpr size_t PLOTXYXZ_NUMPT = 9;		//!< 作業空間プロット点の数 (例：「1S軸～6T軸～7加速度センサ～8力覚センサ～9ツール先端」の9個の要素)
+		static constexpr double PLOTXYXZ_XMAX =  1.5;	//!< [m] X軸最大値
+		static constexpr double PLOTXYXZ_XMIN = -0.5;	//!< [m] X軸最小値
+		static constexpr size_t PLOTXYXZ_XGRID = 4;		//!< X軸グリッドの分割数
+		static constexpr char PLOTXYXZ_XLABEL[] = "POSITION X [m]";	//!< X軸ラベル
+
 		//! @brief 作業空間XYプロットの設定
-		static constexpr bool PLOTXY_VISIBLE = false;	//!< プロット可視/不可視設定
-		static constexpr int PLOTXY_LEFT = 305;			//!< [px] 左位置
+		static constexpr int PLOTXY_LEFT = 1015;		//!< [px] 左位置
 		static constexpr int PLOTXY_TOP = 709;			//!< [px] 上位置
-		static constexpr int PLOTXY_WIDTH = 300;		//!< [px] 幅
-		static constexpr int PLOTXY_HEIGHT = 270;		//!< [px] 高さ
-		static constexpr char PLOTXY_XLABEL[] = "POSITION X [m]";	//!< X軸ラベル
+		static constexpr int PLOTXY_WIDTH = 355;		//!< [px] 幅
+		static constexpr int PLOTXY_HEIGHT = 306;		//!< [px] 高さ
 		static constexpr char PLOTXY_YLABEL[] = "POSITION Y [m]";	//!< Y軸ラベル
-		static constexpr double PLOTXY_XMAX =  1.5;		//!< [m] X軸最大値
-		static constexpr double PLOTXY_XMIN = -0.5;		//!< [m] X軸最小値
 		static constexpr double PLOTXY_YMAX =  1.0;		//!< [m] Y軸最大値
 		static constexpr double PLOTXY_YMIN = -1.0;		//!< [m] Y軸最小値
-		static constexpr size_t PLOTXY_XGRID = 4;		//!< X軸グリッドの分割数
 		static constexpr size_t PLOTXY_YGRID = 4;		//!< Y軸グリッドの分割数
 		static constexpr double PLOTXY_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXY_VAL_YPOS =  0.9;	//!< 数値表示の上位置
 		
 		//! @brief 作業空間XZプロットの設定
-		static constexpr bool PLOTXZ_VISIBLE = false;	//!< プロット可視/不可視設定
-		static constexpr int PLOTXZ_LEFT = 605;			//!< [px] 左位置
+		static constexpr int PLOTXZ_LEFT = 1370;		//!< [px] 左位置
 		static constexpr int PLOTXZ_TOP = 709;			//!< [px] 上位置
-		static constexpr int PLOTXZ_WIDTH = 300;		//!< [px] 幅
-		static constexpr int PLOTXZ_HEIGHT = 270;		//!< [px] 高さ
-		static constexpr char PLOTXZ_XLABEL[] = "POSITION X [m]";	//!< X軸ラベル
+		static constexpr int PLOTXZ_WIDTH = 355;		//!< [px] 幅
+		static constexpr int PLOTXZ_HEIGHT = 306;		//!< [px] 高さ
 		static constexpr char PLOTXZ_ZLABEL[] = "POSITION Z [m]";	//!< Z軸ラベル
-		static constexpr double PLOTXZ_XMAX =  1.5;		//!< [m] X軸最大値
-		static constexpr double PLOTXZ_XMIN = -0.5;		//!< [m] X軸最小値
 		static constexpr double PLOTXZ_ZMAX =  2.0;		//!< [m] Z軸最大値
 		static constexpr double PLOTXZ_ZMIN =  0.0;		//!< [m] Z軸最小値
-		static constexpr size_t PLOTXZ_XGRID = 4;		//!< X軸グリッドの分割数
 		static constexpr size_t PLOTXZ_ZGRID = 4;		//!< Z軸グリッドの分割数
 		static constexpr double PLOTXZ_VAL_XPOS = -0.4;	//!< 数値表示の左位置
 		static constexpr double PLOTXZ_VAL_ZPOS =  1.9;	//!< 数値表示の上位置
