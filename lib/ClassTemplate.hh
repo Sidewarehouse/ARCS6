@@ -7,9 +7,7 @@
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-20XX Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// MIT License. For details, see the LICENSE file.
 
 #ifndef CLASSTEMPLATE
 #define CLASSTEMPLATE
@@ -36,7 +34,7 @@ namespace ARCS {	// ARCS名前空間
 class ClassTemplate {
 	public:
 		//! @brief コンストラクタ
-		ClassTemplate()
+		ClassTemplate() noexcept
 			// :
 		{
 			
@@ -44,20 +42,26 @@ class ClassTemplate {
 
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	r	右辺値
-		ClassTemplate(ClassTemplate&& r)
+		ClassTemplate(ClassTemplate&& r) noexcept
 			// :
 		{
 			
 		}
 
+		//! @brief ムーブ代入演算子
+		//! @param[in]	r	右辺値
+		ClassTemplate& operator=(ClassTemplate&& r) noexcept {
+			return *this;
+		}
+		
 		//! @brief デストラクタ
-		~ClassTemplate(){
+		~ClassTemplate() noexcept {
 			
 		}
 		
 	private:
 		ClassTemplate(const ClassTemplate&) = delete;					//!< コピーコンストラクタ使用禁止
-		const ClassTemplate& operator=(const ClassTemplate&) = delete;	//!< 代入演算子使用禁止
+		const ClassTemplate& operator=(const ClassTemplate&) = delete;	//!< コピー代入演算子使用禁止
 };
 }
 

@@ -3,7 +3,7 @@
 //!
 //! 制御理論に関係する様々なアルゴリズムを詰め合わせたヘッダ
 //!
-//! @date 2024/07/26
+//! @date 2024/08/08
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -627,12 +627,12 @@ class DiscStateSpace {
 		DiscStateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd)
 			: A(Ad), B(Bd), C(Cd), D(), u(), x(), x_next(), y(), y_next()
 		{
-			static_assert(MA = NA, "ArcsCtrl: Size Error");	// 正方行列チェック
-			static_assert(MA = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(MB = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NB = I, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(MC = O, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NC = N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MA == NA, "ArcsCtrl: Size Error");	// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
 			PassedLog();
 		}
 		
@@ -660,14 +660,14 @@ class DiscStateSpace {
 		DiscStateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd, const ArcsMat<MD,ND,TD>& Dd)
 			: A(Ad), B(Bd), C(Cd), D(Dd), u(), x(), x_next(), y(), y_next()
 		{
-			static_assert(MA = NA, "ArcsCtrl: Size Error");	// 正方行列チェック
-			static_assert(MA = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(MB = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NB = I, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(MC = O, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NC = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(MD = O, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(ND = I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MA == NA, "ArcsCtrl: Size Error");	// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MD == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(ND == I, "ArcsCtrl: Size Error");	// サイズチェック
 			PassedLog();
 		}
 		
@@ -691,14 +691,22 @@ class DiscStateSpace {
 		//! @param[in]	ui	入力ベクトル
 		template<size_t MU, size_t NU, typename TU = double>
 		void SetInput(const ArcsMat<MU,NU,TU>& ui){
-			static_assert(MU = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NU = 1, "ArcsCtrl: Vector Error");// サイズチェック
+			static_assert(MU == I, "ArcsCtrl: Input Size Error");// サイズチェック
+			static_assert(NU == 1, "ArcsCtrl: Vector Error");	// サイズチェック
 			u = ui;
 		}
 		
+		//! @brief 状態空間モデルへの入力ベクトルの内の、１つの成分のみを選択して設定する関数
+		//! @param[in]	i	入力ベクトルの要素番号(1～N)
+		//! @param[in]	ui	入力値
+		void SetInput(const size_t i, const T& ui){
+			arcs_assert(0 < i && i <= I);	// 範囲チェック
+			u[i] = ui;
+		}
+
 		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別1入力版)
 		//! @param[in]	ui	入力
-		void SetInput(const T& u1){
+		void SetInput1(const T& u1){
 			static_assert(I == 1, "ArcsCtrl: Input Size Error");	// 1入力系かチェック
 			u[1] = u1;
 		}
@@ -706,7 +714,7 @@ class DiscStateSpace {
 		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別2入力版)
 		//! @param[in]	u1	入力1
 		//! @param[in]	u2	入力2
-		void SetInput(const T& u1, const T& u2){
+		void SetInput2(const T& u1, const T& u2){
 			static_assert(I == 2, "ArcsCtrl: Input Size Error");	// 2入力系かチェック
 			u[1] = u1;
 			u[2] = u2;
@@ -716,19 +724,11 @@ class DiscStateSpace {
 		//! @param[in]	u1	入力1
 		//! @param[in]	u2	入力2
 		//! @param[in]	u3	入力3
-		void SetInput(const T& u1, const T& u2, const T& u3){
+		void SetInput3(const T& u1, const T& u2, const T& u3){
 			static_assert(I == 3, "ArcsCtrl: Input Size Error");	// 3入力系かチェック
 			u[1] = u1;
 			u[2] = u2;
 			u[3] = u3;
-		}
-		
-		//! @brief 状態空間モデルへの入力ベクトルの内の、１つの成分のみを選択して設定する関数
-		//! @param[in]	i	入力ベクトルの要素番号(1～N)
-		//! @param[in]	ui	入力値
-		void SetInput(const size_t i, const T& ui){
-			arcs_assert(0 < i && i <= N);	// 範囲チェック
-			u[i] = ui;
 		}
 		
 		//! @brief 状態空間モデルの応答を計算して状態ベクトルを更新する関数
@@ -746,8 +746,8 @@ class DiscStateSpace {
 		//! @param[out]	yo	出力ベクトル
 		template<size_t MY, size_t NY, typename TY = double>
 		void GetOutput(ArcsMat<MY,NY,TY>& yo){
-			static_assert(MY = O, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NY = 1, "ArcsCtrl: Vector Error");// サイズチェック
+			static_assert(MY == O, "ArcsCtrl: Output Size Error");	// サイズチェック
+			static_assert(NY == 1, "ArcsCtrl: Vector Error");		// サイズチェック
 			yo = y;
 		}
 		
@@ -761,10 +761,66 @@ class DiscStateSpace {
 		//! @param[in]	i	出力ベクトルの要素番号(1～N)
 		//! @return	出力値
 		T GetOutput(const size_t i){
-			arcs_assert(0 < i && i <= N);	// 範囲チェック
+			arcs_assert(0 < i && i <= O);	// 範囲チェック
 			return y[i];
 		}
 
+		//! @brief 状態空間モデルの出力を取得する関数(個別1出力版)
+		//! @return	出力値
+		T GetOutput1(void){
+			static_assert(O == 1, "ArcsCtrl: Output Size Error");	// 1出力系かチェック
+			return y[1];
+		}
+
+		//! @brief 状態空間モデルの出力を取得する関数(個別2出力版)
+		//! @return	出力値 (y1, y2) のタプル
+		std::tuple<T,T> GetOutput2(void){
+			static_assert(O == 2, "ArcsCtrl: Output Size Error");	// 2出力系かチェック
+			return {y[1], y[2]};
+		}
+
+		//! @brief 状態空間モデルの出力を取得する関数(個別3出力版)
+		//! @return	出力値
+		std::tuple<T,T,T> GetOutput3(void){
+			static_assert(O == 3, "ArcsCtrl: Output Size Error");	// 3出力系かチェック
+			return {y[1], y[2], y[3]};
+		}
+
+		//! @brief 状態空間モデルの次サンプルの出力ベクトルを即時に取得する関数(戻り値返し版)
+		//! @return	出力ベクトル
+		ArcsMat<O,1> GetNextOutput(void){
+			return y_next;
+		}
+		
+		//! @brief 状態空間モデルの次サンプルの出力ベクトルの内の、１つの成分のみを選択して即時に取得する関数
+		//! @param[in]	i	出力ベクトルの要素番号(1～N)
+		//! @return	出力値
+		T GetNextOutput(const size_t i){
+			arcs_assert(0 < i && i <= O);	// 範囲チェック
+			return y_next[i];
+		}
+
+		//! @brief 状態空間モデルの次サンプルの出力を即時に取得する関数(個別1出力版)
+		//! @return	出力値
+		T GetNextOutput1(void){
+			static_assert(O == 1, "ArcsCtrl: Output Size Error");	// 1出力系かチェック
+			return y_next[1];
+		}
+
+		//! @brief 状態空間モデルの次サンプルの出力を即時に取得する関数(個別2出力版)
+		//! @return	出力値 (y1, y2) のタプル
+		std::tuple<T,T> GetNextOutput2(void){
+			static_assert(O == 2, "ArcsCtrl: Output Size Error");	// 2出力系かチェック
+			return {y_next[1], y_next[2]};
+		}
+
+		//! @brief 状態空間モデルの次サンプルの出力を即時に取得する関数(個別3出力版)
+		//! @return	出力値
+		std::tuple<T,T,T> GetNextOutput3(void){
+			static_assert(O == 3, "ArcsCtrl: Output Size Error");	// 3出力系かチェック
+			return {y_next[1], y_next[2], y_next[3]};
+		}
+		
 		//! @brief 状態ベクトルを任意の値にセットする関数
 		//! @tparam	MX	入力される状態ベクトルの高さ
 		//! @tparam	NX	入力される状態ベクトルの幅
@@ -772,8 +828,8 @@ class DiscStateSpace {
 		//! @param[in]	xi	任意の値を持つ状態ベクトル
 		template<size_t MX, size_t NX, typename TX = double>
 		void SetStateVector(const ArcsMat<MX,NX,TX>& xi){
-			static_assert(MX = N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NX = 1, "ArcsCtrl: Vector Error");// サイズチェック
+			static_assert(MX == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NX == 1, "ArcsCtrl: Vector Error");// サイズチェック
 			x = xi;
 			x_next =xi;
 		}

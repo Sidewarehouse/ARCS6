@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/08/06
+//! @date 2024/08/08
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -61,12 +61,6 @@ namespace ArcsMatrix {
 		AMT_L1,		//!< 絶対値ノルム(1-ノルム)
 		AMT_LINF	//!< 無限大ノルム(最大値ノルム)
 	};
-
-	//! @brief ファイル保存方法の定義
-	enum class SaveType {
-		AMT_AS_NEW,	//!< 新規作成して保存
-		AMT_APPEND	//!< 追記保存
-	};
 }
 
 // ArcsMatrixメタ関数定義
@@ -97,7 +91,7 @@ template <size_t M, size_t N, typename T = double>
 class ArcsMat {
 	public:
 		//! @brief コンストラクタ
-		constexpr ArcsMat(void)
+		constexpr ArcsMat(void) noexcept
 			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
@@ -111,7 +105,7 @@ class ArcsMat {
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in]	InitValue	行列要素の初期値
 		template<typename R>
-		constexpr explicit ArcsMat(const R InitValue)
+		constexpr explicit ArcsMat(const R InitValue) noexcept
 			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
@@ -126,7 +120,7 @@ class ArcsMat {
 		//! @tparam	R	演算子右側の要素の型
 		//! @param[in]	InitList	初期化リスト
 		//template<typename R = T>
-		constexpr ArcsMat(const std::initializer_list<T> InitList)
+		constexpr ArcsMat(const std::initializer_list<T> InitList) noexcept
 			: Nindex(0), Mindex(0), Status(ArcsMatrix::MatStatus::AMT_NA), Data({0})
 		{
 			static_assert(N != 0, "ArcsMat: Size Zero Error");	// サイズゼロの行列は禁止
@@ -152,7 +146,7 @@ class ArcsMat {
 		
 		//! @brief コピーコンストラクタ
 		//! @param[in]	right	右辺値
-		constexpr ArcsMat(const ArcsMat<M,N,T>& right)
+		constexpr ArcsMat(const ArcsMat<M,N,T>& right) noexcept
 			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
@@ -163,7 +157,7 @@ class ArcsMat {
 		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
 		//! @param[in]	right	右辺値
 		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat(const ArcsMat<P,Q,R>& right)
+		constexpr ArcsMat(const ArcsMat<P,Q,R>& right) noexcept
 			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data()
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
@@ -191,23 +185,54 @@ class ArcsMat {
 		
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	right	右辺値
-		constexpr ArcsMat(ArcsMat<M,N,T>&& right)
+		constexpr ArcsMat(ArcsMat<M,N,T>&& right) noexcept
 			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
 			// メンバを取り込む以外の処理は無し
 		}
+
 		
 		//! @brief ムーブコンストラクタ(サイズと型が違う行列の場合, エラー検出用の定義)
 		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
 		//! @param[in]	right	右辺値
 		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat(ArcsMat<M,N,T>&& right)
+		constexpr ArcsMat(ArcsMat<M,N,T>&& right) noexcept
 			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
 			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
+		}
+
+		//! @brief 行列ムーブ代入演算子(未実装)
+		//! @param[in]	r	右辺値
+		//constexpr ArcsMat<M,N,T>& operator=(ArcsMat<M,N,T>&& right) noexcept {
+		//	return *this;
+		//}
+		
+		//! @brief 行列コピー代入演算子(サイズと型が同じ同士の行列の場合)
+		//! @param[in] right 演算子の右側
+		//! @return 結果
+		constexpr ArcsMat<M,N,T>& operator=(const ArcsMat<M,N,T>& right) noexcept {
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j) (*this)(j,i) = right(j,i);
+				// 上記は次とほぼ同等→ this->Data[i][j] = right.Data[i][j];
+			}
+			return (*this);
+		}
+		
+		//! @brief 行列コピー代入演算子(サイズと型が違う行列の場合, エラー検出用の定義)
+		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
+		//! @param[in] right 演算子の右側
+		//! @return 結果
+		template<size_t P, size_t Q, typename R = double>
+		constexpr ArcsMat<M,N,T>& operator=(const ArcsMat<P,Q,R>& right) noexcept {
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
+			return (*this);
 		}
 		
 		//! @brief 縦ベクトル添字演算子(縦ベクトルのm番目の要素の値を返す。x = A(m,1)と同じ意味)
@@ -268,30 +293,6 @@ class ArcsMat {
 				arcs_assert(0 < n && n <= N);
 			}
 			return Data[n - 1][m - 1];
-		}
-		
-		//! @brief 行列代入演算子(サイズと型が同じ同士の行列の場合)
-		//! @param[in] right 演算子の右側
-		//! @return 結果
-		constexpr ArcsMat<M,N,T>& operator=(const ArcsMat<M,N,T>& right){
-			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) (*this)(j,i) = right(j,i);
-				// 上記は次とほぼ同等→ this->Data[i][j] = right.Data[i][j];
-			}
-			return (*this);
-		}
-		
-		//! @brief 行列代入演算子(サイズと型が違う行列の場合, エラー検出用の定義)
-		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
-		//! @param[in] right 演算子の右側
-		//! @return 結果
-		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat<M,N,T>& operator=(const ArcsMat<P,Q,R>& right){
-			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
-			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
-			return (*this);
 		}
 		
 		//! @brief 単項プラス演算子
@@ -3399,89 +3400,6 @@ class ArcsMat {
 			ArcsMat<M,N,T>::expm<K>(U, Y);
 			return Y;
 		}
-
-		//! @brief MATファイル(MATLAB Level 4)への書き込み
-		//! @tparam		ST			保存方法の設定 (デフォルト値 = AMT_APPEND 追記保存)
-		//! @param[in]	FileName	MATファイル名 (拡張子matも含むこと)
-		//! @param[in]	MatName		変数名
-		//! @param[in]	U			入力行列
-		template<ArcsMatrix::SaveType ST = ArcsMatrix::SaveType::AMT_APPEND>
-		static constexpr void savemat(const std::string& FileName, const std::string& MatName, const ArcsMat<M,N,T> U){
-			// ヘッダデータの定義と初期化
-			struct {
-				// M = 0 リトルエンディアン, M = 1 ビッグエンディアン
-				// O = 0 予約、常にゼロ
-				// P = 0 double, P = 1 single, P = 2 int32_t, P = 3 int16_t, P = 4 uint16_t, P = 5 uint8_t 
-				// T = 0 Numeric, T = 1 Text, T = 2 Sparse
-				//                     MOPT
-				uint32_t Type		 = 0000;	// データタイプの設定
-				uint32_t NumOfRows	 = M;		// 行数
-				uint32_t NumOfColumn = N;		// 列数
-				uint32_t HasImag	 = 0;		// = 0 実数データ, = 1 複素数データ
-				uint32_t LenOfName	 = 0;		// 変数名の長さ＋１
-			} MatHeader;
-			MatHeader.LenOfName = MatName.length() + 1;	// 変数名の長さ＋１
-
-			// データ型によってヘッダの設定を変える
-			if constexpr(std::is_same_v<double, T> || std::is_same_v<std::complex<double>, T>){
-				//                MOPT
-				MatHeader.Type += 0000;
-			}else if constexpr(std::is_same_v<float, T> || std::is_same_v<std::complex<float>, T>){
-				//                MOPT
-				MatHeader.Type += 0010;
-			}else if constexpr(std::is_same_v<int32_t, T>){
-				//                MOPT
-				MatHeader.Type += 0020;
-			}else if constexpr(std::is_same_v<int16_t, T>){
-				//                MOPT
-				MatHeader.Type += 0030;
-			}else if constexpr(std::is_same_v<uint16_t, T>){
-				//                MOPT
-				MatHeader.Type += 0040;
-			}else if constexpr(std::is_same_v<uint8_t, T>){
-				//                MOPT
-				MatHeader.Type += 0050;
-			}else{
-				arcs_assert(false);	// ここには来ない
-			}
-
-			// 複素数型か実数型でヘッダの設定を変える
-			if constexpr(ArcsMatrix::IsComplex<T>){
-				MatHeader.HasImag = 1;
-			}else{
-				MatHeader.HasImag = 0;
-			}
-
-			// MATファイルにヘッダ部分を書き出す
-			FILE* fp;
-			if constexpr(ST == ArcsMatrix::SaveType::AMT_AS_NEW){
-				// 新規作成して保存する場合
-				fp = std::fopen(FileName.c_str(), "wb");	// wb = バイナリ書き込みモード
-			}else{
-				// 追記保存する場合
-				fp = std::fopen(FileName.c_str(), "ab");	// ab = バイナリ追記書き込みモード
-			}
-			std::fwrite(&MatHeader, sizeof(MatHeader), 1, fp);						// ヘッダ書き出し
-			std::fwrite(MatName.c_str(), sizeof(char), MatHeader.LenOfName, fp);	// 変数名書き出し
-
-			// 複素数型か実数型で書き出し動作を変える
-			if constexpr(ArcsMatrix::IsComplex<T>){
-				// 複素数型の場合
-				const ArcsMat<M*N,1,T> vecU  = ArcsMat<M,N,T>::vec(U);	// 縦ベクトル化
-				const auto RealU = ArcsMat<M*N,1,T>::real(vecU);		// 実数部を抽出
-				const auto ImagU = ArcsMat<M*N,1,T>::imag(vecU);		// 虚数部を抽出
-				const std::array<std::array<double, M*N>, 1> MatReal = RealU.GetData();	// 実数部を1次元配列へ格納
-				const std::array<std::array<double, M*N>, 1> MatImag = ImagU.GetData();	// 虚数部を1次元配列へ格納
-				std::fwrite(MatReal.at(0).data(), sizeof(double), M*N, fp);				// 行列の実数部要素書き出し
-				std::fwrite(MatImag.at(0).data(), sizeof(double), M*N, fp);				// 行列の虚数部要素書き出し
-			}else{
-				// 実数型の場合
-				const std::array<std::array<T, M*N>, 1> MatData = (ArcsMat<M,N,T>::vec(U)).GetData();	// 縦ベクトル化して1次元配列へ格納
-				std::fwrite(MatData.at(0).data(), sizeof(T), M*N, fp);									// 行列要素書き出し
-			}
-
-			std::fclose(fp);
-		}
 		
 	public:
 		// 公開版基本定数
@@ -5023,17 +4941,143 @@ namespace ArcsMatrix {
 		return ArcsMat<M,N,T>::template expm<K>(U);
 	}
 
-	//! @brief MATファイル(MATLAB Level 4)への書き込み
-	//! @tparam		ST			保存方法の設定 (デフォルト値 = AMT_APPEND 追記保存)
-	//! @tparam		M, N, T		入出力行列の高さ, 幅, 要素の型
-	//! @param[in]	FileName	MATファイル名 (拡張子matも含むこと)
-	//! @param[in]	MatName		変数名
-	//! @param[in]	U			入力行列
-	template<ArcsMatrix::SaveType ST = ArcsMatrix::SaveType::AMT_APPEND, size_t M, size_t N, typename T = double>
-	static constexpr void savemat(const std::string& FileName, const std::string& MatName, const ArcsMat<M,N,T> U){
-		ArcsMat<M,N,T>::template savemat<ST>(FileName, MatName, U);
-	}
 }
+
+// ArcsMatrixに付随するクラス
+namespace ArcsMatrix {
+	//! @brief MATファイル保存クラス(MATLAB Level 4対応)
+	//! @tparam 
+	//template <>
+	class MatExport {
+		public:
+			//! @brief コンストラクタ
+			//! @param[in]	FileName	MATファイル名 (拡張子matも含むこと)
+			MatExport(const std::string& FileName)
+				: fp(nullptr), MatFileName(FileName), MatHeader()
+			{
+				fp = std::fopen(FileName.c_str(), "wb");// バイナリ書き込みモードでMATファイルを新規作成
+				arcs_assert(fp != nullptr);				// ファイル作成に失敗した場合
+			}
+
+			//! @brief ムーブコンストラクタ
+			//! @param[in]	r	右辺値
+			MatExport(MatExport&& r)
+				: fp(r.fp), MatFileName(r.MatFileName), MatHeader(r.MatHeader)
+			{
+				r.fp = nullptr;	// ムーブ元の所有権を解放
+			}
+
+			//! @brief ムーブ代入演算子
+			//! @param[in]	r	右辺値
+			MatExport& operator=(MatExport&& r) noexcept {
+				fp = r.fp;		// ムーブ元からムーブ先への所有権の移動
+				r.fp = nullptr;	// ムーブ元の所有権を解放
+				return *this;
+			}
+
+			//! @brief デストラクタ
+			~MatExport(){
+				std::fclose(fp);	// MATファイルを閉じる
+			}
+
+			//! @brief MATファイルへの行列データの書き出し
+			//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+			//! @param[in]	MatName		変数名
+			//! @param[in]	U			入力行列
+			template<size_t M, size_t N, typename T = double>
+			void Save(const std::string& MatName, const ArcsMat<M,N,T> U){
+				// ヘッダの初期化
+				MatHeader.Type = 0000;		// データタイプの初期化
+				MatHeader.NumOfRows = M;	// 行列の縦の長さ
+				MatHeader.NumOfColumn = N;	// 行列の横の長さ
+				MatHeader.LenOfName = MatName.length() + 1;	// 変数名の長さ＋１
+
+				// 処理系のバイトオーダー(エンディアン)によってヘッダの設定を変える
+				#if   __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+					//                MOPT
+					MatHeader.Type += 0000;	// リトルエンディアンの場合(x86系)
+				#elif __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+					//                MOPT
+					MatHeader.Type += 1000;	// ビッグエンディアンの場合
+				#else
+					static_assert(false);	// エンディアンが不明の場合
+				#endif
+
+				// データ型によってヘッダの設定を変える
+				if constexpr(std::is_same_v<double, T> || std::is_same_v<std::complex<double>, T>){
+					//                MOPT
+					MatHeader.Type += 0000;
+				}else if constexpr(std::is_same_v<float, T> || std::is_same_v<std::complex<float>, T>){
+					//                MOPT
+					MatHeader.Type += 0010;
+				}else if constexpr(std::is_same_v<int32_t, T>){
+					//                MOPT
+					MatHeader.Type += 0020;
+				}else if constexpr(std::is_same_v<int16_t, T>){
+					//                MOPT
+					MatHeader.Type += 0030;
+				}else if constexpr(std::is_same_v<uint16_t, T>){
+					//                MOPT
+					MatHeader.Type += 0040;
+				}else if constexpr(std::is_same_v<uint8_t, T>){
+					//                MOPT
+					MatHeader.Type += 0050;
+				}else{
+					arcs_assert(false);	// ここには来ない
+				}
+
+				// 複素数型か実数型でヘッダの設定を変える
+				if constexpr(ArcsMatrix::IsComplex<T>){
+					MatHeader.HasImag = 1;
+				}else{
+					MatHeader.HasImag = 0;
+				}
+
+				// MATファイルにヘッダ部分を書き出す
+				std::fwrite(&MatHeader, sizeof(MatHeader), 1, fp);						// ヘッダ書き出し
+				std::fwrite(MatName.c_str(), sizeof(char), MatHeader.LenOfName, fp);	// 変数名書き出し
+
+				// 複素数型か実数型で書き出し動作を変える
+				if constexpr(ArcsMatrix::IsComplex<T>){
+					// 複素数型の場合
+					const ArcsMat<M*N,1,T> vecU  = ArcsMat<M,N,T>::vec(U);	// 縦ベクトル化
+					const auto RealU = ArcsMat<M*N,1,T>::real(vecU);		// 実数部を抽出
+					const auto ImagU = ArcsMat<M*N,1,T>::imag(vecU);		// 虚数部を抽出
+					const std::array<std::array<double, M*N>, 1> MatReal = RealU.GetData();	// 実数部を1次元配列へ格納
+					const std::array<std::array<double, M*N>, 1> MatImag = ImagU.GetData();	// 虚数部を1次元配列へ格納
+					std::fwrite(MatReal.at(0).data(), sizeof(double), M*N, fp);				// 行列の実数部要素書き出し
+					std::fwrite(MatImag.at(0).data(), sizeof(double), M*N, fp);				// 行列の虚数部要素書き出し
+				}else{
+					// 実数型の場合
+					const std::array<std::array<T, M*N>, 1> MatData = (ArcsMat<M,N,T>::vec(U)).GetData();	// 縦ベクトル化して1次元配列へ格納
+					std::fwrite(MatData.at(0).data(), sizeof(T), M*N, fp);									// 行列要素書き出し
+				}
+			}
+
+		private:
+			MatExport(const MatExport&) = delete;					//!< コピーコンストラクタ使用禁止
+			const MatExport& operator=(const MatExport&) = delete;	//!< コピー代入演算子使用禁止
+
+			FILE* fp;					//!< ファイルポインタ
+			std::string MatFileName;	//!< MATファイル名
+			
+			//!@brief ヘッダデータの定義
+			struct {
+				// M = 0 リトルエンディアン, M = 1 ビッグエンディアン
+				// O = 0 予約、常にゼロ
+				// P = 0 double, P = 1 single, P = 2 int32_t, P = 3 int16_t, P = 4 uint16_t, P = 5 uint8_t 
+				// T = 0 Numeric, T = 1 Text, T = 2 Sparse
+				//                     MOPT
+				uint32_t Type		 = 0000;	// データタイプの設定
+				uint32_t NumOfRows	 = 1;		// 行数M
+				uint32_t NumOfColumn = 1;		// 列数N
+				uint32_t HasImag	 = 0;		// = 0 実数データ, = 1 複素数データ
+				uint32_t LenOfName	 = 0;		// 変数名の長さ＋１
+			} MatHeader;
+
+	};
+}
+
 }
 
 #endif

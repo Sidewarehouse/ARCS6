@@ -70,4 +70,20 @@ Ad = sys3d.a
 bd = sys3d.b
 %}
 
-
+disp 'Ÿ —£UŒnó‘Ô‹óŠÔƒ‚ƒfƒ‹'
+load('../040_§Œä—˜_/Sys1Step.mat');
+A = [-0.2516 -0.1684;2.784 0.3549];
+B = [0;3];
+C = [0 1];
+D = 0;
+Ts = 1;
+sys = ss(A,B,C,D,Ts);
+figure(1)
+	step(sys);
+	hold on;
+	plot(k1, y1, 'ro');
+	hold off;
+	ylabel('Output y1 [*]');
+	xlabel('Time Step k1 [-]');
+	grid on;
+	

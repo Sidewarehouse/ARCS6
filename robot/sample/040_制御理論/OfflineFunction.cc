@@ -176,8 +176,37 @@ int main(void){
 	const bool CtrbAtc2 = ArcsControl::IsCtrb(Atc, Btc2);
 	printf("IsCtrb(Atc, Btc2) = %s\n", (CtrbAtc2 ? "true" : "false"));	// 可制御性判定
 
-	ArcsControl::DiscStateSpace<3, 1, 1> Sys1;
-
+	printf("◆ 離散系状態空間モデル\n");
+	ArcsMat<2,2> Ad1 = {
+		-0.2516, -0.1684, 
+		 2.784,   0.3549
+	};
+	ArcsMat<2,1> bd1 = {
+		0,
+		3
+	};
+	ArcsMat<1,2> cd1 = { 0, 1 };
+	ArcsMat<1,1> dd1 = { 0 };
+	disp(Ad1);
+	disp(bd1);
+	disp(cd1);
+	disp(dd1);
+	ArcsControl::DiscStateSpace<2, 1, 1> Sys1(Ad1, bd1, cd1, dd1);		// 宣言と同時にABCDを設定する場合
+	
+	// 試しにシミュレーションして応答計算
+	constexpr size_t Kfin = 20;	// [-] 最終の離散系の時刻
+	ArcsMat<Kfin,1> k1;			// 時刻ベクトル
+	ArcsMat<Kfin,1> y1;			// 出力応答ベクトル
+	for(size_t i = 1; i <= Kfin; ++i){
+		k1[i] = i;						// [-] 離散系の時刻
+		Sys1.SetInput1(1);				// 単位ステップを入力
+		Sys1.Update();					// 状態ベクトルを更新
+		y1[i] = Sys1.GetOutput1();		// 出力を取り出す
+	}
+	MatExport MatFileSys1("Sys1Step.mat");	// 計算結果をMATファイルとして保存
+	MatFileSys1.Save("k1", k1);	// 時刻ベクトルを保存
+	MatFileSys1.Save("y1", y1);	// 出力応答ベクトルを保存
+	
 	return EXIT_SUCCESS;	// 正常終了
 }
 

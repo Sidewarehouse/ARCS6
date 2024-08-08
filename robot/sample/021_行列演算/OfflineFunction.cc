@@ -1509,14 +1509,15 @@ int main(void){
 	constexpr auto Yexp2x = expm(Lkrn2);		// コンパイル時に行列指数関数を計算
 	dispf(Yexp2x, "% 8.4f");
 
-	// MATファイル(MATLAB Level 4)への保存
-	printf("\n★★★★★★★ MATファイル(MATLAB Level 4)への保存\n");
+	// MATファイルへの保存 (MATLAB Level 4対応)
+	printf("\n★★★★★★★ MATファイルへの保存 (MATLAB Level 4)\n");
+	MatExport MatFile1("save_test.mat");// MATファイルを新規作成
 	dispf(Aexp1, "% 8.4f");
-	savemat<ArcsMatrix::SaveType::AMT_AS_NEW>("test.mat", "Aexp1", Aexp1);	// MATファイルを新規作成して保存
+	MatFile1.Save("Aexp1", Aexp1);		// MATファイルに行列データを書き出し
 	dispf(Yexp2x, "% 8.4f");
-	savemat("test.mat", "Yexp2x", Yexp2x);	// MATファイルに追記保存
+	MatFile1.Save("Yexp2x", Yexp2x);	// MATファイルに行列データを書き出し
 	dispf(Acmpx2, "% 8.4f");
-	savemat("test.mat", "Acmpx2", Acmpx2);	// MATファイルに追記保存
+	MatFile1.Save("Acmpx2", Acmpx2);	// MATファイルに行列データを書き出し
 
 	return EXIT_SUCCESS;	// 正常終了
 }

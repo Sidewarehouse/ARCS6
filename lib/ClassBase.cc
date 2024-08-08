@@ -3,13 +3,10 @@
 //!
 //! クラス(非テンプレート版)を追加する場合は，このクラスベースコードを基に作ってネ。
 //!
-//! @date 20XX/XX/XX
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-20XX Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// MIT License. For details, see the LICENSE file.
 
 #include <cassert>
 #include "ClassBase.hh"
@@ -30,7 +27,7 @@
 using namespace ARCS;
 
 //! @brief コンストラクタ
-ClassBase::ClassBase()
+ClassBase::ClassBase() noexcept
 	// :
 {
 	
@@ -38,14 +35,20 @@ ClassBase::ClassBase()
 
 //! @brief ムーブコンストラクタ
 //! @param[in]	r	右辺値
-ClassBase::ClassBase(ClassBase&& r)
+ClassBase::ClassBase(ClassBase&& r) noexcept
 	// :
 {
 	
 }
 
+//! @brief ムーブ代入演算子
+//! @param[in]	r	右辺値
+ClassBase& ClassBase::operator=(ClassBase&& r) noexcept {
+	return *this;
+}
+		
 //! @brief デストラクタ
-ClassBase::~ClassBase(){
+ClassBase::~ClassBase() noexcept {
 	
 }
 
