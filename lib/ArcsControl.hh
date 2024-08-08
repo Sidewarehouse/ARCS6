@@ -601,7 +601,7 @@ template <size_t N, size_t I = 1, size_t O = 1, typename T = double>
 class DiscStateSpace {
 	public:
 		//! @brief コンストラクタ(空コンストラクタ版)
-		DiscStateSpace(void)
+		DiscStateSpace(void) noexcept
 			: A(), B(), C(), D(), u(), x(), x_next(), y(), y_next()
 		{
 			PassedLog();
@@ -624,10 +624,10 @@ class DiscStateSpace {
 			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
 			size_t MC, size_t NC, typename TC = double
 		>
-		DiscStateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd)
+		DiscStateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd) noexcept
 			: A(Ad), B(Bd), C(Cd), D(), u(), x(), x_next(), y(), y_next()
 		{
-			static_assert(MA == NA, "ArcsCtrl: Size Error");	// 正方行列チェック
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
 			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
 			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
 			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
@@ -657,10 +657,10 @@ class DiscStateSpace {
 			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
 			size_t MC, size_t NC, typename TC = double, size_t MD, size_t ND, typename TD = double
 		>
-		DiscStateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd, const ArcsMat<MD,ND,TD>& Dd)
+		DiscStateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd, const ArcsMat<MD,ND,TD>& Dd) noexcept
 			: A(Ad), B(Bd), C(Cd), D(Dd), u(), x(), x_next(), y(), y_next()
 		{
-			static_assert(MA == NA, "ArcsCtrl: Size Error");	// 正方行列チェック
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
 			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
 			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
 			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
@@ -673,15 +673,98 @@ class DiscStateSpace {
 		
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	r	右辺値
-		DiscStateSpace(DiscStateSpace&& r)
-			: A(r.A), B(r.B), C(r.C), D(r.D), u(r.u), x(r.x), x_next(r.x_next), y(r.y), y_next(r.y_next)
+		DiscStateSpace(DiscStateSpace&& r) noexcept
+			: A(std::move(r.A)), B(std::move(r.B)), C(std::move(r.C)), D(std::move(r.D)),
+			  u(std::move(r.u)), x(std::move(r.x)), x_next(std::move(r.x_next)), y(std::move(r.y)), y_next(std::move(r.y_next))
 		{
 			
 		}
 
+		//! @brief ムーブ代入演算子
+		//! @param[in]	r	右辺値
+		DiscStateSpace& operator=(DiscStateSpace&& r) noexcept {
+			A = std::move(r.A);
+			B = std::move(r.B);
+			C = std::move(r.C);
+			D = std::move(r.D);
+			u = std::move(r.u);
+			x = std::move(r.x);
+			x_next = std::move(r.x_next);
+			y = std::move(r.y);
+			y_next = std::move(r.y_next);
+			return *this;
+		}
+
 		//! @brief デストラクタ
-		~DiscStateSpace(){
+		~DiscStateSpace() noexcept {
 			PassedLog();
+		}
+
+		//! @brief 離散系状態空間モデルのA,B,C行列を設定する関数
+		//! @tparam	MA	A行列の高さ
+		//! @tparam	NA	A行列の幅
+		//! @tparam	TA	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @param[in]	Ad	離散系A行列
+		//! @param[in]	Bd	離散系B行列
+		//! @param[in]	Cd	C行列
+		template<
+			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
+			size_t MC, size_t NC, typename TC = double
+		>
+		void SetSystem(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd) noexcept {
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+
+			A = Ad;
+			B = Bd;
+			C = Cd;
+		}
+
+		//! @brief 離散系状態空間モデルのA,B,C,D行列を設定する関数
+		//! @tparam	MA	A行列の高さ
+		//! @tparam	NA	A行列の幅
+		//! @tparam	TA	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @tparam	MD	D行列の高さ
+		//! @tparam	ND	D行列の幅
+		//! @tparam	TD	D行列のデータ型
+		//! @param[in]	Ad	離散系A行列
+		//! @param[in]	Bd	離散系B行列
+		//! @param[in]	Cd	C行列
+		//! @param[in]	Dd	D行列
+		template<
+			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
+			size_t MC, size_t NC, typename TC = double, size_t MD, size_t ND, typename TD = double
+		>
+		void SetSystem(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd, const ArcsMat<MD,ND,TD>& Dd) noexcept {
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MD == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(ND == I, "ArcsCtrl: Size Error");	// サイズチェック
+
+			A = Ad;
+			B = Bd;
+			C = Cd;
+			D = Dd;
 		}
 
 		//! @brief 状態空間モデルへの入力ベクトルを設定する関数
@@ -690,23 +773,23 @@ class DiscStateSpace {
 		//! @tparam	TU	入力ベクトルのデータ型
 		//! @param[in]	ui	入力ベクトル
 		template<size_t MU, size_t NU, typename TU = double>
-		void SetInput(const ArcsMat<MU,NU,TU>& ui){
-			static_assert(MU == I, "ArcsCtrl: Input Size Error");// サイズチェック
-			static_assert(NU == 1, "ArcsCtrl: Vector Error");	// サイズチェック
+		void SetInput(const ArcsMat<MU,NU,TU>& ui) noexcept {
+			static_assert(MU == I, "ArcsCtrl: Input Size Error");	// サイズチェック
+			static_assert(NU == 1, "ArcsCtrl: Vector Error");		// サイズチェック
 			u = ui;
 		}
 		
 		//! @brief 状態空間モデルへの入力ベクトルの内の、１つの成分のみを選択して設定する関数
 		//! @param[in]	i	入力ベクトルの要素番号(1～N)
 		//! @param[in]	ui	入力値
-		void SetInput(const size_t i, const T& ui){
+		void SetInput(const size_t i, const T& ui) noexcept {
 			arcs_assert(0 < i && i <= I);	// 範囲チェック
 			u[i] = ui;
 		}
 
 		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別1入力版)
 		//! @param[in]	ui	入力
-		void SetInput1(const T& u1){
+		void SetInput1(const T& u1) noexcept {
 			static_assert(I == 1, "ArcsCtrl: Input Size Error");	// 1入力系かチェック
 			u[1] = u1;
 		}
@@ -714,7 +797,7 @@ class DiscStateSpace {
 		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別2入力版)
 		//! @param[in]	u1	入力1
 		//! @param[in]	u2	入力2
-		void SetInput2(const T& u1, const T& u2){
+		void SetInput2(const T& u1, const T& u2) noexcept {
 			static_assert(I == 2, "ArcsCtrl: Input Size Error");	// 2入力系かチェック
 			u[1] = u1;
 			u[2] = u2;
@@ -724,7 +807,7 @@ class DiscStateSpace {
 		//! @param[in]	u1	入力1
 		//! @param[in]	u2	入力2
 		//! @param[in]	u3	入力3
-		void SetInput3(const T& u1, const T& u2, const T& u3){
+		void SetInput3(const T& u1, const T& u2, const T& u3) noexcept {
 			static_assert(I == 3, "ArcsCtrl: Input Size Error");	// 3入力系かチェック
 			u[1] = u1;
 			u[2] = u2;
@@ -732,7 +815,7 @@ class DiscStateSpace {
 		}
 		
 		//! @brief 状態空間モデルの応答を計算して状態ベクトルを更新する関数
-		void Update(void){
+		void Update(void) noexcept {
 			x_next = A*x + B*u;			// 状態方程式
 			y = C*x + D*u;				// 出力方程式（教科書通りの正しい出力）
 			y_next = C*x_next + D*u;	// 出力方程式（次の時刻の出力ベクトルを即時に得る場合）
@@ -745,7 +828,7 @@ class DiscStateSpace {
 		//! @tparam	TY	出力ベクトルのデータ型
 		//! @param[out]	yo	出力ベクトル
 		template<size_t MY, size_t NY, typename TY = double>
-		void GetOutput(ArcsMat<MY,NY,TY>& yo){
+		void GetOutput(ArcsMat<MY,NY,TY>& yo) noexcept {
 			static_assert(MY == O, "ArcsCtrl: Output Size Error");	// サイズチェック
 			static_assert(NY == 1, "ArcsCtrl: Vector Error");		// サイズチェック
 			yo = y;
@@ -753,70 +836,70 @@ class DiscStateSpace {
 		
 		//! @brief 状態空間モデルの出力ベクトルを取得する関数(戻り値返し版)
 		//! @return	出力ベクトル
-		ArcsMat<O,1> GetOutput(void){
+		ArcsMat<O,1> GetOutput(void) noexcept {
 			return y;
 		}
 		
 		//! @brief 状態空間モデルの出力ベクトルの内の、１つの成分のみを選択して取得する関数
 		//! @param[in]	i	出力ベクトルの要素番号(1～N)
 		//! @return	出力値
-		T GetOutput(const size_t i){
+		T GetOutput(const size_t i) noexcept {
 			arcs_assert(0 < i && i <= O);	// 範囲チェック
 			return y[i];
 		}
 
 		//! @brief 状態空間モデルの出力を取得する関数(個別1出力版)
 		//! @return	出力値
-		T GetOutput1(void){
+		T GetOutput1(void) noexcept {
 			static_assert(O == 1, "ArcsCtrl: Output Size Error");	// 1出力系かチェック
 			return y[1];
 		}
 
 		//! @brief 状態空間モデルの出力を取得する関数(個別2出力版)
 		//! @return	出力値 (y1, y2) のタプル
-		std::tuple<T,T> GetOutput2(void){
+		std::tuple<T,T> GetOutput2(void) noexcept {
 			static_assert(O == 2, "ArcsCtrl: Output Size Error");	// 2出力系かチェック
 			return {y[1], y[2]};
 		}
 
 		//! @brief 状態空間モデルの出力を取得する関数(個別3出力版)
-		//! @return	出力値
-		std::tuple<T,T,T> GetOutput3(void){
+		//! @return	出力値 (y1, y2, y3) のタプル
+		std::tuple<T,T,T> GetOutput3(void) noexcept {
 			static_assert(O == 3, "ArcsCtrl: Output Size Error");	// 3出力系かチェック
 			return {y[1], y[2], y[3]};
 		}
 
 		//! @brief 状態空間モデルの次サンプルの出力ベクトルを即時に取得する関数(戻り値返し版)
 		//! @return	出力ベクトル
-		ArcsMat<O,1> GetNextOutput(void){
+		ArcsMat<O,1> GetNextOutput(void) noexcept {
 			return y_next;
 		}
 		
 		//! @brief 状態空間モデルの次サンプルの出力ベクトルの内の、１つの成分のみを選択して即時に取得する関数
 		//! @param[in]	i	出力ベクトルの要素番号(1～N)
 		//! @return	出力値
-		T GetNextOutput(const size_t i){
+		T GetNextOutput(const size_t i) noexcept {
 			arcs_assert(0 < i && i <= O);	// 範囲チェック
 			return y_next[i];
 		}
 
 		//! @brief 状態空間モデルの次サンプルの出力を即時に取得する関数(個別1出力版)
 		//! @return	出力値
-		T GetNextOutput1(void){
+		T GetNextOutput1(void) noexcept {
 			static_assert(O == 1, "ArcsCtrl: Output Size Error");	// 1出力系かチェック
 			return y_next[1];
 		}
 
 		//! @brief 状態空間モデルの次サンプルの出力を即時に取得する関数(個別2出力版)
 		//! @return	出力値 (y1, y2) のタプル
-		std::tuple<T,T> GetNextOutput2(void){
+		std::tuple<T,T> GetNextOutput2(void) noexcept {
 			static_assert(O == 2, "ArcsCtrl: Output Size Error");	// 2出力系かチェック
 			return {y_next[1], y_next[2]};
 		}
 
 		//! @brief 状態空間モデルの次サンプルの出力を即時に取得する関数(個別3出力版)
 		//! @return	出力値
-		std::tuple<T,T,T> GetNextOutput3(void){
+		std::tuple<T,T,T> GetNextOutput3(void) noexcept {
 			static_assert(O == 3, "ArcsCtrl: Output Size Error");	// 3出力系かチェック
 			return {y_next[1], y_next[2], y_next[3]};
 		}
@@ -827,22 +910,22 @@ class DiscStateSpace {
 		//! @tparam	TX	入力される状態ベクトルのデータ型
 		//! @param[in]	xi	任意の値を持つ状態ベクトル
 		template<size_t MX, size_t NX, typename TX = double>
-		void SetStateVector(const ArcsMat<MX,NX,TX>& xi){
-			static_assert(MX == N, "ArcsCtrl: Size Error");	// サイズチェック
-			static_assert(NX == 1, "ArcsCtrl: Vector Error");// サイズチェック
+		void SetStateVector(const ArcsMat<MX,NX,TX>& xi) noexcept {
+			static_assert(MX == N, "ArcsCtrl: Size Error");		// サイズチェック
+			static_assert(NX == 1, "ArcsCtrl: Vector Error");	// サイズチェック
 			x = xi;
 			x_next =xi;
 		}
 
 		//! @brief 状態ベクトルをクリアする関数
-		void ClearStateVector(void){
+		void ClearStateVector(void) noexcept {
 			x = ArcsMat<N,1>::zeros();
 			x_next = ArcsMat<N,1>::zeros();
 		}
 
 	private:
 		DiscStateSpace(const DiscStateSpace&) = delete;					//!< コピーコンストラクタ使用禁止
-		const DiscStateSpace& operator=(const DiscStateSpace&) = delete;//!< 代入演算子使用禁止
+		const DiscStateSpace& operator=(const DiscStateSpace&) = delete;//!< コピー代入演算子使用禁止
 		ArcsMat<N,N,T> A;		//!< 離散系A行列
 		ArcsMat<N,I,T> B;		//!< 離散系B行列
 		ArcsMat<O,N,T> C;		//!< C行列
@@ -853,6 +936,334 @@ class DiscStateSpace {
 		ArcsMat<O,1,T> y;		//!< 出力ベクトル
 		ArcsMat<O,1,T> y_next;	//!< 次の時刻の出力ベクトル
 };
+
+//! @brief 連続系状態空間モデルクラス
+//! @tparam	N	次数
+//! @tparam I	入力信号の数 (デフォルト値 = 1)
+//! @tparam O	出力信号の数 (デフォルト値 = 1)
+//! @tparam	T	データ型 (デフォルト値 = double)
+template <size_t N, size_t I = 1, size_t O = 1, typename T = double>
+class StateSpace {
+	public:
+		//! @brief コンストラクタ(空コンストラクタ版)
+		StateSpace(void) noexcept
+			: DiscSys(), A(), B(), C(), D(), Ts(), u(), x(), x_next(), y(), y_next()
+		{
+			PassedLog();
+		}
+
+		//! @brief コンストラクタ(連続系A,B,C行列設定版)
+		//! @tparam	MA	A行列の高さ
+		//! @tparam	NA	A行列の幅
+		//! @tparam	TA	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @param[in]	Ac	連続系A行列
+		//! @param[in]	Bc	連続系B行列
+		//! @param[in]	Cc	C行列
+		//! @param[in]	Tsmpl	[s] サンプリング周期
+		template<
+			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
+			size_t MC, size_t NC, typename TC = double
+		>
+		StateSpace(const ArcsMat<MA,NA,TA>& Ac, const ArcsMat<MB,NB,TB>& Bc, const ArcsMat<MC,NC,TC>& Cc, const T& Tsmpl) noexcept
+			: DiscSys(), A(Ac), B(Bc), C(Cc), D(), Ts(Tsmpl), u(), x(), x_next(), y(), y_next()
+		{
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+			arcs_assert(0 < Tsmpl);	// サンプリング周期は非負且つ非零
+			ConvToDiscSystem();		// 離散系システムに変換
+			PassedLog();
+		}
+		
+		//! @brief コンストラクタ(離散系A,B,C,D行列設定版)
+		//! @tparam	MA	A行列の高さ
+		//! @tparam	NA	A行列の幅
+		//! @tparam	TA	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @tparam	MD	D行列の高さ
+		//! @tparam	ND	D行列の幅
+		//! @tparam	TD	D行列のデータ型
+		//! @param[in]	Ad	離散系A行列
+		//! @param[in]	Bd	離散系B行列
+		//! @param[in]	Cd	C行列
+		//! @param[in]	Dd	D行列
+		//! @param[in]	Tsmpl	[s] サンプリング周期
+		template<
+			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
+			size_t MC, size_t NC, typename TC = double, size_t MD, size_t ND, typename TD = double
+		>
+		StateSpace(const ArcsMat<MA,NA,TA>& Ad, const ArcsMat<MB,NB,TB>& Bd, const ArcsMat<MC,NC,TC>& Cd, const ArcsMat<MD,ND,TD>& Dd, const T& Tsmpl) noexcept
+			: DiscSys(), A(Ad), B(Bd), C(Cd), D(Dd), Ts(Tsmpl), u(), x(), x_next(), y(), y_next()
+		{
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MD == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(ND == I, "ArcsCtrl: Size Error");	// サイズチェック
+			arcs_assert(0 < Tsmpl);	// サンプリング周期は非負且つ非零
+			ConvToDiscSystem();		// 離散系システムに変換
+			PassedLog();
+		}
+
+		//! @brief ムーブコンストラクタ
+		//! @param[in]	r	右辺値
+		StateSpace(StateSpace&& r) noexcept
+			: DiscSys(std::move(r.DiscSys)), A(std::move(r.A)), B(std::move(r.B)), C(std::move(r.C)), D(std::move(r.D)), Ts(std::move(r.Ts)), 
+			  u(std::move(r.u)), x(std::move(r.x)), x_next(std::move(r.x_next)), y(std::move(r.y)), y_next(std::move(r.y_next))
+		{
+			
+		}
+
+		//! @brief ムーブ代入演算子
+		//! @param[in]	r	右辺値
+		StateSpace& operator=(StateSpace&& r) noexcept {
+			DiscSys = std::move(r.DiscSys);
+			A = std::move(r.A);
+			B = std::move(r.B);
+			C = std::move(r.C);
+			D = std::move(r.D);
+			Ts = std::move(r.Ts);
+			u = std::move(r.u);
+			x = std::move(r.x);
+			x_next = std::move(r.x_next);
+			y = std::move(r.y);
+			y_next = std::move(r.y_next);
+			return *this;
+		}
+		
+		//! @brief デストラクタ
+		~StateSpace() noexcept {
+			PassedLog();
+		}
+		
+		//! @brief 連続系状態空間モデルのA,B,C行列を設定する関数
+		//! @tparam	MA	A行列の高さ
+		//! @tparam	NA	A行列の幅
+		//! @tparam	TA	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @param[in]	Ac	連続系A行列
+		//! @param[in]	Bc	連続系B行列
+		//! @param[in]	Cc	C行列
+		//! @param[in]	Tsmpl	[s] サンプリング周期
+		template<
+			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
+			size_t MC, size_t NC, typename TC = double
+		>
+		void SetSystem(const ArcsMat<MA,NA,TA>& Ac, const ArcsMat<MB,NB,TB>& Bc, const ArcsMat<MC,NC,TC>& Cc, const T& Tsmpl) noexcept {
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+
+			A = Ac;
+			B = Bc;
+			C = Cc;
+			Ts = Tsmpl;
+			ConvToDiscSystem();		// 離散系システムに変換
+		}
+
+		//! @brief 連続系状態空間モデルのA,B,C,D行列を設定する関数
+		//! @tparam	MA	A行列の高さ
+		//! @tparam	NA	A行列の幅
+		//! @tparam	TA	A行列のデータ型
+		//! @tparam	MB	B行列の高さ
+		//! @tparam	NB	B行列の幅
+		//! @tparam	TB	B行列のデータ型
+		//! @tparam	MC	C行列の高さ
+		//! @tparam	NC	C行列の幅
+		//! @tparam	TC	C行列のデータ型
+		//! @tparam	MD	D行列の高さ
+		//! @tparam	ND	D行列の幅
+		//! @tparam	TD	D行列のデータ型
+		//! @param[in]	Ac	連続系A行列
+		//! @param[in]	Bc	連続系B行列
+		//! @param[in]	Cc	C行列
+		//! @param[in]	Dc	D行列
+		//! @param[in]	Tsmpl	[s] サンプリング周期
+		template<
+			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
+			size_t MC, size_t NC, typename TC = double, size_t MD, size_t ND, typename TD = double
+		>
+		void SetSystem(const ArcsMat<MA,NA,TA>& Ac, const ArcsMat<MB,NB,TB>& Bc, const ArcsMat<MC,NC,TC>& Cc, const ArcsMat<MD,ND,TD>& Dc, const T& Tsmpl) noexcept {
+			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
+			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MB == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NB == I, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MC == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(NC == N, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(MD == O, "ArcsCtrl: Size Error");	// サイズチェック
+			static_assert(ND == I, "ArcsCtrl: Size Error");	// サイズチェック
+
+			A = Ac;
+			B = Bc;
+			C = Cc;
+			D = Dc;
+			Ts = Tsmpl;
+			ConvToDiscSystem();		// 離散系システムに変換
+		}
+
+		//! @brief 状態空間モデルへの入力ベクトルを設定する関数
+		//! @tparam	MU	入力ベクトルの高さ
+		//! @tparam	NU	入力ベクトルの幅
+		//! @tparam	TU	入力ベクトルのデータ型
+		//! @param[in]	ui	入力ベクトル
+		template<size_t MU, size_t NU, typename TU = double>
+		void SetInput(const ArcsMat<MU,NU,TU>& ui) noexcept {
+			static_assert(MU == I, "ArcsCtrl: Input Size Error");	// サイズチェック
+			static_assert(NU == 1, "ArcsCtrl: Vector Error");		// サイズチェック
+			DiscSys.SetInput(ui);
+		}
+		
+		//! @brief 状態空間モデルへの入力ベクトルの内の、１つの成分のみを選択して設定する関数
+		//! @param[in]	i	入力ベクトルの要素番号(1～N)
+		//! @param[in]	ui	入力値
+		void SetInput(const size_t i, const T& ui) noexcept {
+			arcs_assert(0 < i && i <= I);	// 範囲チェック
+			DiscSys.SetInput(i, ui);
+		}
+
+		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別1入力版)
+		//! @param[in]	ui	入力
+		void SetInput1(const T& u1) noexcept {
+			static_assert(I == 1, "ArcsCtrl: Input Size Error");	// 1入力系かチェック
+			DiscSys.SetInput1(u1);
+		}
+		
+		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別2入力版)
+		//! @param[in]	u1	入力1
+		//! @param[in]	u2	入力2
+		void SetInput2(const T& u1, const T& u2) noexcept {
+			static_assert(I == 2, "ArcsCtrl: Input Size Error");	// 2入力系かチェック
+			DiscSys.SetInput2(u1, u2);
+		}
+		
+		//! @brief 状態空間モデルへの入力ベクトルを設定する関数(個別3入力版)
+		//! @param[in]	u1	入力1
+		//! @param[in]	u2	入力2
+		//! @param[in]	u3	入力3
+		void SetInput3(const T& u1, const T& u2, const T& u3) noexcept {
+			static_assert(I == 3, "ArcsCtrl: Input Size Error");	// 3入力系かチェック
+			DiscSys.SetInput3(u1, u2, u3);
+		}
+
+		//! @brief 状態空間モデルの応答を計算して状態ベクトルを更新する関数
+		void Update(void) noexcept {
+			DiscSys.Update();
+		}
+
+		//! @brief 状態空間モデルの出力ベクトルを取得する関数(引数渡し版)
+		//! @tparam	MY	出力ベクトルの高さ
+		//! @tparam	NY	出力ベクトルの幅
+		//! @tparam	TY	出力ベクトルのデータ型
+		//! @param[out]	yo	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		void GetOutput(ArcsMat<MY,NY,TY>& yo) noexcept {
+			static_assert(MY == O, "ArcsCtrl: Output Size Error");	// サイズチェック
+			static_assert(NY == 1, "ArcsCtrl: Vector Error");		// サイズチェック
+			DiscSys.GetOutput(yo);
+		}
+		
+		//! @brief 状態空間モデルの出力ベクトルを取得する関数(戻り値返し版)
+		//! @return	出力ベクトル
+		ArcsMat<O,1> GetOutput(void) noexcept {
+			return DiscSys.GetOutput();
+		}
+		
+		//! @brief 状態空間モデルの出力ベクトルの内の、１つの成分のみを選択して取得する関数
+		//! @param[in]	i	出力ベクトルの要素番号(1～N)
+		//! @return	出力値
+		T GetOutput(const size_t i) noexcept {
+			arcs_assert(0 < i && i <= O);	// 範囲チェック
+			return DiscSys.GetOutput(i);
+		}
+
+		//! @brief 状態空間モデルの出力を取得する関数(個別1出力版)
+		//! @return	出力値
+		T GetOutput1(void) noexcept {
+			static_assert(O == 1, "ArcsCtrl: Output Size Error");	// 1出力系かチェック
+			return DiscSys.GetOutput1();
+		}
+
+		//! @brief 状態空間モデルの出力を取得する関数(個別2出力版)
+		//! @return	出力値 (y1, y2) のタプル
+		std::tuple<T,T> GetOutput2(void) noexcept {
+			static_assert(O == 2, "ArcsCtrl: Output Size Error");	// 2出力系かチェック
+			return DiscSys.GetOutput2();
+		}
+
+		//! @brief 状態空間モデルの出力を取得する関数(個別3出力版)
+		//! @return	出力値 (y1, y2, y3) のタプル
+		std::tuple<T,T,T> GetOutput3(void) noexcept {
+			static_assert(O == 3, "ArcsCtrl: Output Size Error");	// 3出力系かチェック
+			return DiscSys.GetOutput3();
+		}
+
+	private:
+		StateSpace(const StateSpace&) = delete;					//!< コピーコンストラクタ使用禁止
+		const StateSpace& operator=(const StateSpace&) = delete;//!< コピー代入演算子使用禁止
+
+		//!< 連続系状態空間モデルを離散系へ変換する関数
+		void ConvToDiscSystem(void){
+			// 連続系システムを平衡実現
+			ArcsMat<N,N,T> Ah;
+			ArcsMat<N,I,T> Bh;
+			ArcsMat<O,N,T> Ch;
+			if(IsStable(A) == true){
+				// 安定系であれば、平衡実現
+				BalanceReal(A, B, C, Ah, Bh, Ch);
+			}else{
+				// 不安定系であれば、平衡実現をしないでそのまま
+				Ah = A;
+				Bh = B;
+				Ch = C;
+			}
+
+			// 連続系システムを離散化
+			ArcsMat<N,N,T> Ad;
+			ArcsMat<N,I,T> Bd;
+			Discretize(Ah, Bh, Ad, Bd, Ts);	// 離散化
+
+			// 離散系システムに設定
+			DiscSys.SetSystem(Ad, Bd, Ch, D);
+		}
+
+		DiscStateSpace<N, I, O> DiscSys;	//!< 離散系状態空間モデル
+		ArcsMat<N,N,T> A;		//!< 連続系A行列
+		ArcsMat<N,I,T> B;		//!< 連続系B行列
+		ArcsMat<O,N,T> C;		//!< C行列
+		ArcsMat<O,I,T> D;		//!< D行列
+		T Ts;					//!< [s] サンプリング周期
+		ArcsMat<I,1,T> u;		//!< 入力ベクトル
+		ArcsMat<N,1,T> x;		//!< 状態ベクトル
+		ArcsMat<N,1,T> x_next;	//!< 次の時刻の状態ベクトル
+		ArcsMat<O,1,T> y;		//!< 出力ベクトル
+		ArcsMat<O,1,T> y_next;	//!< 次の時刻の出力ベクトル
+};
+
 
 }
 }

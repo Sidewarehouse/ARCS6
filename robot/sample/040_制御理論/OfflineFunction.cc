@@ -120,7 +120,7 @@ int main(void){
 	constexpr double Dm = 0.1;		// [Nms/rad]モータ粘性
 	constexpr double Rg = 100;		//          減速比
 	constexpr double Kt = 0.04;		// [Nm/A]   トルク定数
-	// 状態ベクトルの定義 xp = [ωl, θs, ωm]^T
+	// 状態ベクトルの定義 xp = [ωl, θs, ωm]^T, 入力ベクトルの定義 u = [iq, tdisl]^T
 	constexpr ArcsMat<3,3> Atc = {
 		-(Dl + Ds)/Jl,	Ks/Jl,			Ds/(Jl*Rg)			  ,
 		-1,				0,				1.0/Rg				  ,
@@ -134,6 +134,7 @@ int main(void){
 	constexpr ArcsMat<3,1> Btc2 = {0, 0, Kt/Jm};
 	constexpr auto Ct = ArcsMat<3,3>::eye();
 	constexpr ArcsMat<1,3> Ct2 = {0, 0, 1};
+	constexpr auto Dt = ArcsMat<3,2>::zeros();
 	ArcsMat<3,3> Atd;
 	ArcsMat<3,2> Btd;
 	ArcsControl::Discretize(Atc, Btc, Atd, Btd, Ts);			// 離散化 (引数渡し版)
@@ -176,37 +177,60 @@ int main(void){
 	const bool CtrbAtc2 = ArcsControl::IsCtrb(Atc, Btc2);
 	printf("IsCtrb(Atc, Btc2) = %s\n", (CtrbAtc2 ? "true" : "false"));	// 可制御性判定
 
-	printf("◆ 離散系状態空間モデル\n");
-	ArcsMat<2,2> Ad1 = {
+	printf("\n◆ 離散系状態空間モデル\n");
+	ArcsMat<2,2> Ad1 = {			// 離散系A行列
 		-0.2516, -0.1684, 
 		 2.784,   0.3549
 	};
-	ArcsMat<2,1> bd1 = {
+	ArcsMat<2,1> bd1 = {			// 離散系B行列
 		0,
 		3
 	};
-	ArcsMat<1,2> cd1 = { 0, 1 };
-	ArcsMat<1,1> dd1 = { 0 };
+	ArcsMat<1,2> cd1 = { 0, 1 };	// 離散系C行列
+	ArcsMat<1,1> dd1 = { 0 };		// 離散系D行列
 	disp(Ad1);
 	disp(bd1);
 	disp(cd1);
 	disp(dd1);
-	ArcsControl::DiscStateSpace<2, 1, 1> Sys1(Ad1, bd1, cd1, dd1);		// 宣言と同時にABCDを設定する場合
-	
-	// 試しにシミュレーションして応答計算
+	ArcsControl::DiscStateSpace<2, 1, 1> Sys1(Ad1, bd1, cd1, dd1);	// 離散系状態空間モデル (宣言と同時にABCD行列を設定する場合)
+	ArcsControl::DiscStateSpace<2, 1, 1> Sys1a;	// 離散系状態空間モデル (宣言のみで…
+	Sys1a.SetSystem(Ad1, bd1, cd1, dd1);		// 後からABCD行列を設定する場合)
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
 	constexpr size_t Kfin = 20;	// [-] 最終の離散系の時刻
-	ArcsMat<Kfin,1> k1;			// 時刻ベクトル
-	ArcsMat<Kfin,1> y1;			// 出力応答ベクトル
+	ArcsMat<1,Kfin> k1;			// 離散系時刻ベクトル
+	ArcsMat<1,Kfin> y1;			// 出力応答ベクトル
 	for(size_t i = 1; i <= Kfin; ++i){
-		k1[i] = i;						// [-] 離散系の時刻
-		Sys1.SetInput1(1);				// 単位ステップを入力
-		Sys1.Update();					// 状態ベクトルを更新
-		y1[i] = Sys1.GetOutput1();		// 出力を取り出す
+		k1(1,i) = i;					// [-] 離散系の時刻
+		Sys1a.SetInput1(1);				// 入力に単位ステップを与える
+		Sys1a.Update();					// 状態ベクトルを更新
+		y1(1,i) = Sys1a.GetOutput1();	// 出力を取り出す
 	}
-	MatExport MatFileSys1("Sys1Step.mat");	// 計算結果をMATファイルとして保存
-	MatFileSys1.Save("k1", k1);	// 時刻ベクトルを保存
-	MatFileSys1.Save("y1", y1);	// 出力応答ベクトルを保存
-	
+	MatExport MatFileSys1("ArcsControlTest.mat");	// 計算結果をMATファイルとして保存
+	MatFileSys1.Save("k1", k1);		// 時刻ベクトルをMATファイルとして保存
+	MatFileSys1.Save("y1", y1);		// 出力応答ベクトルをMATファイルとして保存
+
+	printf("◆ 連続系状態空間モデル\n");
+	constexpr double Ts2 = 10e-3;	// [s] サンプリング周期
+	disp(Atc);	// 連続系A行列
+	disp(Btc);	// 連続系B行列
+	disp(Ct);	// 連続系C行列
+	disp(Dt);	// 連続系D行列
+	ArcsControl::StateSpace<3, 2, 3> Sys2(Atc, Btc, Ct, Dt, Ts2);	// 連続系状態空間モデル (宣言と同時にABCD行列を設定する場合)
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	constexpr size_t Nsim = 100;	// [-] シミュレーション点数
+	ArcsMat<1,Nsim> t2;				// 連続系時刻ベクトル
+	ArcsMat<3,Nsim> y2;				// 出力応答ベクトル
+	for(size_t i = 1; i <= Nsim; ++i){
+		t2(1,i) = Ts2*(i - 1);		// [-] 離散系の時刻
+		Sys2.SetInput2(1, 0);		// 入力1(q軸電流)に単位ステップを与える
+		Sys2.Update();				// 状態ベクトルを更新
+		std::tie(y2(1,i), y2(2,i), y2(3,i)) = Sys2.GetOutput3();	// 出力をタプルで取り出す
+	}
+	MatFileSys1.Save("t2", t2);		// 時刻ベクトルをMATファイルとして保存
+	MatFileSys1.Save("y2", y2);		// 出力応答ベクトルをMATファイルとして保存
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
