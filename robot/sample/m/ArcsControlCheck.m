@@ -87,11 +87,14 @@ figure(1);
 	step(sys1);
 	hold on;
 	plot(k1, y1, 'ro');
+	plot(k1, y1n, 'go');
 	hold off;
 	ylabel('Output y1 [*]');
 	xlabel('Time Step k1 [-]');
 	grid on;
-
+	legend('MATLAB','DiscStateSpace::GetOutput','DiscStateSpace::GetNextOutput');
+	title('MATLAB と ArcsControl の比較 (DiscStateSpaceクラス)');
+	
 fprintf('\n');
 disp '◆ 連続系状態空間モデル'
 figure(2);
@@ -101,14 +104,17 @@ subplot(3,1,1)
 	plot(t_, y_(:,1), 'b');
 	hold on;
 	stairs(t2, y2(1,:), 'r');
+	stairs(t2, y2n(1,:), 'g');
 	hold off;
 	ylabel('Output y2(1) [*]');
 	xlabel('Time [s]');
 	grid on;
+	title('MATLAB と ArcsControl の比較 (StateSpaceクラス)');
 subplot(3,1,2)
 	plot(t_, y_(:,2), 'b');
 	hold on;
 	stairs(t2, y2(2,:), 'r');
+	stairs(t2, y2n(2,:), 'g');
 	hold off;
 	ylabel('Output y2(2) [*]');
 	xlabel('Time [s]');
@@ -117,9 +123,27 @@ subplot(3,1,3)
 	plot(t_, y_(:,3), 'b');
 	hold on;
 	stairs(t2, y2(3,:), 'r');
+	stairs(t2, y2n(3,:), 'g');
 	hold off;
 	ylabel('Output y2(3) [*]');
 	xlabel('Time [s]');
 	grid on;
+	legend('MATLAB','StateSpace::GetOutput','StateSpace::GetNextOutput','Location','SouthEast');
 
+fprintf('\n');
+disp '◆ 連続系伝達関数'
+figure(3);
+	sys3 = tf([9],[1, 1.5, 9]);
+	t_ = linspace(0,10,1000);
+	y_ = step(sys3, t_);
+	plot(t_, y_);
+	hold on;
+	stairs(t3, y3, 'r');
+	stairs(t3, y3n, 'g');
+	hold off;
+	ylabel('Output y3 [*]');
+	xlabel('Time [s]');
+	grid on;
+	legend('MATLAB','TransFunc::GetOutput','TransFunc::GetNextOutput','Location','SouthEast');
+	title('MATLAB と ArcsControl の比較 (TransFuncクラス)');
 

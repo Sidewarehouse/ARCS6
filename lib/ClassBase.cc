@@ -34,7 +34,7 @@ ClassBase::ClassBase() noexcept
 }
 
 //! @brief ムーブコンストラクタ
-//! @param[in]	r	右辺値
+//! @param[in]	r	演算子右側
 ClassBase::ClassBase(ClassBase&& r) noexcept
 	// :
 {
@@ -42,7 +42,7 @@ ClassBase::ClassBase(ClassBase&& r) noexcept
 }
 
 //! @brief ムーブ代入演算子
-//! @param[in]	r	右辺値
+//! @param[in]	r	演算子右側
 ClassBase& ClassBase::operator=(ClassBase&& r) noexcept {
 	return *this;
 }

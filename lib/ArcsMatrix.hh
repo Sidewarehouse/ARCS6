@@ -145,7 +145,7 @@ class ArcsMat {
 		}
 		
 		//! @brief コピーコンストラクタ
-		//! @param[in]	right	右辺値
+		//! @param[in]	right	演算子右側
 		constexpr ArcsMat(const ArcsMat<M,N,T>& right) noexcept
 			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
 		{
@@ -155,7 +155,7 @@ class ArcsMat {
 		
 		//! @brief コピーコンストラクタ(サイズもしくは型が違う行列の場合の定義)
 		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
-		//! @param[in]	right	右辺値
+		//! @param[in]	right	演算子右側
 		template<size_t P, size_t Q, typename R = double>
 		constexpr ArcsMat(const ArcsMat<P,Q,R>& right) noexcept
 			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data()
@@ -183,34 +183,6 @@ class ArcsMat {
 			}
 		}
 		
-		//! @brief ムーブコンストラクタ
-		//! @param[in]	right	右辺値
-		constexpr ArcsMat(ArcsMat<M,N,T>&& right) noexcept
-			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
-		{
-			// メンバを取り込む以外の処理は無し
-		}
-
-		
-		//! @brief ムーブコンストラクタ(サイズと型が違う行列の場合, エラー検出用の定義)
-		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
-		//! @param[in]	right	右辺値
-		template<size_t P, size_t Q, typename R = double>
-		constexpr ArcsMat(ArcsMat<M,N,T>&& right) noexcept
-			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
-		{
-			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
-			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
-		}
-
-		//! @brief 行列ムーブ代入演算子(未実装)
-		//! @param[in]	r	右辺値
-		//constexpr ArcsMat<M,N,T>& operator=(ArcsMat<M,N,T>&& right) noexcept {
-		//	return *this;
-		//}
-		
 		//! @brief 行列コピー代入演算子(サイズと型が同じ同士の行列の場合)
 		//! @param[in] right 演算子の右側
 		//! @return 結果
@@ -234,6 +206,41 @@ class ArcsMat {
 			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
 			return (*this);
 		}
+		
+		//! @brief ムーブコンストラクタ
+		//! @param[in]	right	演算子右側
+		constexpr ArcsMat(ArcsMat<M,N,T>&& right) noexcept
+			: Nindex(), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
+		{
+			// メンバを取り込む以外の処理は無し
+		}
+		
+		//! @brief ムーブコンストラクタ(サイズと型が違う行列の場合, エラー検出用の定義)
+		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
+		//! @param[in]	right	演算子右側
+		template<size_t P, size_t Q, typename R = double>
+		constexpr ArcsMat(ArcsMat<P,Q,R>&& right) noexcept
+			: Nindex(0), Mindex(0), Status(right.GetStatus()), Data(right.GetData())
+		{
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			arcs_assert(false);	// もしここに来たら問答無用でAssertion Failed
+		}
+
+		//! @brief 行列ムーブ代入演算子(サイズと型が同じ同士の行列の場合) [未実装]
+		//! @param[in]	r	演算子右側
+		//constexpr ArcsMat<M,N,T>& operator=(ArcsMat<M,N,T>&& right) noexcept {
+		//	return *this;
+		//}
+
+		//! @brief 行列ムーブ代入演算子(サイズと型が違う行列の場合, エラー検出用の定義) [未実装]
+		//! @tparam	P, Q, R	演算子右側の行列の高さ, 幅, 要素の型
+		//! @param[in]	r	演算子右側
+		//template<size_t P, size_t Q, typename R = double>
+		//constexpr ArcsMat<M,N,T>& operator=(ArcsMat<P,Q,R>&& right) noexcept {
+		//	return *this;
+		//}
 		
 		//! @brief 縦ベクトル添字演算子(縦ベクトルのm番目の要素の値を返す。x = A(m,1)と同じ意味)
 		//!        備考：ArcsMatは縦ベクトル優先なので、横ベクトル添字演算子は無い。
@@ -4960,7 +4967,7 @@ namespace ArcsMatrix {
 			}
 
 			//! @brief ムーブコンストラクタ
-			//! @param[in]	r	右辺値
+			//! @param[in]	r	演算子右側
 			MatExport(MatExport&& r)
 				: fp(r.fp), MatFileName(r.MatFileName), MatHeader(r.MatHeader)
 			{
@@ -4968,7 +4975,7 @@ namespace ArcsMatrix {
 			}
 
 			//! @brief ムーブ代入演算子
-			//! @param[in]	r	右辺値
+			//! @param[in]	r	演算子右側
 			MatExport& operator=(MatExport&& r) noexcept {
 				fp = r.fp;		// ムーブ元からムーブ先への所有権の移動
 				r.fp = nullptr;	// ムーブ元の所有権を解放

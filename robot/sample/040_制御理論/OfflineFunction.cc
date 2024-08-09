@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/07/23
+//! @date 2024/08/09
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -80,22 +80,23 @@ int main(void){
 
 	printf("◆ 可制御/可観測グラミアン(MATLABでいうgram)\n");
 	ArcsMat<3,3> Wpc, Wpo;
-	ArcsControl::GramianCtrl(Ap, bp, Wpc);	// 可制御グラミアン (引数渡し版)
-	Wpc = ArcsControl::GramianCtrl(Ap, bp);	// 可制御グラミアン (戻り値返し版)
+	ArcsControl::GramianCtrb(Ap, bp, Wpc);	// 可制御グラミアン (引数渡し版)
+	Wpc = ArcsControl::GramianCtrb(Ap, bp);	// 可制御グラミアン (戻り値返し版)
 	dispf(Wpc, "% 8.4f");
-	constexpr auto Wpcx = ArcsControl::GramianCtrl(Ap, bp);	// コンパイル時に可制御グラミアンを計算
+	constexpr auto Wpcx = ArcsControl::GramianCtrb(Ap, bp);	// コンパイル時に可制御グラミアンを計算
 	dispf(Wpcx, "% 8.4f");
-	ArcsControl::GramianObsrv(Ap, cp, Wpo);	// 可観測グラミアン (引数渡し版)
-	Wpo = ArcsControl::GramianObsrv(Ap, cp);// 可観測グラミアン (戻り値返し版)
+	ArcsControl::GramianObsv(Ap, cp, Wpo);	// 可観測グラミアン (引数渡し版)
+	Wpo = ArcsControl::GramianObsv(Ap, cp);	// 可観測グラミアン (戻り値返し版)
 	dispf(Wpo, "% 8.4f");
-	constexpr auto Wpox = ArcsControl::GramianObsrv(Ap, cp);// コンパイル時に可観測グラミアンを計算
+	constexpr auto Wpox = ArcsControl::GramianObsv(Ap, cp);// コンパイル時に可観測グラミアンを計算
 	dispf(Wpox, "% 8.4f");
 
 	printf("◆ 平衡実現(入出力平衡化、MATLABでいうbalreal)\n");
-	ArcsMat<3,3> Aph;
+	ArcsMat<3,3> Aph, Tl, Tr;
 	ArcsMat<3,1> bph;
 	ArcsMat<1,3> cph;
 	ArcsControl::BalanceReal(Ap, bp, cp, Aph, bph, cph);			// 平衡実現 (引数渡し版)
+	ArcsControl::BalanceReal(Ap, bp, cp, Aph, bph, cph, Tl, Tr);	// 平衡実現 (引数渡し版, 平衡化変換行列も取得)
 	std::tie(Aph, bph, cph) = ArcsControl::BalanceReal(Ap, bp, cp);	// 平衡実現 (タプル返し版)
 	dispf(Aph, "% 8.4f");
 	dispf(bph, "% 8.4f");
@@ -104,11 +105,15 @@ int main(void){
 	dispf(std::get<0>(Abcph), "% 8.4f");
 	dispf(std::get<1>(Abcph), "% 8.4f");
 	dispf(std::get<2>(Abcph), "% 8.4f");
-	const double gram1 = norm(ArcsControl::GramianCtrl(Ap, bp) - ArcsControl::GramianObsrv(Ap, cp));
-	const double gram2 = norm(ArcsControl::GramianCtrl(Aph, bph) - ArcsControl::GramianObsrv(Aph, cph));
-	printf("|| Wc - Wo || = %e\n",   gram1);	// 平衡化前は可制御グラミアンと可観測グラミアンは違うが、
-	printf("|| Wc - Wo || = %e\n\n", gram2);	// 平衡化後は可制御グラミアンと可観測グラミアンが一緒になる
-	
+	const auto Wc  = ArcsControl::GramianCtrb(Ap, bp);
+	const auto Wo  = ArcsControl::GramianObsv(Ap, cp);
+	const auto Wch = ArcsControl::GramianCtrb(Aph, bph);
+	const auto Woh = ArcsControl::GramianObsv(Aph, cph);
+	printf("|| Wc  - Wo  || = %f\n",   norm(Wc - Wo));	// 平衡化前は可制御グラミアンと可観測グラミアンは違うが、
+	printf("|| Wch - Woh || = %f\n\n", norm(Wch - Woh));// 平衡化後は可制御グラミアンと可観測グラミアンが一緒になる
+	dispf(Tl*Wc*~Tl - ~Tr*Wo*Tr, "% 8.4f");				// 平衡化変換行列のチェック (零行列になればOK)
+	dispf(Tl*Tr, "% 8.4f");								// 平衡化変換行列のチェック (単位行列になればOK)
+
 	printf("◆ 離散化(MATLABでいうc2d)\n");
 	// 2慣性共振系のパラメータ例
 	constexpr double Ts = 100e-6;	// [s]      サンプリング時間
@@ -192,44 +197,70 @@ int main(void){
 	disp(bd1);
 	disp(cd1);
 	disp(dd1);
-	ArcsControl::DiscStateSpace<2, 1, 1> Sys1(Ad1, bd1, cd1, dd1);	// 離散系状態空間モデル (宣言と同時にABCD行列を設定する場合)
-	ArcsControl::DiscStateSpace<2, 1, 1> Sys1a;	// 離散系状態空間モデル (宣言のみで…
+	ArcsControl::DiscStateSpace<2,1,1> Sys1(Ad1, bd1, cd1, dd1);	// 離散系状態空間モデル (宣言と同時にABCD行列を設定する場合)
+	ArcsControl::DiscStateSpace<2,1,1> Sys1a;	// 離散系状態空間モデル (宣言のみで…
 	Sys1a.SetSystem(Ad1, bd1, cd1, dd1);		// 後からABCD行列を設定する場合)
 	//
 	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
 	constexpr size_t Kfin = 20;	// [-] 最終の離散系の時刻
 	ArcsMat<1,Kfin> k1;			// 離散系時刻ベクトル
-	ArcsMat<1,Kfin> y1;			// 出力応答ベクトル
+	ArcsMat<1,Kfin> y1, y1n;	// 出力応答ベクトル
 	for(size_t i = 1; i <= Kfin; ++i){
-		k1(1,i) = i;					// [-] 離散系の時刻
-		Sys1a.SetInput1(1);				// 入力に単位ステップを与える
-		Sys1a.Update();					// 状態ベクトルを更新
-		y1(1,i) = Sys1a.GetOutput1();	// 出力を取り出す
+		k1(1,i) = i;						// [-] 離散系の時刻
+		Sys1a.SetInput1(1);					// 入力に単位ステップを与える
+		Sys1a.Update();						// 状態ベクトルを更新
+		y1(1,i)  = Sys1a.GetOutput1();		// 出力を取り出す (教科書通りの出力)
+		y1n(1,i) = Sys1a.GetNextOutput1();	// 出力を取り出す (次サンプルの出力を先取りして取得)
 	}
-	MatExport MatFileSys1("ArcsControlTest.mat");	// 計算結果をMATファイルとして保存
-	MatFileSys1.Save("k1", k1);		// 時刻ベクトルをMATファイルとして保存
-	MatFileSys1.Save("y1", y1);		// 出力応答ベクトルをMATファイルとして保存
-
+	MatExport MatFile1("ArcsControlTest.mat");	// 計算結果をMATファイルとして保存
+	MatFile1.Save("k1", k1);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y1", y1);	// 出力応答ベクトルをMATファイルとして保存
+	MatFile1.Save("y1n", y1n);	// 次サンプル出力応答ベクトルをMATファイルとして保存
+	
 	printf("◆ 連続系状態空間モデル\n");
 	constexpr double Ts2 = 10e-3;	// [s] サンプリング周期
 	disp(Atc);	// 連続系A行列
 	disp(Btc);	// 連続系B行列
 	disp(Ct);	// 連続系C行列
 	disp(Dt);	// 連続系D行列
-	ArcsControl::StateSpace<3, 2, 3> Sys2(Atc, Btc, Ct, Dt, Ts2);	// 連続系状態空間モデル (宣言と同時にABCD行列を設定する場合)
+	ArcsControl::StateSpace<3,2,3> Sys2(Atc, Btc, Ct, Dt, Ts2);	// 連続系状態空間モデル (宣言と同時にABCD行列を設定する場合)
 	//
 	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
 	constexpr size_t Nsim = 100;	// [-] シミュレーション点数
 	ArcsMat<1,Nsim> t2;				// 連続系時刻ベクトル
-	ArcsMat<3,Nsim> y2;				// 出力応答ベクトル
+	ArcsMat<3,Nsim> y2, y2n;		// 出力応答ベクトル
 	for(size_t i = 1; i <= Nsim; ++i){
-		t2(1,i) = Ts2*(i - 1);		// [-] 離散系の時刻
+		t2(1,i) = Ts2*(i - 1);		// [s] 時刻
 		Sys2.SetInput2(1, 0);		// 入力1(q軸電流)に単位ステップを与える
 		Sys2.Update();				// 状態ベクトルを更新
-		std::tie(y2(1,i), y2(2,i), y2(3,i)) = Sys2.GetOutput3();	// 出力をタプルで取り出す
+		std::tie(y2(1,i), y2(2,i), y2(3,i))    = Sys2.GetOutput3();		// 出力をタプルで取り出す (状態変数は縦ベクトルで、時刻に従って横方向に書き込み)
+		std::tie(y2n(1,i), y2n(2,i), y2n(3,i)) = Sys2.GetNextOutput3();	// 次サンプルの出力を先取りして取得
 	}
-	MatFileSys1.Save("t2", t2);		// 時刻ベクトルをMATファイルとして保存
-	MatFileSys1.Save("y2", y2);		// 出力応答ベクトルをMATファイルとして保存
+	MatFile1.Save("t2", t2);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y2", y2);	// 出力応答ベクトルをMATファイルとして保存
+	MatFile1.Save("y2n", y2n);	// 出力応答ベクトルをMATファイルとして保存
+
+	printf("◆ 連続系伝達関数\n");
+	ArcsMat<1,1> num1 = {9};			// 分子係数ベクトル ______9_______
+	ArcsMat<3,1> den1 = {1, 1.5, 9};	// 分母係数ベクトル s^2 + 1.5s + 9  ←という意味
+	constexpr double Ts3 = 100e-3;		// [s] サンプリング周期
+	ArcsControl::TransFunc<0,2> Sys3(num1, den1, Ts3);	// 伝達関数 (0次/2次のシステム) (宣言と同時に係数を設定する場合)
+	ArcsControl::TransFunc<0,2> Sys3a;					// 伝達関数 (宣言のみで…
+	Sys3a.SetSystem(num1, den1, Ts3);					// 後から係数を設定する場合)
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	ArcsMat<1,Nsim> t3;				// 連続系時刻ベクトル
+	ArcsMat<1,Nsim> y3, y3n;		// 出力応答ベクトル
+	for(size_t i = 1; i <= Nsim; ++i){
+		t3(1,i) = Ts3*(i - 1);			// [s] 時刻
+		Sys3a.SetInput(1);				// 入力に単位ステップを与える
+		Sys3a.Update();					// 状態更新
+		y3(1,i)  = Sys3a.GetOutput();	// 出力取得
+		y3n(1,i) = Sys3a.GetNextOutput();	// 次サンプルの出力を先取りして取得
+	}
+	MatFile1.Save("t3", t3);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y3", y3);	// 出力応答ベクトルをMATファイルとして保存
+	MatFile1.Save("y3n", y3n);	// 出力応答ベクトルをMATファイルとして保存
 
 	return EXIT_SUCCESS;	// 正常終了
 }

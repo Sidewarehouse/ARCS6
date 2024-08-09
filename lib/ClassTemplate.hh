@@ -41,7 +41,7 @@ class ClassTemplate {
 		}
 
 		//! @brief ムーブコンストラクタ
-		//! @param[in]	r	右辺値
+		//! @param[in]	r	演算子右側
 		ClassTemplate(ClassTemplate&& r) noexcept
 			// :
 		{
@@ -49,7 +49,7 @@ class ClassTemplate {
 		}
 
 		//! @brief ムーブ代入演算子
-		//! @param[in]	r	右辺値
+		//! @param[in]	r	演算子右側
 		ClassTemplate& operator=(ClassTemplate&& r) noexcept {
 			return *this;
 		}
