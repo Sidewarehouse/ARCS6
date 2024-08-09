@@ -129,6 +129,31 @@ subplot(3,1,3)
 	xlabel('Time [s]');
 	grid on;
 	legend('MATLAB','StateSpace::GetOutput','StateSpace::GetNextOutput','Location','SouthEast');
+figure(21);
+	A2b = [
+		   0,    1,    0 ;
+		   0,    0,    1 ;
+		-2.5,   -2, -1.5
+	];
+	b2b = [
+		0 ;
+		0 ;
+		1
+	];
+	c2b = [ -1.5, -1, -0.5 ];
+	d2b = [ 2 ];
+	sys2b = ss(A2b, b2b, c2b, d2b);
+	t_ = linspace(0,10,100);
+	y_ = step(sys2b, t_);
+	plot(t_, y_);
+	hold on;
+	stairs(t2b, y2b, 'r');
+	hold off;
+	ylabel('Output y2a [*]');
+	xlabel('Time [s]');
+	grid on;
+	legend('MATLAB','StateSpace::GetOutput','Location','SouthEast');
+	%figure(100); pzmap(sys2b); grid on;
 
 fprintf('\n');
 disp 'Åü òAë±ånì`íBä÷êî'
@@ -145,5 +170,18 @@ figure(3);
 	xlabel('Time [s]');
 	grid on;
 	legend('MATLAB','TransFunc::GetOutput','TransFunc::GetNextOutput','Location','SouthEast');
+	title('MATLAB Ç∆ ArcsControl ÇÃî‰är (TransFuncÉNÉâÉX)');
+figure(4);
+	sys4 = tf([4, 5, 6, 7],[2, 3, 4, 5]);
+	t_ = linspace(0,10,1000);
+	y_ = step(sys4, t_);
+	plot(t_, y_);
+	hold on;
+	stairs(t4, y4, 'r');
+	hold off;
+	ylabel('Output y4 [*]');
+	xlabel('Time [s]');
+	grid on;
+	legend('MATLAB','TransFunc::GetOutput','Location','SouthEast');
 	title('MATLAB Ç∆ ArcsControl ÇÃî‰är (TransFuncÉNÉâÉX)');
 

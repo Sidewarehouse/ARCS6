@@ -139,7 +139,6 @@ int main(void){
 	constexpr ArcsMat<3,1> Btc2 = {0, 0, Kt/Jm};
 	constexpr auto Ct = ArcsMat<3,3>::eye();
 	constexpr ArcsMat<1,3> Ct2 = {0, 0, 1};
-	constexpr auto Dt = ArcsMat<3,2>::zeros();
 	ArcsMat<3,3> Atd;
 	ArcsMat<3,2> Btd;
 	ArcsControl::Discretize(Atc, Btc, Atd, Btd, Ts);			// 離散化 (引数渡し版)
@@ -192,14 +191,12 @@ int main(void){
 		3
 	};
 	ArcsMat<1,2> cd1 = { 0, 1 };	// 離散系C行列
-	ArcsMat<1,1> dd1 = { 0 };		// 離散系D行列
 	disp(Ad1);
 	disp(bd1);
 	disp(cd1);
-	disp(dd1);
-	ArcsControl::DiscStateSpace<2,1,1> Sys1(Ad1, bd1, cd1, dd1);	// 離散系状態空間モデル (宣言と同時にABCD行列を設定する場合)
+	ArcsControl::DiscStateSpace<2,1,1> Sys1(Ad1, bd1, cd1);	// 離散系状態空間モデル (宣言と同時にABC行列を設定する場合)
 	ArcsControl::DiscStateSpace<2,1,1> Sys1a;	// 離散系状態空間モデル (宣言のみで…
-	Sys1a.SetSystem(Ad1, bd1, cd1, dd1);		// 後からABCD行列を設定する場合)
+	Sys1a.SetSystem(Ad1, bd1, cd1);				// 後からABC行列を設定する場合)
 	//
 	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
 	constexpr size_t Kfin = 20;	// [-] 最終の離散系の時刻
@@ -222,8 +219,9 @@ int main(void){
 	disp(Atc);	// 連続系A行列
 	disp(Btc);	// 連続系B行列
 	disp(Ct);	// 連続系C行列
-	disp(Dt);	// 連続系D行列
-	ArcsControl::StateSpace<3,2,3> Sys2(Atc, Btc, Ct, Dt, Ts2);	// 連続系状態空間モデル (宣言と同時にABCD行列を設定する場合)
+	ArcsControl::StateSpace<3,2,3> Sys2(Atc, Btc, Ct, Ts2);	// 連続系状態空間モデル (宣言と同時にABC行列を設定する場合)
+	ArcsControl::StateSpace<3,2,3> Sys2a;	// 連続系状態空間モデル (宣言のみで…
+	Sys2a.SetSystem(Atc, Btc, Ct, Ts2);		// 後からABC行列を設定する場合)
 	//
 	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
 	constexpr size_t Nsim = 100;	// [-] シミュレーション点数
@@ -231,14 +229,40 @@ int main(void){
 	ArcsMat<3,Nsim> y2, y2n;		// 出力応答ベクトル
 	for(size_t i = 1; i <= Nsim; ++i){
 		t2(1,i) = Ts2*(i - 1);		// [s] 時刻
-		Sys2.SetInput2(1, 0);		// 入力1(q軸電流)に単位ステップを与える
-		Sys2.Update();				// 状態ベクトルを更新
-		std::tie(y2(1,i), y2(2,i), y2(3,i))    = Sys2.GetOutput3();		// 出力をタプルで取り出す (状態変数は縦ベクトルで、時刻に従って横方向に書き込み)
-		std::tie(y2n(1,i), y2n(2,i), y2n(3,i)) = Sys2.GetNextOutput3();	// 次サンプルの出力を先取りして取得
+		Sys2a.SetInput2(1, 0);		// 入力1(q軸電流)に単位ステップを与える
+		Sys2a.Update();				// 状態ベクトルを更新
+		std::tie(y2(1,i), y2(2,i), y2(3,i))    = Sys2a.GetOutput3();	// 出力をタプルで取り出す (状態変数は縦ベクトルで、時刻に従って横方向に書き込み)
+		std::tie(y2n(1,i), y2n(2,i), y2n(3,i)) = Sys2a.GetNextOutput3();// 次サンプルの出力を先取りして取得
 	}
 	MatFile1.Save("t2", t2);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y2", y2);	// 出力応答ベクトルをMATファイルとして保存
 	MatFile1.Save("y2n", y2n);	// 出力応答ベクトルをMATファイルとして保存
+	//
+	constexpr double Ts2b = 100e-3;	// [s] サンプリング周期
+	ArcsMat<3,3> A2b = {
+		   0,    1,    0,
+		   0,    0,    1,
+		-2.5,   -2, -1.5
+	};
+	ArcsMat<3,1> b2b = {
+		0,
+		0,
+		1
+	};
+	ArcsMat<1,3> c2b = { -1.5, -1, -0.5 };
+	ArcsMat<1,1> d2b = { 2 };
+	ArcsControl::StateSpace<3,1,1> Sys2b(A2b, b2b, c2b, d2b, Ts2b);	// 連続系状態空間モデル 直達項有り
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	ArcsMat<1,Nsim> t2b, y2b;				// 時刻ベクトルと出力ベクトル
+	for(size_t i = 1; i <= Nsim; ++i){
+		t2b(1,i) = Ts2b*(i - 1);			// [s] 時刻
+		Sys2b.SetInput1(1);				// 単位ステップ入力
+		Sys2b.Update();					// 状態更新
+		y2b(1,i) = Sys2b.GetOutput1();	// 出力取得
+	}
+	MatFile1.Save("t2b", t2b);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y2b", y2b);	// 出力応答ベクトルをMATファイルとして保存
 
 	printf("◆ 連続系伝達関数\n");
 	ArcsMat<1,1> num1 = {9};			// 分子係数ベクトル ______9_______
@@ -261,7 +285,20 @@ int main(void){
 	MatFile1.Save("t3", t3);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y3", y3);	// 出力応答ベクトルをMATファイルとして保存
 	MatFile1.Save("y3n", y3n);	// 出力応答ベクトルをMATファイルとして保存
-
+	//
+	ArcsMat<4,1> num2 = {4, 5, 6, 7};	// 分子係数ベクトル  (4s^3 + 5s^2 + 6s + 7)
+	ArcsMat<4,1> den2 = {2, 3, 4, 5};	// 分母係数ベクトル /(2s^3 + 3s^2 + 4s + 5)  ←という意味
+	ArcsControl::TransFunc<3,3> Sys4(num2, den2, Ts3);	// 伝達関数 (3次/3次のシステム, つまり直達項有り)
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	ArcsMat<1,Nsim> t4, y4;				// 時刻ベクトルと出力ベクトル
+	for(size_t i = 1; i <= Nsim; ++i){
+		t4(1,i) = Ts3*(i - 1);			// [s] 時刻
+		y4(1,i) = Sys4.GetResponse(1);	// ステップ応答計算
+	}
+	MatFile1.Save("t4", t4);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y4", y4);	// 出力応答ベクトルをMATファイルとして保存
+	
 	return EXIT_SUCCESS;	// 正常終了
 }
 

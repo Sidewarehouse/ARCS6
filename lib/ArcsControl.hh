@@ -865,7 +865,7 @@ class DiscStateSpace {
 		void Update(void) noexcept {
 			x_next = A*x + B*u;			// 状態方程式
 			y = C*x + D*u;				// 出力方程式（教科書通りの正しい出力）
-			y_next = C*x_next + D*u;	// 出力方程式（次の時刻の出力ベクトルを即時に得る場合）
+			y_next = C*x_next + D*u;	// 出力方程式（次の時刻の出力ベクトルを先取りして得る場合）
 			x = x_next;					// 状態ベクトルを更新
 		}
 
@@ -1044,10 +1044,10 @@ class StateSpace {
 		//! @tparam	MD	D行列の高さ
 		//! @tparam	ND	D行列の幅
 		//! @tparam	TD	D行列のデータ型
-		//! @param[in]	Ad	離散系A行列
-		//! @param[in]	Bd	離散系B行列
-		//! @param[in]	Cd	C行列
-		//! @param[in]	Dd	D行列
+		//! @param[in]	Ac	連続系A行列
+		//! @param[in]	Bc	連続系B行列
+		//! @param[in]	Cc	C行列
+		//! @param[in]	Dc	D行列
 		//! @param[in]	Tsmpl	[s] サンプリング周期
 		template<
 			size_t MA, size_t NA, typename TA = double, size_t MB, size_t NB, typename TB = double,
@@ -1132,6 +1132,7 @@ class StateSpace {
 			A = Ac;
 			B = Bc;
 			C = Cc;
+			D = ArcsMat<O,I,T>::zeros();
 			Ts = Tsmpl;
 			ConvToDiscSystem();		// 離散系システムに変換
 		}
@@ -1318,18 +1319,21 @@ class StateSpace {
 
 		//!< 連続系状態空間モデルを離散系へ変換する関数
 		void ConvToDiscSystem(void){
+			// 直達項がある場合に以下は不具合があるので、pending
 			// 連続系システムを平衡実現
+			/*
 			if(IsStable(A) == true){
 				// 安定系であれば、平衡実現
 				BalanceReal(A, B, C, Ah, Bh, Ch, Tl, Tr);
 			}else{
 				// 不安定系であれば、平衡実現をしないでそのまま
+			*/
 				Ah = A;
 				Bh = B;
 				Ch = C;
 				Tl = ArcsMat<N,N,T>::eye();
 				Tr = ArcsMat<N,N,T>::eye();
-			}
+			//}
 
 			// 連続系システムを離散化
 			Discretize(Ah, Bh, Ad, Bd, Ts);	// 離散化
@@ -1369,8 +1373,8 @@ class TransFunc {
 		//! @brief コンストラクタ
 		//! @tparam	MN, NN, TN	分子係数ベクトルの高さ, 幅, データ型
 		//! @tparam	MD, ND, TD	分母係数ベクトルの高さ, 幅, データ型
-		//! @param[in]	Num		分子係数ベクトル
-		//! @param[in]	Den		分母係数ベクトル
+		//! @param[in]	Num		分子係数ベクトル (nN*s^N + ... + n1*s + n0) → Num = {nN, ... , n1, n0}
+		//! @param[in]	Den		分母係数ベクトル (dD*s^D + ... + d2*s^2 + d1*s + d0) → Den = {dD, ... , d2, d1, d0}
 		//! @param[in]	Tsmpl	[s] サンプリング周期
 		template<size_t MN, size_t NN, typename TN = double, size_t MD, size_t ND, typename TD = double>
 		TransFunc(const ArcsMat<MN,NN,TN>& Num, const ArcsMat<MD,ND,TD>& Den, const T& Tsmpl) noexcept
@@ -1415,25 +1419,25 @@ class TransFunc {
 			arcs_assert(0 < Tsmpl);	// サンプリング周期が非負且つ非零かチェック
 
 			// 分母の最上位係数を1に変形
-			const ArcsMat<N+1,1> b_n = Num/Den[1];
-			const ArcsMat<D+1,1> a_d = Den/Den[1];
+			const ArcsMat<N+1,1> b_n = Num/Den[1];	// b1*s^N + b2*s^(N-1) + ... + bN*s + bN+1
+			const ArcsMat<D+1,1> a_d = Den/Den[1];	//    s^D + a2*s^(D-1) + ... + aD*s + aD+1, (a1 = 1)
 			
 			// 可制御正準系の連続系状態方程式の生成
 			// A行列の生成
 			ArcsMat<D,D,T> A;		// 連続系A行列
-			for(size_t i = 1; i <  D; ++i) A(i,i+1) = 1;
-			for(size_t i = 1; i <= D; ++i) A(D,i)   = -a_d[D + 2 - i];
+			for(size_t i = 1; i <  D; ++i) A(i,i+1) = 1;				// A行列の1が斜めに並ぶ部分
+			for(size_t i = 1; i <= D; ++i) A(D,i)   = -a_d[D+1 - (i-1)];// A行列の最下段の行の部分 [ -aD+1, -aD, .... , -a3, -a2 ]
 			//
 			// B行列の生成
 			ArcsMat<D,1,T> b;		// 連続系bベクトル
-			b[D] = 1;
+			b[D] = 1;				// bベクトルの最下段の部分 [ 1 ]
 
 			// C行列とD行列の生成
 			if constexpr(N != D){
 				// 直達項が無い、相対次数が1以上の場合
 				// C行列のみ生成
 				ArcsMat<1,D,T> c;	// cベクトル
-				for(size_t i = 1; i <= N + 1; ++i) c(1,i) = b_n[N + 2 - i];
+				for(size_t i = 1; i <= N + 1; ++i) c(1,i) = b_n[N+1 - (i-1)];	// C行列の部分 [ bN+1, bN, ... , b2, b1 ]
 				
 				// 状態空間モデルに設定
 				Sys.SetSystem(A, b, c, Tsmpl);
@@ -1441,15 +1445,21 @@ class TransFunc {
 				// 直達項が有る、相対次数が0の場合
 				// C行列の生成
 				ArcsMat<1,D,T> c;	// cベクトル
-				for(size_t i = 1; i <= D; ++i) c(1,i) = b_n[D + 2 - i] - a_d[D + 2 - i]*b_n[1];
-				
+				for(size_t i = 1; i <= N; ++i){
+					c(1,i) = b_n[N+1 - (i-1)] - a_d[N+1 - (i-1)]*b_n[1];	// [ (bN+1 - aN+1*b1) , ... , (b3 - a3*b1), (b2 - a2*b1) ]
+				}
 				// D行列の生成
 				ArcsMat<1,1,T> d;	// dベクトル
-				d[1] = b_n[1];
+				d[1] = b_n[1];		// D行列の部分 [ b1 ]
 				
 				// 状態空間モデルに設定
 				Sys.SetSystem(A, b, c, d, Tsmpl);
+
+				disp(Num); disp(Den);
+				disp(b_n); disp(a_d);
+				disp(A); disp(b); disp(c); disp(d);
 			}
+
 		}
 
 		//! @brief 伝達関数への入力を設定する関数
