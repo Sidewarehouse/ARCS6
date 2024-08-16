@@ -84,17 +84,43 @@ D = 0;
 Ts = 1;
 sys1 = ss(A,B,C,D,Ts);
 figure(1);
-	step(sys1);
+	step(sys1, k1);
 	hold on;
 	plot(k1, y1, 'ro');
-	plot(k1, y1n, 'go');
+	plot(k1, y1n, 'gx');
 	hold off;
 	ylabel('Output y1 [*]');
 	xlabel('Time Step k1 [-]');
 	grid on;
 	legend('MATLAB','DiscStateSpace::GetOutput','DiscStateSpace::GetNextOutput');
 	title('MATLAB Ç∆ ArcsControl ÇÃî‰är (DiscStateSpaceÉNÉâÉX)');
-	
+
+fprintf('\n');
+disp 'Åü ó£éUånì`íBä÷êî'
+figure(5);
+	sys5 = tf([2, 0],[4, 0, 3, -1], Ts);
+	step(sys5, k5);
+	hold on;
+	stairs(k5, y5, 'ro');
+	stairs(k5, y5n, 'gx');
+	hold off;
+	ylabel('Output y5 [*]');
+	xlabel('Time Step k5 [-]');
+	grid on;
+	legend('MATLAB','DiscTransFunc::GetOutput','DiscTransFunc::GetNextOutput','Location','SouthEast');
+	title('MATLAB Ç∆ ArcsControl ÇÃî‰är (DiscTransFuncÉNÉâÉX)');
+figure(6);
+	sys6 = tf([2, 1, 0],[4, 0, 3], Ts);
+	step(sys6, k6);
+	hold on;
+	stairs(k6, y6, 'ro');
+	hold off;
+	ylabel('Output y6 [*]');
+	xlabel('Time Step k6 [-]');
+	grid on;
+	legend('MATLAB','DiscTransFunc::GetOutput','Location','SouthEast');
+	title('MATLAB Ç∆ ArcsControl ÇÃî‰är (DiscTransFuncÉNÉâÉX)');
+
 fprintf('\n');
 disp 'Åü òAë±ånèÛë‘ãÛä‘ÉÇÉfÉã'
 figure(2);
@@ -143,17 +169,53 @@ figure(21);
 	c2b = [ -1.5, -1, -0.5 ];
 	d2b = [ 2 ];
 	sys2b = ss(A2b, b2b, c2b, d2b);
+	[sys2bb, g, Tl, Tr]  = balreal(sys2b)
 	t_ = linspace(0,10,100);
 	y_ = step(sys2b, t_);
 	plot(t_, y_);
 	hold on;
 	stairs(t2b, y2b, 'r');
 	hold off;
-	ylabel('Output y2a [*]');
+	ylabel('Output y2b [*]');
 	xlabel('Time [s]');
 	grid on;
 	legend('MATLAB','StateSpace::GetOutput','Location','SouthEast');
 	%figure(100); pzmap(sys2b); grid on;
+figure(22);
+	A2c = [
+		-3.4182, 0 ;
+		 1     , 0 
+	];
+	B2c = [
+		4.4545e3, -9.0909e3 ;
+		0       ,  0
+	];
+	C2c = [
+		1, 0 ;
+		0, 1
+	];
+	D2c = zeros(2,2);
+	sys2c = ss(A2c, B2c, C2c, D2c);
+	t_ = linspace(0,10,100);
+	y_ = step(sys2c, t_);
+subplot(2,1,1)
+	plot(t_, y_(:,1));
+	hold on;
+	stairs(t2c, y2c(1,:), 'r');
+	hold off;
+	ylabel('Output y2c y1 [*]');
+	grid on;
+subplot(2,1,2)
+	plot(t_, y_(:,2));
+	hold on;
+	stairs(t2c, y2c(2,:), 'r');
+	hold off;
+	ylabel('Output y2c y2 [*]');
+	xlabel('Time [s]');
+	grid on;
+	legend('MATLAB','StateSpace::GetOutput','Location','SouthEast');
+	
+return;
 
 fprintf('\n');
 disp 'Åü òAë±ånì`íBä÷êî'

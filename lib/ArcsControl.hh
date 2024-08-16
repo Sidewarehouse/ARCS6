@@ -3,7 +3,7 @@
 //!
 //! 制御理論に関係する様々なアルゴリズムを詰め合わせたヘッダ
 //!
-//! @date 2024/08/08
+//! @date 2024/08/16
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -984,6 +984,156 @@ class DiscStateSpace {
 		ArcsMat<O,1,T> y_next;	//!< 次の時刻の出力ベクトル
 };
 
+//! @brief 離散系伝達関数(パルス伝達関数)クラス
+//! @tparam N	分子次数
+//! @tparam	D	分母次数
+//! @tparam	T	データ型 (デフォルト値 = double)
+template <size_t N, size_t D, typename T = double>
+class DiscTransFunc {
+	public:
+		//! @brief コンストラクタ(空コンストラクタ版)
+		DiscTransFunc(void) noexcept
+			: Sys()
+		{
+			
+		}
+
+		//! @brief コンストラクタ
+		//! @tparam	MN, NN, TN	分子係数ベクトルの高さ, 幅, データ型
+		//! @tparam	MD, ND, TD	分母係数ベクトルの高さ, 幅, データ型
+		//! @param[in]	Num		分子係数ベクトル (nN*s^N + ... + n1*s + n0) → Num = {nN, ... , n1, n0}
+		//! @param[in]	Den		分母係数ベクトル (dD*s^D + ... + d2*s^2 + d1*s + d0) → Den = {dD, ... , d2, d1, d0}
+		template<size_t MN, size_t NN, typename TN = double, size_t MD, size_t ND, typename TD = double>
+		DiscTransFunc(const ArcsMat<MN,NN,TN>& Num, const ArcsMat<MD,ND,TD>& Den) noexcept
+			: Sys()
+		{
+			SetSystem(Num, Den);
+		}
+
+		//! @brief ムーブコンストラクタ
+		//! @param[in]	r	演算子右側
+		DiscTransFunc(DiscTransFunc&& r) noexcept
+			: Sys(std::move(r.Sys))
+		{
+			
+		}
+
+		//! @brief ムーブ代入演算子
+		//! @param[in]	r	演算子右側
+		DiscTransFunc& operator=(DiscTransFunc&& r) noexcept {
+			Sys = std::move(r.Sys);
+			return *this;
+		}
+		
+		//! @brief デストラクタ
+		~DiscTransFunc() noexcept {
+			
+		}
+		
+		//! @brief 伝達関数の係数とサンプリング周期を設定する関数
+		//! @tparam	MN, NN, TN	分子係数ベクトルの高さ, 幅, データ型
+		//! @tparam	MD, ND, TD	分母係数ベクトルの高さ, 幅, データ型
+		//! @param[in]	Num		分子係数ベクトル
+		//! @param[in]	Den		分母係数ベクトル
+		template<size_t MN, size_t NN, typename TN = double, size_t MD, size_t ND, typename TD = double>
+		void SetSystem(const ArcsMat<MN,NN,TN>& Num, const ArcsMat<MD,ND,TD>& Den) noexcept {
+			static_assert(MN == N + 1, "ArcsCtrl: Size Error");		// サイズチェック
+			static_assert(NN == 1,     "ArcsCtrl: Vector Error");	// 縦ベクトルチェック
+			static_assert(MD == D + 1, "ArcsCtrl: Size Error");		// サイズチェック
+			static_assert(ND == 1,     "ArcsCtrl: Vector Error");	// 縦ベクトルチェック
+			static_assert(N <= D);	// プロパーかどうかのチェック
+
+			// 分母の最上位係数を1に変形
+			const ArcsMat<N+1,1> b_n = Num/Den[1];	// b1*s^N + b2*s^(N-1) + ... + bN*s + bN+1
+			const ArcsMat<D+1,1> a_d = Den/Den[1];	//    s^D + a2*s^(D-1) + ... + aD*s + aD+1, (a1 = 1)
+			
+			// 可制御正準系の離散系状態方程式の生成
+			// A行列の生成
+			ArcsMat<D,D,T> A;		// 離散系A行列
+			for(size_t i = 1; i <  D; ++i) A(i,i+1) = 1;				// A行列の1が斜めに並ぶ部分
+			for(size_t i = 1; i <= D; ++i) A(D,i)   = -a_d[D+1 - (i-1)];// A行列の最下段の行の部分 [ -aD+1, -aD, .... , -a3, -a2 ]
+			//
+			// B行列の生成
+			ArcsMat<D,1,T> b;		// 離散系bベクトル
+			b[D] = 1;				// bベクトルの最下段の部分 [ 1 ]
+
+			// C行列とD行列の生成
+			if constexpr(N != D){
+				// 直達項が無い、相対次数が1以上の場合
+				// C行列のみ生成
+				ArcsMat<1,D,T> c;	// cベクトル
+				for(size_t i = 1; i <= N + 1; ++i) c(1,i) = b_n[N+1 - (i-1)];	// C行列の部分 [ bN+1, bN, ... , b2, b1 ]
+				
+				// 状態空間モデルに設定
+				Sys.SetSystem(A, b, c);
+			}else{
+				// 直達項が有る、相対次数が0の場合
+				// C行列の生成
+				ArcsMat<1,D,T> c;	// cベクトル
+				for(size_t i = 1; i <= N; ++i){
+					c(1,i) = b_n[N+1 - (i-1)] - a_d[N+1 - (i-1)]*b_n[1];	// [ (bN+1 - aN+1*b1) , ... , (b3 - a3*b1), (b2 - a2*b1) ]
+				}
+				// D行列の生成
+				ArcsMat<1,1,T> d;	// dベクトル
+				d[1] = b_n[1];		// D行列の部分 [ b1 ]
+				
+				// 状態空間モデルに設定
+				Sys.SetSystem(A, b, c, d);
+
+				disp(Num); disp(Den);
+				disp(b_n); disp(a_d);
+				disp(A); disp(b); disp(c); disp(d);
+			}
+
+		}
+
+		//! @brief 伝達関数への入力を設定する関数
+		//! @param[in]	u	入力
+		void SetInput(const T& u) noexcept {
+			Sys.SetInput1(u);
+		}
+
+		//! @brief 伝達関数の応答を計算して内部の状態を更新する関数
+		void Update(void) noexcept {
+			Sys.Update();
+		}
+
+		//! @brief 伝達関数の出力を取得する関数
+		//! @return	出力値
+		T GetOutput(void) noexcept {
+			return Sys.GetOutput1();
+		}
+
+		//! @brief 伝達関数の次サンプルの出力を先取りして取得する関数
+		//! @return	出力値
+		T GetNextOutput(void) noexcept {
+			return Sys.GetNextOutput1();
+		}
+
+		//! @brief 伝達関数の応答を取得する関数 (入力→状態更新→出力を一括実行)
+		//! @param[in]	u	入力
+		//! @return 出力値
+		T GetResponse(const T& u) noexcept {
+			Sys.SetInput1(u);		// 入力
+			Sys.Update();			// 状態更新
+			return Sys.GetOutput1();// 出力
+		}
+
+		//! @brief 伝達関数の次サンプルの応答を先取りして取得する関数 (入力→状態更新→出力を一括実行)
+		//! @param[in]	u	入力
+		//! @return 出力値
+		T GetNextResponse(const T& u) noexcept {
+			Sys.SetInput1(u);			// 入力
+			Sys.Update();				// 状態更新
+			return Sys.GetNextOutput1();// 出力
+		}
+
+	private:
+		DiscTransFunc(const DiscTransFunc&) = delete;					//!< コピーコンストラクタ使用禁止
+		const DiscTransFunc& operator=(const DiscTransFunc&) = delete;	//!< コピー代入演算子使用禁止
+		DiscStateSpace<D,1,1> Sys;	// SISO離散系状態空間モデル
+};
+
 //! @brief 連続系状態空間モデルクラス
 //! @tparam	N	次数
 //! @tparam I	入力信号の数 (デフォルト値 = 1)
@@ -994,7 +1144,7 @@ class StateSpace {
 	public:
 		//! @brief コンストラクタ(空コンストラクタ版)
 		StateSpace(void) noexcept
-			: DiscSys(), A(), B(), C(), D(), Ah(), Bh(), Ch(), Ad(), Bd(), Tl(), Tr(), Ts()
+			: DiscSys(), A(), B(), C(), D(), Ah(), Bh(), Ch(), Ad(), Bd(), Tl(), Tr(), Ts(), HasDirectTerm(false)
 		{
 			PassedLog();
 		}
@@ -1018,7 +1168,7 @@ class StateSpace {
 			size_t MC, size_t NC, typename TC = double
 		>
 		StateSpace(const ArcsMat<MA,NA,TA>& Ac, const ArcsMat<MB,NB,TB>& Bc, const ArcsMat<MC,NC,TC>& Cc, const T& Tsmpl) noexcept
-			: DiscSys(), A(Ac), B(Bc), C(Cc), D(), Ah(), Bh(), Ch(), Ad(), Bd(), Tl(), Tr(), Ts(Tsmpl)
+			: DiscSys(), A(Ac), B(Bc), C(Cc), D(), Ah(), Bh(), Ch(), Ad(), Bd(), Tl(), Tr(), Ts(Tsmpl), HasDirectTerm(false)
 		{
 			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
 			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
@@ -1054,7 +1204,7 @@ class StateSpace {
 			size_t MC, size_t NC, typename TC = double, size_t MD, size_t ND, typename TD = double
 		>
 		StateSpace(const ArcsMat<MA,NA,TA>& Ac, const ArcsMat<MB,NB,TB>& Bc, const ArcsMat<MC,NC,TC>& Cc, const ArcsMat<MD,ND,TD>& Dc, const T& Tsmpl) noexcept
-			: DiscSys(), A(Ac), B(Bc), C(Cc), D(Dc), Ah(), Bh(), Ch(), Ad(), Bd(), Tl(), Tr(), Ts(Tsmpl)
+			: DiscSys(), A(Ac), B(Bc), C(Cc), D(Dc), Ah(), Bh(), Ch(), Ad(), Bd(), Tl(), Tr(), Ts(Tsmpl), HasDirectTerm(true)
 		{
 			static_assert(MA == NA, "ArcsCtrl: Size Error");// 正方行列チェック
 			static_assert(MA == N, "ArcsCtrl: Size Error");	// サイズチェック
@@ -1074,7 +1224,7 @@ class StateSpace {
 		StateSpace(StateSpace&& r) noexcept
 			: DiscSys(std::move(r.DiscSys)), A(std::move(r.A)), B(std::move(r.B)), C(std::move(r.C)), D(std::move(r.D)),
 			  Ah(std::move(r.Ah)), Bh(std::move(r.Bh)), Ch(std::move(r.Ch)), Ad(std::move(r.Ad)), Bd(std::move(r.Bd)),
-			  Tl(std::move(r.Tl)), Tr(std::move(r.Tr)), Ts(std::move(r.Ts))
+			  Tl(std::move(r.Tl)), Tr(std::move(r.Tr)), Ts(std::move(r.Ts)), HasDirectTerm(std::move(r.HasDirectTerm))
 		{
 			
 		}
@@ -1095,6 +1245,7 @@ class StateSpace {
 			Tl = std::move(r.Tl);
 			Tr = std::move(r.Tr);
 			Ts = std::move(r.Ts);
+			HasDirectTerm = std::move(r.HasDirectTerm);
 			return *this;
 		}
 		
@@ -1134,6 +1285,7 @@ class StateSpace {
 			C = Cc;
 			D = ArcsMat<O,I,T>::zeros();
 			Ts = Tsmpl;
+			HasDirectTerm = false;
 			ConvToDiscSystem();		// 離散系システムに変換
 		}
 
@@ -1174,6 +1326,7 @@ class StateSpace {
 			C = Cc;
 			D = Dc;
 			Ts = Tsmpl;
+			HasDirectTerm = true;
 			ConvToDiscSystem();		// 離散系システムに変換
 		}
 
@@ -1319,21 +1472,18 @@ class StateSpace {
 
 		//!< 連続系状態空間モデルを離散系へ変換する関数
 		void ConvToDiscSystem(void){
-			// 直達項がある場合に以下は不具合があるので、pending
 			// 連続系システムを平衡実現
-			/*
-			if(IsStable(A) == true){
-				// 安定系であれば、平衡実現
+			if(IsStable(A) == true && HasDirectTerm == false){
+				// 安定系且つ直達項を持たないときのみ、平衡実現を実施
 				BalanceReal(A, B, C, Ah, Bh, Ch, Tl, Tr);
 			}else{
-				// 不安定系であれば、平衡実現をしないでそのまま
-			*/
+				// 不安定系もしくは直達項を持てば、平衡実現をしないでそのまま
 				Ah = A;
 				Bh = B;
 				Ch = C;
 				Tl = ArcsMat<N,N,T>::eye();
 				Tr = ArcsMat<N,N,T>::eye();
-			//}
+			}
 
 			// 連続系システムを離散化
 			Discretize(Ah, Bh, Ad, Bd, Ts);	// 離散化
@@ -1354,6 +1504,7 @@ class StateSpace {
 		ArcsMat<N,I,T> Bd;		//!< 平衡化＆離散化後の離散系B行列
 		ArcsMat<N,N,T> Tl, Tr;	//!< 左側と右側の平衡化変換行列
 		T Ts;					//!< [s] サンプリング周期
+		bool HasDirectTerm;		//!< 直達項を持つかどうか
 };
 
 //! @brief 連続系伝達関数クラス
@@ -1386,7 +1537,7 @@ class TransFunc {
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	r	演算子右側
 		TransFunc(TransFunc&& r) noexcept
-			: Sys(r.Sys)
+			: Sys(std::move(r.Sys))
 		{
 			
 		}

@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/08/09
+//! @date 2024/08/16
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -213,7 +213,41 @@ int main(void){
 	MatFile1.Save("k1", k1);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y1", y1);	// 出力応答ベクトルをMATファイルとして保存
 	MatFile1.Save("y1n", y1n);	// 次サンプル出力応答ベクトルをMATファイルとして保存
-	
+
+	printf("◆ 離散系伝達関数(パルス伝達関数)\n");
+	ArcsMat<2,1> numd1 = {2, 0};		// 分子係数   2z
+	ArcsMat<4,1> dend1 = {4, 0, 3, -1};	// 分母係数 /(4z^3 + 3z - 1) ← という意味
+	ArcsControl::DiscTransFunc<1,3> Sys5(numd1, dend1);	// 離散系伝達関数(パルス伝達関数) (宣言と同時に係数を設定する場合)
+	ArcsControl::DiscTransFunc<1,3> Sys5a;	// 離散系伝達関数 (宣言のみで…
+	Sys5a.SetSystem(numd1, dend1);			// 後から係数を設定する場合)
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	ArcsMat<1,Kfin> k5;			// 離散系時刻ベクトル
+	ArcsMat<1,Kfin> y5, y5n;	// 出力応答ベクトル
+	for(size_t i = 1; i <= Kfin; ++i){
+		k5(1,i) = i;						// [-] 離散系の時刻
+		Sys5a.SetInput(1);					// 単位ステップ入力
+		Sys5a.Update();						// 状態更新
+		y5(1,i) = Sys5a.GetOutput();		// 出力取得 (教科書通りの出力)
+		y5n(1,i) = Sys5a.GetNextOutput();	// 出力取得 (次サンプルの出力を先取りして取得)
+	}
+	MatFile1.Save("k5", k5);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y5", y5);	// 出力応答ベクトルをMATファイルとして保存
+	MatFile1.Save("y5n", y5n);	// 次サンプル出力応答ベクトルをMATファイルとして保存
+	//
+	ArcsMat<3,1> numd2 = {2, 1, 0};	// 分子係数  (2z^2 + z)
+	ArcsMat<3,1> dend2 = {4, 0, 3};	// 分母係数 /(4z^2 + 3) ← という意味
+	ArcsControl::DiscTransFunc<2,2> Sys6(numd2, dend2);
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	ArcsMat<1,Kfin> k6, y6;		// 離散系時刻ベクトル, 出力応答ベクトル
+	for(size_t i = 1; i <= Kfin; ++i){
+		k6(1,i) = i;					// [-] 離散系の時刻
+		y6(1,i) = Sys6.GetResponse(1);	// ステップ応答計算 (入力→状態更新→出力取得を一括実行)
+	}
+	MatFile1.Save("k6", k6);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y6", y6);	// 出力応答ベクトルをMATファイルとして保存
+
 	printf("◆ 連続系状態空間モデル\n");
 	constexpr double Ts2 = 10e-3;	// [s] サンプリング周期
 	disp(Atc);	// 連続系A行列
@@ -254,15 +288,43 @@ int main(void){
 	ArcsControl::StateSpace<3,1,1> Sys2b(A2b, b2b, c2b, d2b, Ts2b);	// 連続系状態空間モデル 直達項有り
 	//
 	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
-	ArcsMat<1,Nsim> t2b, y2b;				// 時刻ベクトルと出力ベクトル
+	ArcsMat<1,Nsim> t2b, y2b;			// 時刻ベクトルと出力ベクトル
 	for(size_t i = 1; i <= Nsim; ++i){
-		t2b(1,i) = Ts2b*(i - 1);			// [s] 時刻
+		t2b(1,i) = Ts2b*(i - 1);		// [s] 時刻
 		Sys2b.SetInput1(1);				// 単位ステップ入力
 		Sys2b.Update();					// 状態更新
 		y2b(1,i) = Sys2b.GetOutput1();	// 出力取得
 	}
 	MatFile1.Save("t2b", t2b);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y2b", y2b);	// 出力応答ベクトルをMATファイルとして保存
+	//
+	// 旧StateSpaceSystemクラスではバグってたシステム
+	constexpr ArcsMat<2,2> A2c = {
+		-3.4182, 0,
+		 1     , 0
+	};
+	constexpr ArcsMat<2,2> B2c = {
+		4.4545e3, -9.0909e3,
+		0       ,  0
+	};
+	constexpr ArcsMat<2,2> C2c = {
+		1, 0,
+		0, 1
+	};
+	ArcsControl::StateSpace<2,2,2> Sys2c(A2c, B2c, C2c, Ts2b);
+	//
+	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
+	ArcsMat<1,Nsim> t2c;			// 時刻ベクトル
+	ArcsMat<2,Nsim> y2c;			// 出力ベクトル
+	for(size_t i = 1; i <= Nsim; ++i){
+		t2c(1,i) = Ts2b*(i - 1);		// [s] 時刻
+		Sys2c.SetInput2(1, 0);			// 入力1に単位ステップを入力
+		Sys2c.Update();					// 状態更新
+		y2c(1,i) = Sys2c.GetOutput(1);	// 出力1を取得
+		y2c(2,i) = Sys2c.GetOutput(2);	// 出力2を取得
+	}
+	MatFile1.Save("t2c", t2c);	// 時刻ベクトルをMATファイルとして保存
+	MatFile1.Save("y2c", y2c);	// 出力応答ベクトルをMATファイルとして保存
 
 	printf("◆ 連続系伝達関数\n");
 	ArcsMat<1,1> num1 = {9};			// 分子係数ベクトル ______9_______
@@ -273,8 +335,8 @@ int main(void){
 	Sys3a.SetSystem(num1, den1, Ts3);					// 後から係数を設定する場合)
 	//
 	// ↓ 試しに簡易的なシミュレーションで応答計算 ↓
-	ArcsMat<1,Nsim> t3;				// 連続系時刻ベクトル
-	ArcsMat<1,Nsim> y3, y3n;		// 出力応答ベクトル
+	ArcsMat<1,Nsim> t3;					// 連続系時刻ベクトル
+	ArcsMat<1,Nsim> y3, y3n;			// 出力応答ベクトル
 	for(size_t i = 1; i <= Nsim; ++i){
 		t3(1,i) = Ts3*(i - 1);			// [s] 時刻
 		Sys3a.SetInput(1);				// 入力に単位ステップを与える
@@ -294,7 +356,7 @@ int main(void){
 	ArcsMat<1,Nsim> t4, y4;				// 時刻ベクトルと出力ベクトル
 	for(size_t i = 1; i <= Nsim; ++i){
 		t4(1,i) = Ts3*(i - 1);			// [s] 時刻
-		y4(1,i) = Sys4.GetResponse(1);	// ステップ応答計算
+		y4(1,i) = Sys4.GetResponse(1);	// ステップ応答計算 (入力→状態更新→出力取得を一括実行)
 	}
 	MatFile1.Save("t4", t4);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y4", y4);	// 出力応答ベクトルをMATファイルとして保存
