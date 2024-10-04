@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="1">
+    <builddir>cppcheck</builddir>
+    <analyze-all-vs-configs>false</analyze-all-vs-configs>
+    <check-headers>true</check-headers>
+    <check-unused-templates>false</check-unused-templates>
+    <inline-suppression>true</inline-suppression>
+    <max-ctu-depth>2</max-ctu-depth>
+    <max-template-recursion>100</max-template-recursion>
+    <paths>
+        <dir name="."/>
+        <dir name="../lib"/>
+        <dir name="../robot/general"/>
+    </paths>
+    <libraries>
+        <library>cppcheck-lib</library>
+        <library>gnu</library>
+        <library>posix</library>
+    </libraries>
+    <project-name>ARCS6</project-name>
+</project>
