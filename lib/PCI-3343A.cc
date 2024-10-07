@@ -2,13 +2,14 @@
 //! @brief PCI-3343A入出力クラス
 //! Interface社製PCI-3343Aのための入出力機能を提供します。
 //! 
-//! @date 2020/04/10
+//! @date 2024/10/07
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
+
+// x86_64系の場合のみ対応-ここから
+#ifdef __x86_64__
 
 #include <sys/io.h>
 #include <unistd.h>
@@ -178,4 +179,5 @@ uint8_t PCI3343A::Get2byteLo(uint16_t in){
 	return (uint8_t)((uint16_t)0x00FF & (uint16_t)in);
 }
 
-
+#endif
+// x86_64系の場合のみ対応-ここまで

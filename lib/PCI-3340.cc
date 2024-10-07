@@ -3,14 +3,14 @@
 //!
 //! Interface社製PCI-3340のための入出力機能を提供します。(仕様変更済み)
 //!
-//! @date 2020/04/10
+//! @date 2024/10/07
 //! @author Yokokura, Yuki & Akira YAMAGUCHI
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
+// x86_64系の場合のみ対応-ここから
+#ifdef __x86_64__
 
 #include <sys/io.h>
 #include <unistd.h>
@@ -178,3 +178,5 @@ unsigned short PCI3340::GetDigitalIn(void){
 	return 0x0003 & inb(BaseAddr0+0x1E);	//下位2bitをマスクして入力
 }
 
+#endif
+// x86_64系の場合のみ対応-ここまで

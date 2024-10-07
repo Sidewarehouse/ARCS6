@@ -1,19 +1,27 @@
 //! @file PCI-3180.cc
 //! @brief PCI-3180入出力クラス
 //! Interface社製PCI-3180のための入出力機能を提供します。
-//! @date 2020/02/26
-//! @author Yuki YOKOKURA
+//! @date 2024/10/07
+//! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yuki YOKOKURA
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
-#include <sys/io.h>
+// 処理系でインクルードファイルを変える
+#ifdef __x86_64__
+	// x86_64系の場合
+    #include <sys/io.h>
+#endif
+#ifdef __ARM_ARCH
+	// ARM系の場合
+    // sys/ioのインクルードなし
+#endif
+
 #include <unistd.h>
 #include <algorithm>
 #include <stdint.h>
 #include "PCI-3180.hh"
+#include "ARCSassert.hh"
 #include "ARCSeventlog.hh"
 
 using namespace ARCS;
@@ -36,7 +44,15 @@ PCI3180::PCI3180(unsigned int Addr, RangeMode Range)
 	ENA(0b00001111)
 {
 	PassedLog();
-	iopl(3);				// I/O全アドレス空間にアクセス許可
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		iopl(3);			// I/O全アドレス空間にアクセス許可
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 	
 	// 入力電圧レンジの設定
 	CalcVoltConv(Range);	// 電圧換算の傾きと切片の計算
@@ -69,7 +85,16 @@ PCI3180::PCI3180(unsigned int Addr, RangeMode Range, uint8_t EnableCh)
 	ENA(EnableCh)
 {
 	PassedLog();
-	iopl(3);				// I/O全アドレス空間にアクセス許可
+
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		iopl(3);			// I/O全アドレス空間にアクセス許可
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 	
 	// 入力電圧レンジの設定
 	CalcVoltConv(Range);	// 電圧換算の傾きと切片の計算
@@ -116,19 +141,37 @@ PCI3180::~PCI3180(){
 
 //! @brief AD変換開始
 void PCI3180::ConvStart(void){
-	outb(0x00, ADDR_CONVST);
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		outb(0x00, ADDR_CONVST);
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 }
 
 //! @brief 変換待機信号の取得
 //! @return true = 変換中, false = 変換終了
 bool PCI3180::GetBusy(void){
-	bool ret;
-	// 念のため 10000000 でAND取ってマスクしてから評価
-	if((0x80 & inb(ADDR_BUSY)) == 0x80){
-		ret = false;	// 変換終了
-	}else{
-		ret = true;		// 変換中
-	}
+	bool ret = true;
+
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		// 念のため 10000000 でAND取ってマスクしてから評価
+		if((0x80 & inb(ADDR_BUSY)) == 0x80){
+			ret = false;	// 変換終了
+		}else{
+			ret = true;		// 変換中
+		}
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
+
 	return ret;
 }
 
@@ -142,16 +185,34 @@ void PCI3180::WaitBusy(void){
 //! @brief チャネル選択
 //! @param [in] ch チャネル番号
 void PCI3180::SelectCH(unsigned int ch){
-	outb((unsigned char)ch, ADDR_CHSET);
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		outb((unsigned char)ch, ADDR_CHSET);
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 }
 
 //! @brief ADCデータを取得する関数
 //! @return ADC変換データ
 uint16_t PCI3180::GetADCdata(void){
-	uint8_t hi, lo;
-	lo = inb(ADDR_ADCDATA_LO);	// 下位データの取得
-	hi = inb(ADDR_ADCDATA_HI);	// 上位データの取得
-	return Combine2byte(hi,lo);	// 上位と下位を結合して返す
+	uint8_t hi = 0, lo = 0;
+
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		lo = inb(ADDR_ADCDATA_LO);	// 下位データの取得
+		hi = inb(ADDR_ADCDATA_HI);	// 上位データの取得
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
+
+	return Combine2byte(hi, lo);	// 上位と下位を結合して返す
 }
 
 //! @brief 電圧を取得する関数
@@ -195,26 +256,42 @@ double PCI3180::AdcDataToVolt(uint16_t data) const {
 //! @brief 入力レンジ設定チャンネル選択
 //! @param [in] ch チャネル番号
 void PCI3180::SelectRangeCH(unsigned int ch){
-	outb((unsigned char)ch, ADDR_RANGE_CH);
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		outb((unsigned char)ch, ADDR_RANGE_CH);
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 }
 
 //! @brief 入力レンジの設定
 //! @param [in] 入力電圧範囲
 void PCI3180::SetInputRange(RangeMode Range){
-	switch(Range){
-		case RANGE_B_10V:
-			outb(0x01, ADDR_RANGE);	// ±10Vに設定
-			break;
-		case RANGE_B_5V:
-			outb(0x00, ADDR_RANGE);	// ±5Vに設定
-			break;
-		case RANGE_U_10V:
-			outb(0x05, ADDR_RANGE);	// 0～10Vに設定
-			break;
-		default:
-			outb(0x01, ADDR_RANGE);	// デフォルトは±10Vに設定
-			break;
-	}
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		switch(Range){
+			case RANGE_B_10V:
+				outb(0x01, ADDR_RANGE);	// ±10Vに設定
+				break;
+			case RANGE_B_5V:
+				outb(0x00, ADDR_RANGE);	// ±5Vに設定
+				break;
+			case RANGE_U_10V:
+				outb(0x05, ADDR_RANGE);	// 0～10Vに設定
+				break;
+			default:
+				outb(0x01, ADDR_RANGE);	// デフォルトは±10Vに設定
+				break;
+		}
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 }
 
 //! @brief 電圧換算の傾きと切片の計算
@@ -256,5 +333,13 @@ uint16_t PCI3180::Combine2byte(uint8_t High, uint8_t Low){
 //! ディジタル出力ポートを設定する関数
 //! @param [in] Data ディジタル出力バイナリデータ(2ch分)
 void PCI3180::SetDigitalOutput(const uint8_t& Data){
-	outb((unsigned char)Data, ADDR_DIO);
+	// 処理系で挙動を変える
+	#ifdef __x86_64__
+	    // x86_64系の場合
+		outb((unsigned char)Data, ADDR_DIO);
+	#endif
+	#ifdef __ARM_ARCH
+		// ARM系の場合
+		arcs_assert(false);	// ARM系は未対応
+	#endif
 }

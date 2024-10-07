@@ -3,13 +3,14 @@
 //!
 //! Interface社製PCI-6205Cのための入出力機能を提供します。
 //!
-//! @date 2020/04/08
+//! @date 2024/10/07
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yuki YOKOKURA
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yuki YOKOKURA
+// MIT License. For details, see the LICENSE file.
+
+// x86_64系の場合のみ対応-ここから
+#ifdef __x86_64__
 
 #include "PCI-6205C.hh"
 #include "ARCSeventlog.hh"
@@ -364,3 +365,5 @@ bool PCI6205C::GetBitStatus(uint8_t in, uint8_t bit){
 	return ret;
 }
 
+#endif
+// x86_64系の場合のみ対応-ここまで
