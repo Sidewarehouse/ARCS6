@@ -5,13 +5,11 @@
 //! (PNG画像ファイル出力のみなら Windows Subsystem for Linux でも実行可能)
 //! 非テンプレート版
 //!
-//! @date 2020/05/24
+//! @date 2024/10/08
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef CUIPLOT
 #define CUIPLOT
@@ -59,7 +57,7 @@ class CuiPlot {
 		//! @param[in]	Top		上位置 [px]
 		//! @param[in]	Width	幅 [px]
 		//! @param[in]	Height	高さ [px]
-		CuiPlot(FrameGraphics& Frame, int Left, int Top, int Width, int Height) :
+		CuiPlot(FrameGraphics<>& Frame, int Left, int Top, int Width, int Height) :
 			LEFT(Left),
 			TOP(Top),
 			WIDTH(Width),
@@ -473,7 +471,7 @@ class CuiPlot {
 		const int PLOT_WIDTH;	//!< [px] プロット平面の幅
 		const int PLOT_HEIGHT;	//!< [px] プロット平面の高さ
 		
-		FrameGraphics& FG;		//!< フレームグラフィックスへの参照
+		FrameGraphics<>& FG;	//!< フレームグラフィックスへの参照
 		FGcolors AxisColor;		//!< 主軸の色
 		FGcolors GridColor;		//!< グリッドの色
 		FGcolors TextColor;		//!< 文字の色

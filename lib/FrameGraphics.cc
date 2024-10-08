@@ -13,13 +13,11 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2020/04/09
+//! @date 2024/10/08
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2020 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2024 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #include "FrameGraphics.hh"
 
@@ -28,4 +26,4 @@
 using namespace ARCS;
 
 // "undefined reference to ..." リンカエラーの回避のための定義
-constexpr std::array<uint32_t, FrameGraphics::NUM_COLOR_SET> FrameGraphics::ColorSet;
+template<> constexpr std::array<uint32_t, FrameGraphics<uint32_t>::NUM_COLOR_SET> FrameGraphics<uint32_t>::ColorSet;

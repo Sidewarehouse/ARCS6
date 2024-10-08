@@ -3,7 +3,7 @@
 //!
 //! LinuxフレームバッファとPNG画像ファイルへのグラフィックス描画を行うクラス
 //! (PNG画像描画のみならず Windows Subsystem for Linux (WSL1,2) でも実行可能)
-//! 32bit色のみ対応
+//! 色深度16bitと32bitに対応
 //!
 //! 構造の概略：
 //! 「フレームバッファ」「画面バッファ」「背景バッファ」の３つがある。
@@ -13,7 +13,7 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2024/06/26
+//! @date 2024/10/08
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -56,6 +56,12 @@
 
 namespace ARCS {	// ARCS名前空間
 
+//! @brief 色深度の定義
+enum class FGdepth {
+	DEPTH_16BIT,	//!< 16bit色深度
+	DEPTH_32BIT		//!< 32bit色深度
+};
+
 //! @brief 色の定義
 enum class FGcolors {
 	RED,	//!< 赤
@@ -88,6 +94,8 @@ enum class FGalign {
 };
 
 //! @brief フレームグラフィックスクラス(新型テンプレート版)
+//! @tparam D	フレームバッファの型 (色深度16bit = uint16_t, 色深度32bit = uint32_t)
+template <typename D = uint32_t>
 class FrameGraphics {
 	public:
 		//! @brief コンストラクタ(PNG画像ファイル版)
@@ -110,8 +118,8 @@ class FrameGraphics {
 			IsFontDataLocked(true),
 			FontPrepared()
 		{
-			Screen = (uint32_t*) malloc(length*sizeof(uint32_t));		// 画面バッファ用配列
-			Background = (uint32_t*) malloc(length*sizeof(uint32_t));	// 背景バッファ用配列
+			Screen = static_cast<D*>( malloc(length*sizeof(D)) );		// 画面バッファ用配列
+			Background = static_cast<D*>( malloc(length*sizeof(D)) );	// 背景バッファ用配列
 			ClearScreen();		// 画面バッファのクリア
 			ClearBackground();	// 背景バッファのクリア
 			PrepareFontData(FGcolors::WHITE, FGcolors::BLACK);			// フォントデータの準備（初期値は白文字に黒背景）
@@ -155,10 +163,18 @@ class FrameGraphics {
 				bppx = vinfo.bits_per_pixel;
 				length = (size_t)width*(size_t)height;	// フレームバッファの長さを計算
 				size = length*(size_t)depth/8;			// 1画面データの大きさを計算 [bytes]
-				arcs_assert(depth == 32 && "[ERROR] FrameGraphics : Not supported color depth of display settings.");
-				
-				Frame = (uint32_t*) mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fbfd, 0);// フレームバッファをマッピング
-				arcs_assert(Frame != MAP_FAILED && "[ERROR] FrameGraphics : mmap(...)");		// マッピングできないとき
+
+				// 色深度チェック
+				if constexpr(std::is_same_v<D, uint32_t>){
+					arcs_assert(depth == 32 && "[ERROR] FrameGraphics : Color depth settings is different from actual display settings.");
+				}else if constexpr(std::is_same_v<D, uint16_t>){
+					arcs_assert(depth == 16 && "[ERROR] FrameGraphics : Color depth settings is different from actual display settings.");
+				}else{
+					arcs_assert(false && "[ERROR] FrameGraphics : Not supported color depth of display settings.");
+				}
+
+				Frame = (D*)mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fbfd, 0);	// フレームバッファをマッピング
+				arcs_assert(Frame != MAP_FAILED && "[ERROR] FrameGraphics : mmap(...)");	// マッピングできないとき
 			}else{
 				// フレームバッファが開けなかったとき
 				EventLog("Could not open the frame buffer device. Trying to use a dummy buffer.");
@@ -169,13 +185,14 @@ class FrameGraphics {
 				xofst = 0;
 				yofst = 0;
 				bppx = 32;
-				length = (size_t)width*(size_t)height;	// フレームバッファの長さを計算
-				size = length*(size_t)depth/8;			// 1画面データの大きさを計算 [bytes]
-				Frame = (uint32_t*) malloc(length*sizeof(uint32_t));	// ダミーフレームバッファ配列
+				length = (size_t)width*(size_t)height;				// フレームバッファの長さを計算
+				size = length*(size_t)depth/8;						// 1画面データの大きさを計算 [bytes]
+				Frame = static_cast<D*>( malloc(length*sizeof(D)) );// ダミーフレームバッファ配列
 			}
 			
-			Screen = (uint32_t*) malloc(length*sizeof(uint32_t));		// 画面バッファ用配列
-			Background = (uint32_t*) malloc(length*sizeof(uint32_t));	// 背景画面バッファ用配列
+			Screen = static_cast<D*>( malloc(length*sizeof(D)) );		// 画面バッファ用配列
+			Background = static_cast<D*>( malloc(length*sizeof(D)) );	// 背景画面バッファ用配列
+
 			ClearScreen();		// 画面バッファのクリア
 			ClearBackground();	// 背景バッファのクリア
 			PrepareFontData(FGcolors::WHITE, FGcolors::BLACK);			// フォントデータの準備（初期値は白文字に黒背景）
@@ -247,7 +264,7 @@ class FrameGraphics {
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Frame + i + width*j, Screen + i + width*j, sizeof(uint32_t)*w);
+				memcpy(Frame + i + width*j, Screen + i + width*j, sizeof(D)*w);
 			}
 		}
 		
@@ -265,7 +282,7 @@ class FrameGraphics {
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Background + i + width*j, Screen + i + width*j, sizeof(uint32_t)*w);
+				memcpy(Background + i + width*j, Screen + i + width*j, sizeof(D)*w);
 			}
 		}
 		
@@ -283,7 +300,7 @@ class FrameGraphics {
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Screen + i + width*j, Background + i + width*j, sizeof(uint32_t)*w);
+				memcpy(Screen + i + width*j, Background + i + width*j, sizeof(D)*w);
 			}
 		}
 		
@@ -294,19 +311,19 @@ class FrameGraphics {
 		
 		//! @brief フレームバッファを指定した色で埋める関数
 		//! @param[in]	ColorData	バイナリ色データ
-		void FillFrame(uint32_t ColorData){
+		void FillFrame(D ColorData){
 			std::fill(Frame, Frame + length, ColorData);
 		}
 		
 		//! @brief 画面バッファを指定した色で埋める関数
 		//! @param[in]	ColorData	バイナリ色データ
-		void FillScreen(uint32_t ColorData){
+		void FillScreen(D ColorData){
 			std::fill(Screen, Screen + length, ColorData);
 		}
 		
 		//! @brief 背景バッファを指定した色で埋める関数
 		//! @param[in]	ColorData	バイナリ色データ
-		void FillBackground(uint32_t ColorData){
+		void FillBackground(D ColorData){
 			std::fill(Background, Background + length, ColorData);
 		}
 		
@@ -331,7 +348,7 @@ class FrameGraphics {
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawPoint(int x, int y, uint32_t ColorData){
+		void DrawPoint(int x, int y, D ColorData){
 			// 点の太さに従ってコンパイル時条件分岐
 			switch(T){
 				case FGsize::PX_1:	// 1[px] の場合
@@ -394,7 +411,7 @@ class FrameGraphics {
 		//! @param[in]	x			x座標 [px]
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
-		void DrawCross(int x, int y, uint32_t ColorData){
+		void DrawCross(int x, int y, D ColorData){
 			DrawDot(x + 2, y, ColorData);
 			DrawDot(x - 2, y, ColorData);
 			DrawDot(x + 1, y, ColorData);
@@ -428,7 +445,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawLine(int x1, int y1, int x2, int y2, uint32_t ColorData){
+		void DrawLine(int x1, int y1, int x2, int y2, D ColorData){
 			// 垂直の線のとき(ブレゼンハムのアルゴリズムでは描けないので，別に実装)
 			if(x1 == x2){
 				DrawVerticalLine<T>(x1, y1, y2, ColorData);
@@ -481,7 +498,7 @@ class FrameGraphics {
 		//! @param[in]	y1, y2		縦座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawVerticalLine(int x, int y1, int y2, uint32_t ColorData){
+		void DrawVerticalLine(int x, int y1, int y2, D ColorData){
 			int ysta, yend;
 			if(y1 < y2){
 				// y1→y2で増加する場合
@@ -502,7 +519,7 @@ class FrameGraphics {
 		//! @param[in]	y			縦座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawHorizontalLine(int x1, int x2, int y, uint32_t ColorData){
+		void DrawHorizontalLine(int x1, int x2, int y, D ColorData){
 			int xsta, xend;
 			if(x1 < x2){
 				// x1→x2で増加する場合
@@ -543,7 +560,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawStairs(int x1, int y1, int x2, int y2, uint32_t ColorData){
+		void DrawStairs(int x1, int y1, int x2, int y2, D ColorData){
 			DrawLine<T>(x1, y1, x2, y1, ColorData);
 			DrawLine<T>(x2, y1, x2, y2, ColorData);
 		}
@@ -574,7 +591,7 @@ class FrameGraphics {
 		//! @param[in] w, h			長方形の幅，長方形の高さ
 		//! @param[in] ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawRect(int x, int y, int w, int h, uint32_t ColorData){
+		void DrawRect(int x, int y, int w, int h, D ColorData){
 			DrawHorizontalLine<T>(x  , x+w, y  , ColorData);
 			DrawHorizontalLine<T>(x+w, x  , y+h, ColorData);
 			DrawVerticalLine<T>(x+w, y  , y+h, ColorData);
@@ -605,7 +622,7 @@ class FrameGraphics {
 		//! @param[in] x, y			長方形左上の座標
 		//! @param[in] w, h			長方形の幅，長方形の高さ
 		//! @param[in] ColorData	バイナリ色データ
-		void DrawRectFill(int x, int y, int w, int h, uint32_t ColorData){
+		void DrawRectFill(int x, int y, int w, int h, D ColorData){
 			size_t i = ConvCoordinateToIndex(x, y);	// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// バイナリ色データを1ラインずつフレームバッファへ書き込む
@@ -643,7 +660,7 @@ class FrameGraphics {
 		//! @param[in]	cx, cy	円の中心座標
 		//! @param[in]	radius	半径，N：円の分割数
 		//! @param[in] ColorData	バイナリ色データ
-		void DrawCircle(int cx, int cy, int radius, unsigned int N, uint32_t ColorData){
+		void DrawCircle(int cx, int cy, int radius, unsigned int N, D ColorData){
 			// 気が向いたらブレゼンハム・ミッチェナーのアルゴリズムに変更する予定
 			const double TwoPIdivN = 2.0*M_PI/(double)N;
 			int x_prev = (double)radius + cx;
@@ -827,7 +844,7 @@ class FrameGraphics {
 		// 色の定義
 		static constexpr size_t NUM_COLOR_SET = 13;	//!< 定義する色の数  注意!!：enum FGcolors の要素数と同一にせよ！
 		
-		//! @brief 色の定義(32bit色深度用) 
+		//! @brief 色の定義(32bit色深度用)
 		//! 注意!!：enum FGcolors の定義と相違が無いようにせよ！
 		//! ビットパターン MSB AAAAAAAA RRRRRRRR GGGGGGGG BBBBBBBB LSB
 		//! (α：ビット31～25 赤：ビット24～16 緑：ビット15～8 青：ビット7～0)
@@ -850,14 +867,14 @@ class FrameGraphics {
 		};
 		
 		// 共通画像情報関連
-		uint32_t *Frame;		//!< フレームバッファポインタ
-		uint32_t *Screen;		//!< 画面バッファポインタ
-		uint32_t *Background;	//!< 背景バッファポインタ
-		int width;				//!< [px]		横幅
-		int height;				//!< [px]		高さ
-		int depth;				//!< [bits]		色深度
-		size_t length;			//!< [-]		画像配列の長さ
-		size_t size;			//!< [bytes]	画像の大きさ
+		D* Frame;		//!< フレームバッファポインタ
+		D* Screen;		//!< 画面バッファポインタ
+		D* Background;	//!< 背景バッファポインタ
+		int width;		//!< [px]		横幅
+		int height;		//!< [px]		高さ
+		int depth;		//!< [bits]		色深度
+		size_t length;	//!< [-]		画像配列の長さ
+		size_t size;	//!< [bytes]	画像の大きさ
 		
 		// フレームバッファ関連
 		int fbfd;			//!< フレームバッファ ファイルディスクリプタ

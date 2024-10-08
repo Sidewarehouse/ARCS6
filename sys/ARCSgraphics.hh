@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/08/06
+//! @date 2024/10/08
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -76,7 +76,7 @@ class ARCSgraphics {
 		//! @brief 作業空間プロットに位置ベクトルを設定する関数
 		void SetWorkspace(const std::array<ArcsMat<6,1>, ConstParams::PLOTXYXZ_NUMPT>& AxPosition);
 		
-		FrameGraphics& GetFGrefs(void);	//!< フレームバッファクラスへの参照を返す関数
+		FrameGraphics<>& GetFGrefs(void);	//!< フレームバッファクラスへの参照を返す関数
 
 		//! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
 		void SetUserPlotFuncs(const std::function<void(void)>& DrawPlaneFobj, const std::function<void(void)>& DrawPlotFobj);
@@ -87,7 +87,7 @@ class ARCSgraphics {
 		ARCSgraphics(ARCSgraphics&& r) = delete;						//!< ムーブコンストラクタ使用禁止
 		
 		// フレームバッファとキュイプロット
-		FrameGraphics FG;						//!< フレームバッファ
+		FrameGraphics<> FG;						//!< フレームバッファ
 		std::array<std::unique_ptr<CuiPlot>, ConstParams::PLOT_NUM> Plot;		//!< 時系列用キュイプロットへのスマートポインタのクラス配列
 		CuiPlot PlotXY;							//!< XY作業空間用キュイプロット
 		CuiPlot PlotXZ;							//!< XZ作業空間用キュイプロット

@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/08/06
+//! @date 2024/10/08
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -64,7 +64,7 @@ void ARCSgraphics::SetWorkspace(const std::array<ArcsMat<6,1>, ConstParams::PLOT
 
 //! @brief フレームバッファクラスへの参照を返す関数
 //! @return	FrameGraphicsへの参照
-FrameGraphics& ARCSgraphics::GetFGrefs(void){
+FrameGraphics<>& ARCSgraphics::GetFGrefs(void){
 	return FG;
 }
 
