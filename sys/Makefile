@@ -1,5 +1,5 @@
 # ARCS6 メインMakefile
-# 2024/08/01 Yokokura, Yuki
+# 2024/10/11 Yokokura, Yuki
 
 # 最終的に出来上がる実行可能ファイルの名前
 EXENAME = ARCS
@@ -8,7 +8,7 @@ EXENAME = ARCS
 EVNTLOG = EventLog.txt
 
 # C/C++バージョンの指定
-CVER = -std=c17
+CVER = -std=c11
 CPPVER = -std=c++17
 
 # 最適化レベルの指定
