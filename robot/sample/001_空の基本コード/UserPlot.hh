@@ -66,8 +66,8 @@ class UserPlot {
 		static constexpr FGcolors PLOT_CURS_COLOR = FGcolors::GRAY50;	//!< 時刻カーソルの色
 		
 		// 以下にグラフ描画に使用するクラスと変数を定義
-		CuiPlot Plot;		//!< キュイプロット（例）
-		double X1, Y1;		//!< プロット変数（例）
+		CuiPlot<FGdepth::DEPTH_32BIT> Plot;	//!< キュイプロット（例）
+		double X1, Y1;						//!< プロット変数（例）
 		
 		//! @brief ユーザカスタムプロット平面を描画する関数
 		//! （この関数はARCSgraphicsクラスの内部で関数オブジェクトを介して開始時に一度だけ実行される）

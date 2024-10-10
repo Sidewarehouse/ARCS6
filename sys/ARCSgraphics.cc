@@ -41,7 +41,7 @@ ARCSgraphics::ARCSgraphics(void)
 	
 	// 時系列プロット平面の分だけキュイプロットを生成
 	for(size_t i = 0; i < ConstParams::PLOT_NUM; ++i){
-		Plot.at(i) = std::make_unique<CuiPlot>(
+		Plot.at(i) = std::make_unique<CuiPlot<FGdepth::DEPTH_32BIT>>(
 			FG, ConstParams::PLOT_LEFT[i], ConstParams::PLOT_TOP[i], ConstParams::PLOT_WIDTH[i], ConstParams::PLOT_HEIGHT[i]
 		);
 	}

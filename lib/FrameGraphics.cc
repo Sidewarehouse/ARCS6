@@ -13,7 +13,7 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2024/10/08
+//! @date 2024/10/10
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -24,6 +24,3 @@
 // テンプレートクラスのため，実体もヘッダ側に実装。
 
 using namespace ARCS;
-
-// "undefined reference to ..." リンカエラーの回避のための定義
-template<> constexpr std::array<uint32_t, FrameGraphics<uint32_t>::NUM_COLOR_SET> FrameGraphics<uint32_t>::ColorSet;

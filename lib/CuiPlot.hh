@@ -49,6 +49,7 @@ enum class CuiPlotTypes {
 };
 
 //! @brief CuiPlot(新型きゅいプロットV2)
+template<FGdepth DP>
 class CuiPlot {
 	public:
 		//! @brief コンストラクタ
@@ -57,7 +58,7 @@ class CuiPlot {
 		//! @param[in]	Top		上位置 [px]
 		//! @param[in]	Width	幅 [px]
 		//! @param[in]	Height	高さ [px]
-		CuiPlot(FrameGraphics<>& Frame, int Left, int Top, int Width, int Height) :
+		CuiPlot(FrameGraphics<DP>& Frame, int Left, int Top, int Width, int Height) :
 			LEFT(Left),
 			TOP(Top),
 			WIDTH(Width),

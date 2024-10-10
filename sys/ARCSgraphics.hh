@@ -83,14 +83,16 @@ class ARCSgraphics {
 		
 	private:
 		ARCSgraphics(const ARCSgraphics&) = delete;					//!< コピーコンストラクタ使用禁止
-		const ARCSgraphics& operator=(const ARCSgraphics&) = delete;	//!< 代入演算子使用禁止
-		ARCSgraphics(ARCSgraphics&& r) = delete;						//!< ムーブコンストラクタ使用禁止
+		const ARCSgraphics& operator=(const ARCSgraphics&) = delete;//!< 代入演算子使用禁止
+		ARCSgraphics(ARCSgraphics&& r) = delete;					//!< ムーブコンストラクタ使用禁止
 		
 		// フレームバッファとキュイプロット
-		FrameGraphics<> FG;						//!< フレームバッファ
-		std::array<std::unique_ptr<CuiPlot>, ConstParams::PLOT_NUM> Plot;		//!< 時系列用キュイプロットへのスマートポインタのクラス配列
-		CuiPlot PlotXY;							//!< XY作業空間用キュイプロット
-		CuiPlot PlotXZ;							//!< XZ作業空間用キュイプロット
+		FrameGraphics<FGdepth::DEPTH_32BIT> FG;						//!< フレームバッファ
+		std::array<
+			std::unique_ptr< CuiPlot<FGdepth::DEPTH_32BIT> >, ConstParams::PLOT_NUM
+		> Plot;									//!< 時系列用キュイプロットへのスマートポインタのクラス配列
+		CuiPlot<FGdepth::DEPTH_32BIT> PlotXY;	//!< XY作業空間用キュイプロット
+		CuiPlot<FGdepth::DEPTH_32BIT> PlotXZ;	//!< XZ作業空間用キュイプロット
 		
 		// 時系列プロット読み込み用変数
 		pthread_mutex_t PlotVarsMutex;	//!< プロット描画変数用のMutex

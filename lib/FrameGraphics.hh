@@ -1,5 +1,5 @@
 //! @file FrameGraphics.hh
-//! @brief フレームグラフィックスクラスV2(新型テンプレート版)
+//! @brief フレームグラフィックスクラスV3(新型テンプレート版)
 //!
 //! LinuxフレームバッファとPNG画像ファイルへのグラフィックス描画を行うクラス
 //! (PNG画像描画のみならず Windows Subsystem for Linux (WSL1,2) でも実行可能)
@@ -13,7 +13,7 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2024/10/08
+//! @date 2024/10/10
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -58,8 +58,8 @@ namespace ARCS {	// ARCS名前空間
 
 //! @brief 色深度の定義
 enum class FGdepth {
-	DEPTH_16BIT,	//!< 16bit色深度
-	DEPTH_32BIT		//!< 32bit色深度
+	DEPTH_32BIT,	//!< 32bit色深度
+	DEPTH_16BIT		//!< 16bit色深度
 };
 
 //! @brief 色の定義
@@ -94,12 +94,15 @@ enum class FGalign {
 };
 
 //! @brief フレームグラフィックスクラス(新型テンプレート版)
-//! @tparam D	フレームバッファの型 (色深度16bit = uint16_t, 色深度32bit = uint32_t)
-template <typename D = uint32_t>
+//! @tparam DP	色深度の設定 (色深度32bit = DEPTH_32BIT, 色深度16bit = DEPTH_16BIT), デフォルト値 = 32bit色深度
+template <FGdepth DP = FGdepth::DEPTH_32BIT>
 class FrameGraphics {
 	public:
+		//! @brief TF	フレームバッファの型 (色深度32bit = uint32_t, 色深度16bit = uint16_t)
+		using TF = typename std::conditional<(DP == FGdepth::DEPTH_32BIT), uint32_t, uint16_t>::type;
+
 		//! @brief コンストラクタ(PNG画像ファイル版)
-		FrameGraphics(int Width, int Height) :
+		FrameGraphics(const int& Width, const int& Height) :
 			Frame(nullptr),
 			Screen(nullptr),
 			Background(nullptr),
@@ -118,8 +121,8 @@ class FrameGraphics {
 			IsFontDataLocked(true),
 			FontPrepared()
 		{
-			Screen = static_cast<D*>( malloc(length*sizeof(D)) );		// 画面バッファ用配列
-			Background = static_cast<D*>( malloc(length*sizeof(D)) );	// 背景バッファ用配列
+			Screen = static_cast<TF*>( malloc(length*sizeof(TF)) );		// 画面バッファ用配列
+			Background = static_cast<TF*>( malloc(length*sizeof(TF)) );	// 背景バッファ用配列
 			ClearScreen();		// 画面バッファのクリア
 			ClearBackground();	// 背景バッファのクリア
 			PrepareFontData(FGcolors::WHITE, FGcolors::BLACK);			// フォントデータの準備（初期値は白文字に黒背景）
@@ -165,16 +168,19 @@ class FrameGraphics {
 				size = length*(size_t)depth/8;			// 1画面データの大きさを計算 [bytes]
 
 				// 色深度チェック
-				if constexpr(std::is_same_v<D, uint32_t>){
+				if constexpr(DP == FGdepth::DEPTH_32BIT){
+					// 32bit色深度設定なのに、実物と違う場合
 					arcs_assert(depth == 32 && "[ERROR] FrameGraphics : Color depth settings is different from actual display settings.");
-				}else if constexpr(std::is_same_v<D, uint16_t>){
+				}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+					// 16bit色深度設定なのに、実物と違う場合
 					arcs_assert(depth == 16 && "[ERROR] FrameGraphics : Color depth settings is different from actual display settings.");
 				}else{
+					// 未対応の色深度設定の場合
 					arcs_assert(false && "[ERROR] FrameGraphics : Not supported color depth of display settings.");
 				}
 
-				Frame = (D*)mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fbfd, 0);	// フレームバッファをマッピング
-				arcs_assert(Frame != MAP_FAILED && "[ERROR] FrameGraphics : mmap(...)");	// マッピングできないとき
+				Frame = static_cast<TF*>( mmap(NULL, size, PROT_READ|PROT_WRITE, MAP_SHARED, fbfd, 0) );// フレームバッファをマッピング
+				arcs_assert(Frame != MAP_FAILED && "[ERROR] FrameGraphics : mmap(...)");				// マッピングできないとき
 			}else{
 				// フレームバッファが開けなかったとき
 				EventLog("Could not open the frame buffer device. Trying to use a dummy buffer.");
@@ -185,13 +191,13 @@ class FrameGraphics {
 				xofst = 0;
 				yofst = 0;
 				bppx = 32;
-				length = (size_t)width*(size_t)height;				// フレームバッファの長さを計算
-				size = length*(size_t)depth/8;						// 1画面データの大きさを計算 [bytes]
-				Frame = static_cast<D*>( malloc(length*sizeof(D)) );// ダミーフレームバッファ配列
+				length = (size_t)width*(size_t)height;					// フレームバッファの長さを計算
+				size = length*(size_t)depth/8;							// 1画面データの大きさを計算 [bytes]
+				Frame = static_cast<TF*>( malloc(length*sizeof(TF)) );	// ダミーフレームバッファ配列
 			}
 			
-			Screen = static_cast<D*>( malloc(length*sizeof(D)) );		// 画面バッファ用配列
-			Background = static_cast<D*>( malloc(length*sizeof(D)) );	// 背景画面バッファ用配列
+			Screen = static_cast<TF*>( malloc(length*sizeof(TF)) );		// 画面バッファ用配列
+			Background = static_cast<TF*>( malloc(length*sizeof(TF)) );	// 背景画面バッファ用配列
 
 			ClearScreen();		// 画面バッファのクリア
 			ClearBackground();	// 背景バッファのクリア
@@ -215,39 +221,42 @@ class FrameGraphics {
 		//! @brief PNG画像ファイルを保存する関数
 		//! @param[in]	FileName	PNG画像ファイル名
 		void SavePngImageFile(const std::string& FileName){
-			// 初期化処理
-			FILE *fp;				// PNGファイルポインタ
-			png_structp png_ptr;	// PNG画像ポインタ
-			png_infop info_ptr;		// PNG情報ポインタ
-			fp = fopen(FileName.c_str(), "wb"); // ファイルを開く
-			arcs_assert(fp != nullptr);			// ファイルが開けるかチェック
-			png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);	// png_ptr構造体を確保・初期化
-			info_ptr = png_create_info_struct(png_ptr); // info_ptr構造体を確保・初期化
-			png_init_io(png_ptr, fp);			// libpngにファイルポインタを知らせる
-			png_set_IHDR(						// IHDRチャンク情報を設定
-				png_ptr,
-				info_ptr,
-				width,
-				height,
-				8,
-				PNG_COLOR_TYPE_RGB_ALPHA,
-				PNG_INTERLACE_NONE,
-				PNG_COMPRESSION_TYPE_DEFAULT,
-				PNG_FILTER_TYPE_DEFAULT
-			);
-			png_write_info(png_ptr, info_ptr);	// PNGファイルのヘッダを書き込む
-			png_set_invert_alpha(png_ptr);		// αチャネルをFFで透過にする(デフォは00で透過)
-			png_set_bgr(png_ptr);				// uint32_tデータの順序をABGRからARGBに変更
-			
-			// 画像書き出し
-			for(size_t y = 0; y < static_cast<size_t>(height); ++y) png_write_row(png_ptr, (png_bytep)(&(Screen[width*y])));
-			
-			// 終了処理
-			png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
-			png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
-			info_ptr = nullptr;
-			png_ptr = nullptr;
-			fclose(fp); fp = nullptr;
+			// PNG書き出しは32bit色深度のみ対応
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 初期化処理
+				FILE *fp;				// PNGファイルポインタ
+				png_structp png_ptr;	// PNG画像ポインタ
+				png_infop info_ptr;		// PNG情報ポインタ
+				fp = fopen(FileName.c_str(), "wb"); // ファイルを開く
+				arcs_assert(fp != nullptr);			// ファイルが開けるかチェック
+				png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, nullptr, nullptr, nullptr);	// png_ptr構造体を確保・初期化
+				info_ptr = png_create_info_struct(png_ptr); // info_ptr構造体を確保・初期化
+				png_init_io(png_ptr, fp);			// libpngにファイルポインタを知らせる
+				png_set_IHDR(						// IHDRチャンク情報を設定
+					png_ptr,
+					info_ptr,
+					width,
+					height,
+					8,
+					PNG_COLOR_TYPE_RGB_ALPHA,
+					PNG_INTERLACE_NONE,
+					PNG_COMPRESSION_TYPE_DEFAULT,
+					PNG_FILTER_TYPE_DEFAULT
+				);
+				png_write_info(png_ptr, info_ptr);	// PNGファイルのヘッダを書き込む
+				png_set_invert_alpha(png_ptr);		// αチャネルをFFで透過にする(デフォは00で透過)
+				png_set_bgr(png_ptr);				// uint32_tデータの順序をABGRからARGBに変更
+				
+				// 画像書き出し
+				for(size_t y = 0; y < static_cast<size_t>(height); ++y) png_write_row(png_ptr, (png_bytep)(&(Screen[width*y])));
+				
+				// 終了処理
+				png_free_data(png_ptr, info_ptr, PNG_FREE_ALL, -1);
+				png_destroy_write_struct(&png_ptr, (png_infopp)NULL);
+				info_ptr = nullptr;
+				png_ptr = nullptr;
+				fclose(fp); fp = nullptr;
+			}
 		}
 		
 		//! @brief フレームバッファを更新する関数
@@ -260,11 +269,11 @@ class FrameGraphics {
 		//! @param[in]	y		[px] 縦位置
 		//! @param[in]	w		[px] 横幅
 		//! @param[in]	h		[px] 高さ
-		void RefreshFrame(int x, int y, int w, int h){
+		void RefreshFrame(const int& x, const int& y, const int& w, const int& h){
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Frame + i + width*j, Screen + i + width*j, sizeof(D)*w);
+				memcpy(Frame + i + width*j, Screen + i + width*j, sizeof(TF)*w);
 			}
 		}
 		
@@ -278,11 +287,11 @@ class FrameGraphics {
 		//! @param[in]	y		[px] 縦位置
 		//! @param[in]	w		[px] 横幅
 		//! @param[in]	h		[px] 高さ
-		void StoreScreenAsBackground(int x, int y, int w, int h){
+		void StoreScreenAsBackground(const int& x, const int& y, const int& w, const int& h){
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Background + i + width*j, Screen + i + width*j, sizeof(D)*w);
+				memcpy(Background + i + width*j, Screen + i + width*j, sizeof(TF)*w);
 			}
 		}
 		
@@ -296,11 +305,11 @@ class FrameGraphics {
 		//! @param[in]	y		[px] 縦位置
 		//! @param[in]	w		[px] 横幅
 		//! @param[in]	h		[px] 高さ
-		void LoadBackgroundToScreen(int x, int y, int w, int h){
+		void LoadBackgroundToScreen(const int& x, const int& y, const int& w, const int& h){
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Screen + i + width*j, Background + i + width*j, sizeof(D)*w);
+				memcpy(Screen + i + width*j, Background + i + width*j, sizeof(TF)*w);
 			}
 		}
 		
@@ -311,19 +320,19 @@ class FrameGraphics {
 		
 		//! @brief フレームバッファを指定した色で埋める関数
 		//! @param[in]	ColorData	バイナリ色データ
-		void FillFrame(D ColorData){
+		void FillFrame(const TF& ColorData){
 			std::fill(Frame, Frame + length, ColorData);
 		}
 		
 		//! @brief 画面バッファを指定した色で埋める関数
 		//! @param[in]	ColorData	バイナリ色データ
-		void FillScreen(D ColorData){
+		void FillScreen(const TF& ColorData){
 			std::fill(Screen, Screen + length, ColorData);
 		}
 		
 		//! @brief 背景バッファを指定した色で埋める関数
 		//! @param[in]	ColorData	バイナリ色データ
-		void FillBackground(D ColorData){
+		void FillBackground(const TF& ColorData){
 			std::fill(Background, Background + length, ColorData);
 		}
 		
@@ -348,7 +357,7 @@ class FrameGraphics {
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawPoint(int x, int y, D ColorData){
+		void DrawPoint(const int& x, const int& y, const TF& ColorData){
 			// 点の太さに従ってコンパイル時条件分岐
 			switch(T){
 				case FGsize::PX_1:	// 1[px] の場合
@@ -383,7 +392,7 @@ class FrameGraphics {
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	color		色の名前
 		template <FGsize T = FGsize::PX_1>
-		void DrawPoint(int x, int y, FGcolors color){
+		void DrawPoint(const int& x, const int& y, const FGcolors& color){
 			DrawPoint<T>(x, y, ColorNameToData(color));	// バイナリ色データに変換して点描画関数を呼び出し
 		}
 		
@@ -393,7 +402,7 @@ class FrameGraphics {
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	r,g,b		RGB色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawPoint(int x, int y, double r, double g, double b){
+		void DrawPoint(const int& x, const int& y, const double& r, const double& g, const double& b){
 			DrawPoint<T>(x, y, RGBcolorToData(r,g,b));		// バイナリ色データに変換して点描画関数を呼び出し
 		}
 		
@@ -403,7 +412,7 @@ class FrameGraphics {
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	a,r,g,b		αRGB色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawPoint(int x, int y, double a, double r, double g, double b){
+		void DrawPoint(const int& x, const int& y, double a, double r, double g, double b){
 			DrawPoint<T>(x, y, ARGBcolorToData(a,r,g,b));	// バイナリ色データに変換して点描画関数を呼び出し
 		}
 		
@@ -411,7 +420,7 @@ class FrameGraphics {
 		//! @param[in]	x			x座標 [px]
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
-		void DrawCross(int x, int y, D ColorData){
+		void DrawCross(const int& x, const int& y, const TF& ColorData){
 			DrawDot(x + 2, y, ColorData);
 			DrawDot(x - 2, y, ColorData);
 			DrawDot(x + 1, y, ColorData);
@@ -427,7 +436,7 @@ class FrameGraphics {
 		//! @param[in]	x			x座標 [px]
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	color		色の名前
-		void DrawCross(int x, int y, FGcolors color){
+		void DrawCross(const int& x, const int& y, const FGcolors& color){
 			DrawCross(x, y, ColorNameToData(color));
 		}
 		
@@ -435,7 +444,7 @@ class FrameGraphics {
 		//! @param[in]	x			x座標 [px]
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	r,g,b		RGB色データ
-		void DrawCross(int x, int y, double r, double g, double b){
+		void DrawCross(const int& x, const int& y, double r, double g, double b){
 			DrawCross(x, y, RGBcolorToData(r, g ,b));
 		}
 		
@@ -445,7 +454,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawLine(int x1, int y1, int x2, int y2, D ColorData){
+		void DrawLine(int x1, int y1, int x2, int y2, const TF& ColorData){
 			// 垂直の線のとき(ブレゼンハムのアルゴリズムでは描けないので，別に実装)
 			if(x1 == x2){
 				DrawVerticalLine<T>(x1, y1, y2, ColorData);
@@ -498,7 +507,7 @@ class FrameGraphics {
 		//! @param[in]	y1, y2		縦座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawVerticalLine(int x, int y1, int y2, D ColorData){
+		void DrawVerticalLine(const int& x, const int& y1, const int& y2, const TF& ColorData){
 			int ysta, yend;
 			if(y1 < y2){
 				// y1→y2で増加する場合
@@ -519,7 +528,7 @@ class FrameGraphics {
 		//! @param[in]	y			縦座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawHorizontalLine(int x1, int x2, int y, D ColorData){
+		void DrawHorizontalLine(const int& x1, const int& x2, const int& y, const TF& ColorData){
 			int xsta, xend;
 			if(x1 < x2){
 				// x1→x2で増加する場合
@@ -540,7 +549,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	color		色の名前
 		template <FGsize T = FGsize::PX_1>
-		void DrawLine(int x1, int y1, int x2, int y2, FGcolors color){
+		void DrawLine(const int& x1, const int& y1, const int& x2, const int& y2, const FGcolors& color){
 			DrawLine<T>(x1, y1, x2, y2, ColorNameToData(color));
 		}
 		
@@ -550,7 +559,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	r, g, b		RGB色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawLine(int x1, int y1, int x2, int y2, double r, double g, double b){
+		void DrawLine(const int& x1, const int& y1, const int& x2, const int& y2, double r, double g, double b){
 			DrawLine<T>(x1, y1, x2, y2, RGBcolorToData(r,g,b));
 		}
 		
@@ -560,7 +569,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawStairs(int x1, int y1, int x2, int y2, D ColorData){
+		void DrawStairs(const int& x1, const int& y1, const int& x2, const int& y2, const TF& ColorData){
 			DrawLine<T>(x1, y1, x2, y1, ColorData);
 			DrawLine<T>(x2, y1, x2, y2, ColorData);
 		}
@@ -571,7 +580,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	color		色の名前
 		template <FGsize T = FGsize::PX_1>
-		void DrawStairs(int x1, int y1, int x2, int y2, FGcolors color){
+		void DrawStairs(const int& x1, const int& y1, const int& x2, const int& y2, const FGcolors& color){
 			DrawStairs<T>(x1, y1, x2, y2, ColorNameToData(color));
 		}
 		
@@ -581,7 +590,7 @@ class FrameGraphics {
 		//! @param[in]	x2, y2		終点座標 [px]
 		//! @param[in]	r, g, b		RGB色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawStairs(int x1, int y1, int x2, int y2, double r, double g, double b){
+		void DrawStairs(const int& x1, const int& y1, const int& x2, const int& y2, double r, double g, double b){
 			DrawStairs<T>(x1, y1, x2, y2, RGBcolorToData(r,g,b));
 		}
 		
@@ -591,7 +600,7 @@ class FrameGraphics {
 		//! @param[in] w, h			長方形の幅，長方形の高さ
 		//! @param[in] ColorData	バイナリ色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawRect(int x, int y, int w, int h, D ColorData){
+		void DrawRect(const int& x, const int& y, const int& w, const int& h, const TF& ColorData){
 			DrawHorizontalLine<T>(x  , x+w, y  , ColorData);
 			DrawHorizontalLine<T>(x+w, x  , y+h, ColorData);
 			DrawVerticalLine<T>(x+w, y  , y+h, ColorData);
@@ -604,7 +613,7 @@ class FrameGraphics {
 		//! @param[in] w, h			長方形の幅，長方形の高さ
 		//! @param[in] color		色の名前
 		template <FGsize T = FGsize::PX_1>
-		void DrawRect(int x, int y, int w, int h, FGcolors color){
+		void DrawRect(const int& x, const int& y, const int& w, const int& h, const FGcolors& color){
 			DrawRect<T>(x, y, w, h, ColorNameToData(color));
 		}
 
@@ -614,7 +623,7 @@ class FrameGraphics {
 		//! @param[in] w, h			長方形の幅，長方形の高さ
 		//! @param[in] r, g, b		RGB色データ
 		template <FGsize T = FGsize::PX_1>
-		void DrawRect(int x, int y, int w, int h, double r, double g, double b){
+		void DrawRect(const int& x, const int& y, const int& w, const int& h, double r, double g, double b){
 			DrawRect<T>(x, y, w, h, RGBcolorToData(r,g,b));
 		}
 		
@@ -622,7 +631,7 @@ class FrameGraphics {
 		//! @param[in] x, y			長方形左上の座標
 		//! @param[in] w, h			長方形の幅，長方形の高さ
 		//! @param[in] ColorData	バイナリ色データ
-		void DrawRectFill(int x, int y, int w, int h, D ColorData){
+		void DrawRectFill(const int& x, const int& y, const int& w, const int& h, const TF& ColorData){
 			size_t i = ConvCoordinateToIndex(x, y);	// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// バイナリ色データを1ラインずつフレームバッファへ書き込む
@@ -636,7 +645,7 @@ class FrameGraphics {
 		//! @param[in] x, y			長方形左上の座標
 		//! @param[in] w			長方形の幅，長方形の高さ
 		//! @param[in] color		色の名前
-		void DrawRectFill(int x, int y, int w, int h, FGcolors color){
+		void DrawRectFill(const int& x, const int& y, const int& w, const int& h, const FGcolors& color){
 			DrawRectFill(x, y, w, h, ColorNameToData(color));
 		}
 		
@@ -644,7 +653,7 @@ class FrameGraphics {
 		//! @param[in] x, y	長方形左上の座標
 		//! @param[in] w, h	長方形の幅，長方形の高さ
 		//! @param[in] r,g,b	色
-		void DrawRectFill(int x, int y, int w, int h, double r, double g, double b){
+		void DrawRectFill(const int& x, const int& y, const int& w, const int& h, double r, double g, double b){
 			DrawRectFill(x, y, w, h, RGBcolorToData(r,g,b));
 		}
 		
@@ -652,7 +661,7 @@ class FrameGraphics {
 		//! @param[in] x, y	長方形左上の座標
 		//! @param[in] w, h	長方形の幅，長方形の高さ
 		//! @param[in] r,g,b,a	色と透過率
-		void DrawRectFill(int x, int y, int w, int h, double r, double g, double b, double a){
+		void DrawRectFill(const int& x, const int& y, const int& w, const int& h, double r, double g, double b, double a){
 			DrawRectFill(x, y, w, h, ARGBcolorToData(a,r,g,b));
 		}
 		
@@ -660,7 +669,7 @@ class FrameGraphics {
 		//! @param[in]	cx, cy	円の中心座標
 		//! @param[in]	radius	半径，N：円の分割数
 		//! @param[in] ColorData	バイナリ色データ
-		void DrawCircle(int cx, int cy, int radius, unsigned int N, D ColorData){
+		void DrawCircle(const int& cx, const int& cy, const int& radius, size_t N, const TF& ColorData){
 			// 気が向いたらブレゼンハム・ミッチェナーのアルゴリズムに変更する予定
 			const double TwoPIdivN = 2.0*M_PI/(double)N;
 			int x_prev = (double)radius + cx;
@@ -679,7 +688,7 @@ class FrameGraphics {
 		//! @param[in]	cx, cy	円の中心座標
 		//! @param[in]	radius	半径，N：円の分割数
 		//! @param[in]	color	色の名前
-		void DrawCircle(int cx, int cy, int radius, unsigned int N, FGcolors color){
+		void DrawCircle(const int& cx, const int& cy, const int& radius, size_t N, const FGcolors& color){
 			DrawCircle(cx, cy, radius, N, ColorNameToData(color));
 		}
 		
@@ -687,7 +696,7 @@ class FrameGraphics {
 		//! @param[in]	cx, cy	円の中心座標
 		//! @param[in]	radius	半径，N：円の分割数
 		//! @param[in]	r,g,b	色
-		void DrawCircle(int cx, int cy, int radius, unsigned int N, double r, double g, double b){
+		void DrawCircle(const int& cx, const int& cy, const int& radius, size_t N, double r, double g, double b){
 			DrawCircle(cx, cy, radius, N, RGBcolorToData(r,g,b));
 		}
 		
@@ -713,7 +722,7 @@ class FrameGraphics {
 		
 		//! @brief 文字列を描画する関数
 		//! x：[px]横位置，y：[px] 縦位置，align：揃え位置，text：所望の文字列
-		void PrintText(int x, int y, FGalign align, std::string text){
+		void PrintText(int x, const int& y, const FGalign& align, const std::string& text){
 			// 文字列の揃え指定に従って座標にオフセットを持たせる
 			switch(align){
 				case FGalign::ALIGN_LEFT:
@@ -731,14 +740,14 @@ class FrameGraphics {
 			
 			// 1文字ずつ描画
 			for(size_t i = 0; i < text.length();i ++){
-				WriteFont(x + i*(FrameFontSmall::WIDTH + TEXT_INTERVAL), y, (unsigned int)text.at(i));
+				WriteFont(x + i*(FrameFontSmall::WIDTH + TEXT_INTERVAL), y, static_cast<unsigned int>(text.at(i)));
 			}
 		}
 		
 		//! @brief 指定した書式で文字列を描画する関数
 		//! x：[px] 横位置，y：[px] 縦位置，align：揃え位置，format：書式指定子，val：所望の数値
 		//! formatの書式指定子は printf関数 の場合の書き方と同等
-		void PrintValue(int x, int y, FGalign align, std::string format, double val){
+		void PrintValue(const int& x, const int& y, const FGalign& align, const std::string& format, const double& val){
 			char str[TEXT_MAXLEN] = {'\0'};
 			sprintf(str, format.c_str(), val);
 			PrintText(x, y, align, str);
@@ -811,14 +820,21 @@ class FrameGraphics {
 		
 		//! @brief 色の名前からバイナリ色データに変換する関数
 		//! @param[in]	color	色の名前
-		uint32_t ColorNameToData(FGcolors color){
-			return ColorSet[static_cast<size_t>(color)];
+		TF ColorNameToData(const FGcolors& color){
+			// 色深度で挙動を変える
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 32bit色深度のとき
+				return ColorSet32[static_cast<size_t>(color)];
+			}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+				// 16bit色深度のとき
+				return ColorSet16[static_cast<size_t>(color)];
+			}
 		}
 		
 		//! @brief 0～1の浮動小数点で表現された赤緑青色の輝度値をバイナリ色データに変える
 		//! @param[in]	Red, Green, Blue	RGB輝度値(0～1)
-		uint32_t RGBcolorToData(double Red, double Green, double Blue){
-			uint32_t r = 0, g = 0, b = 0;
+		TF RGBcolorToData(const double& Red, const double& Green, const double& Blue){
+			TF r = 0, g = 0, b = 0;
 			r = DoubleToRedIntensity(Red);		// 赤を変換
 			g = DoubleToGreenIntensity(Green);	// 緑を変換
 			b = DoubleToBlueIntensity(Blue);	// 青を変換
@@ -827,8 +843,8 @@ class FrameGraphics {
 		
 		//! @brief 0～1の浮動小数点で表現された赤緑青透過色の輝度値をバイナリ色データに変える
 		//! @param[in]	Alpha, Red, Green, Blue	αRGB輝度値(0～1)
-		uint32_t ARGBcolorToData(double Alpha, double Red, double Green, double Blue){
-			uint32_t r = 0, g = 0, b = 0, a = 0;
+		TF ARGBcolorToData(const double& Alpha, const double& Red, const double& Green, const double& Blue){
+			TF r = 0, g = 0, b = 0, a = 0;
 			a = DoubleToAlphaIntensity(Alpha);	// 透過チャネルを変換
 			r = DoubleToRedIntensity(Red);		// 赤を変換
 			g = DoubleToGreenIntensity(Green);	// 緑を変換
@@ -850,7 +866,7 @@ class FrameGraphics {
 		//! (α：ビット31～25 赤：ビット24～16 緑：ビット15～8 青：ビット7～0)
 		//! αは透過レベル
 		//! 以下は基本色の定義  この他にも勝手に好きな色を作れる
-		static constexpr std::array<uint32_t, NUM_COLOR_SET> ColorSet = {
+		static constexpr std::array<uint32_t, NUM_COLOR_SET> ColorSet32 = {
 			0x00FF0000,	//!< RED
 			0x0000FF00,	//!< GREEN
 			0x000000FF,	//!< BLUE
@@ -865,11 +881,32 @@ class FrameGraphics {
 			0x00000000,	//!< BLACK
 			0xFF000000	//!< ALPHA
 		};
+
+		//! @brief 色の定義 (色深度16bitモード用)
+		//! 注意!!：enum FGcolors の定義と相違が無いようにせよ！
+		//! ビットパターン MSB RRRRR GGGGGG BBBBB LSB
+		//! (赤：ビット15～11 緑：ビット10～5 青：ビット4～0)
+		//! 実は赤青に比べ緑の分解能が1bit分だけ多い(人間の網膜の特性による)
+		//! 以下は基本色の定義  この他にも勝手に好きな色を作れる
+		static constexpr std::array<uint16_t, NUM_COLOR_SET> ColorSet16 = {
+			0xF800,	// RED
+			0x07E0,	// GREEN
+			0x001F,	// BLUE
+			0x07FF,	// CYAN
+			0xF81F,	// MAGENTA
+			0xFFE0,	// YELLOW
+			0xF800,	// ORANGE
+			0xFFFF,	// WHITE
+			0xB4F6,	// GRAY75
+			0x7BEF,	// GRAY50
+			0x39E7,	// GRAY25
+			0x0000	// BLACK
+		};
 		
 		// 共通画像情報関連
-		D* Frame;		//!< フレームバッファポインタ
-		D* Screen;		//!< 画面バッファポインタ
-		D* Background;	//!< 背景バッファポインタ
+		TF* Frame;		//!< フレームバッファポインタ
+		TF* Screen;		//!< 画面バッファポインタ
+		TF* Background;	//!< 背景バッファポインタ
 		int width;		//!< [px]		横幅
 		int height;		//!< [px]		高さ
 		int depth;		//!< [bits]		色深度
@@ -886,68 +923,108 @@ class FrameGraphics {
 		int bppx;			//!< [bit/px]	ピクセル当りのビット数
 		
 		// 文字列関連
-		static constexpr unsigned int TEXT_INTERVAL = 1;	//!< [px] 文字の間隔
-		static constexpr unsigned int TEXT_MAXLEN = 256;	//!< 文字列の最大値
-		bool IsFontDataLocked;								//!< フォントデータスピンロックフラグ
-		uint32_t FontPrepared[FrameFontSmall::NUM][FrameFontSmall::HEIGHT][FrameFontSmall::WIDTH];	//!< 準備済みのフォントデータ
+		static constexpr unsigned int TEXT_INTERVAL = 1;//!< [px] 文字の間隔
+		static constexpr size_t TEXT_MAXLEN = 256;		//!< 文字列の最大値
+		bool IsFontDataLocked;							//!< フォントデータスピンロックフラグ
+		TF FontPrepared[FrameFontSmall::NUM][FrameFontSmall::HEIGHT][FrameFontSmall::WIDTH];	//!< 準備済みのフォントデータ
 		
 		//! @brief 座標からフレームバッファの要素番号を計算する関数
 		//! @param[in]	x	横座標 [px]
 		//! @param[in]	y	縦座標 [px]
 		//! @return	フレームバッファの要素番号
-		inline size_t ConvCoordinateToIndex(int x, int y){
-			return (size_t)width*(size_t)y + (size_t)x;
+		inline size_t ConvCoordinateToIndex(const int& x, const int& y){
+			return static_cast<size_t>(width)*static_cast<size_t>(y) + static_cast<size_t>(x);
 		}
 		
 		//! @brief 点(x,y)を画面バッファに書き込む関数
 		//! @param[in]	x			x座標 [px]
 		//! @param[in]	y			y座標 [px]
 		//! @param[in]	ColorData	バイナリ色データ
-		inline void DrawDot(int x, int y, uint32_t ColorData){
+		inline void DrawDot(const int& x, const int& y, const TF& ColorData){
 			size_t i = ConvCoordinateToIndex(x, y);	// 座標からフレームバッファの要素番号を計算
 			if(length <= i) return;					// 範囲外のときは何もせず終了
 			Screen[i] = ColorData;					// 画面バッファに書き込み
 		}
 		
-		//! @brief 0～1の浮動小数点数値を白色の32bit輝度データに変える
-		uint32_t DoubleToIntensity(double u){
+		//! @brief 0～1の浮動小数点数値を白色の32bit/16bit輝度データに変える
+		TF DoubleToIntensity(double u){
 			if(1 < u) u = 1;
 			if(u < 0) u = 0;
-			return (uint32_t)((double)0x00FFFFFF*u);
+
+			// 色深度で挙動を変える
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 32bit色深度のとき
+				return static_cast<uint32_t>(static_cast<double>(0x00FFFFFF)*u);
+			}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+				// 16bit色深度のとき
+				return static_cast<uint16_t>(static_cast<double>(0xFFFF)*u);
+			}
 		}
 		
-		//! @brief 0～1の浮動小数点数値を赤色の32bit輝度データに変える
-		uint32_t DoubleToRedIntensity(double u){
+		//! @brief 0～1の浮動小数点数値を透過値αの32bit/16bit輝度データに変える
+		TF DoubleToAlphaIntensity(double u){
 			if(1 < u) u = 1;
 			if(u < 0) u = 0;
-			return ((uint32_t)((double)0x000000FF*u)) << 16;
+			
+			// 色深度で挙動を変える
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 32bit色深度のとき
+				return static_cast<uint32_t>(static_cast<double>(0x000000FF)*u) << 24;
+			}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+				// 16bit色深度のとき
+				return 0;	// 16bitには透過値αは無い
+			}
 		}
 		
-		//! @brief 0～1の浮動小数点数値を緑色の32bit輝度データに変える
-		uint32_t DoubleToGreenIntensity(double u){
+		//! @brief 0～1の浮動小数点数値を赤色の32bit/16bit輝度データに変える
+		TF DoubleToRedIntensity(double u){
 			if(1 < u) u = 1;
 			if(u < 0) u = 0;
-			return ((uint32_t)((double)0x000000FF*u)) << 8;
+
+			// 色深度で挙動を変える
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 32bit色深度のとき
+				return static_cast<uint32_t>(static_cast<double>(0x000000FF)*u) << 16;
+			}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+				// 16bit色深度のとき
+				return static_cast<uint16_t>(static_cast<double>(0x001F)*u) << 11;
+			}
 		}
 		
-		//! @brief 0～1の浮動小数点数値を青色の32bit輝度データに変える
-		uint32_t DoubleToBlueIntensity(double u){
+		//! @brief 0～1の浮動小数点数値を緑色の32bit/16bit輝度データに変える
+		TF DoubleToGreenIntensity(double u){
 			if(1 < u) u = 1;
 			if(u < 0) u = 0;
-			return ((uint32_t)((double)0x000000FF*u));
+
+			// 色深度で挙動を変える
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 32bit色深度のとき
+				return static_cast<uint32_t>(static_cast<double>(0x000000FF)*u) << 8;
+			}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+				// 16bit色深度のとき
+				return static_cast<uint16_t>(static_cast<double>(0x003F)*u) << 5;
+			}
 		}
 		
-		//! @brief 0～1の浮動小数点数値を透過値αの32bit輝度データに変える
-		uint32_t DoubleToAlphaIntensity(double u){
+		//! @brief 0～1の浮動小数点数値を青色の32bit/16bit輝度データに変える
+		TF DoubleToBlueIntensity(double u){
 			if(1 < u) u = 1;
 			if(u < 0) u = 0;
-			return ((uint32_t)((double)0x000000FF*u)) << 24;
+
+			// 色深度で挙動を変える
+			if constexpr(DP == FGdepth::DEPTH_32BIT){
+				// 32bit色深度のとき
+				return static_cast<uint32_t>(static_cast<double>(0x000000FF)*u);
+			}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+				// 16bit色深度のとき
+				return static_cast<uint16_t>(static_cast<double>(0x001F)*u);
+			}
 		}
 
 		//! @brief アスキーコードからフォントデータの要素番号へ変換する関数
 		//! @param[in]	ascii	アスキーコード
 		//! @return	配列の要素番号
-		unsigned int ConvAsciiToIndex(unsigned int ascii){
+		size_t ConvAsciiToIndex(size_t ascii){
 			// アスキーコードが範囲外のときは範囲外用のフォントを使用
 			if(ascii < FrameFontSmall::FST_ASCII || FrameFontSmall::END_ASCII < ascii){
 				ascii = FrameFontSmall::END_ASCII + 1;
@@ -960,13 +1037,20 @@ class FrameGraphics {
 		//! @param[in]	x		[px] 横位置
 		//! @param[in]	y		[px] 縦位置
 		//! @param[in]	ascii	アスキーコード
-		void WriteFont(int x, int y, unsigned int ascii){
+		void WriteFont(const int& x, const int& y, const unsigned int& ascii){
 			if(IsFontDataLocked == true)return;				// フォントデータが準備中のときは何もせずに抜ける
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			unsigned int index = ConvAsciiToIndex(ascii);	// アスキーコードから要素番号へ変換
 			for(unsigned int j = 0; j < FrameFontSmall::HEIGHT; ++j){
 				// フォントデータを1ラインずつフレームバッファへ書き込む
-				memcpy(Screen + i + width*j, FontPrepared[index][j], FrameFontSmall::LINEBYTE32);
+				// 色深度で挙動を変える
+				if constexpr(DP == FGdepth::DEPTH_32BIT){
+					// 32bit色深度のとき
+					memcpy(Screen + i + width*j, FontPrepared[index][j], FrameFontSmall::LINEBYTE32);
+				}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+					// 16bit色深度のとき
+					memcpy(Screen + i + width*j, FontPrepared[index][j], FrameFontSmall::LINEBYTE16);
+				}
 			}
 		}
 		
