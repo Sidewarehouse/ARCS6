@@ -1,11 +1,11 @@
 //! @file CuiPlot.hh
-//! @brief CuiPlot(新型きゅいプロットV2) 
+//! @brief CuiPlot(新型きゅいプロットV3) 
 //!
 //! LinuxフレームバッファとPNG画像ファイルにグラフ波形を描画するクラス
 //! (PNG画像ファイル出力のみなら Windows Subsystem for Linux でも実行可能)
 //! 非テンプレート版
 //!
-//! @date 2024/10/08
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -49,6 +49,7 @@ enum class CuiPlotTypes {
 };
 
 //! @brief CuiPlot(新型きゅいプロットV2)
+//! @tparam DP	フレームバッファの色深度設定
 template<FGdepth DP>
 class CuiPlot {
 	public:
@@ -242,11 +243,16 @@ class CuiPlot {
 		}
 		
 		//! @brief 1点のデータをプロットする関数(バイナリ色データ版)
+		//! @tparam	T	バイナリ色データの型 (uint32_t or uint16_t)
 		//! @param[in]	x		x座標
 		//! @param[in]	y		y座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	バイナリ色データ
-		void Plot(const double x, const double y, const CuiPlotTypes type, const uint32_t color){
+		template<typename T>
+		void Plot(const double x, const double y, const CuiPlotTypes& type, const T& color){
+			// データ型のチェック
+			static_assert(std::is_same_v<T, uint32_t> || std::is_same_v<T, uint16_t>);
+
 			PlotSingleData(x, y, x, y, type, color);
 		}
 		
@@ -255,7 +261,7 @@ class CuiPlot {
 		//! @param[in]	y		y座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	r,g,b	赤緑青色の輝度値
-		void Plot(const double x, const double y, const CuiPlotTypes type, const double r, const double g, const double b){
+		void Plot(const double x, const double y, const CuiPlotTypes& type, const double r, const double g, const double b){
 			Plot(x, y, type, FG.RGBcolorToData(r,g,b));
 		}
 		
@@ -264,16 +270,21 @@ class CuiPlot {
 		//! @param[in]	y		y座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	色の名前
-		void Plot(const double x, const double y, const CuiPlotTypes type, const FGcolors color){
+		void Plot(const double x, const double y, const CuiPlotTypes& type, const FGcolors& color){
 			Plot(x, y, type, FG.ColorNameToData(color));
 		}
 		
 		//! @brief 2点のデータをプロットする関数(バイナリ色データ版)
+		//! @tparam	T	バイナリ色データの型 (uint32_t or uint16_t)
 		//! @param[in]	x1,x2	x座標
 		//! @param[in]	y1,y2	y座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	バイナリ色データ
-		void Plot(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes type, const uint32_t color){
+		template<typename T>
+		void Plot(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes& type, const T& color){
+			// データ型のチェック
+			static_assert(std::is_same_v<T, uint32_t> || std::is_same_v<T, uint16_t>);
+
 			PlotSingleData(x1, y1, x2, y2, type, color);
 		}
 		
@@ -282,7 +293,7 @@ class CuiPlot {
 		//! @param[in]	y1,y2	y座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	r,g,b	赤緑青色の輝度値
-		void Plot(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes type, const double r, const double g, const double b){
+		void Plot(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes& type, const double r, const double g, const double b){
 			Plot(x1, y1, x2, y2, type, FG.RGBcolorToData(r,g,b));
 		}
 		
@@ -291,18 +302,22 @@ class CuiPlot {
 		//! @param[in]	y1,y2	y座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	色の名前
-		void Plot(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes type, const FGcolors color){
+		void Plot(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes& type, const FGcolors& color){
 			Plot(x1, y1, x2, y2, type, FG.ColorNameToData(color));
 		}
 		
 		//! @brief std::array配列データをプロットする関数(バイナリ色データ版)
 		//! @tparam	N	配列の長さ
+		//! @tparam	T	バイナリ色データの型 (uint32_t or uint16_t)
 		//! @param[in]	x		x座標配列
 		//! @param[in]	y		y座標配列
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	バイナリ色データ
-		template <size_t N>
-		void Plot(const std::array<double, N>& x, const std::array<double, N>& y, const CuiPlotTypes type, const uint32_t color){
+		template <size_t N, typename T>
+		void Plot(const std::array<double, N>& x, const std::array<double, N>& y, const CuiPlotTypes& type, const T& color){
+			// データ型のチェック
+			static_assert(std::is_same_v<T, uint32_t> || std::is_same_v<T, uint16_t>);
+
 			for(size_t i = 1; i < N; ++i){
 				PlotSingleData(x[i-1], y[i-1], x[i], y[i], type, color);	// 2点間の描画を配列の長さ分だけ実行
 			}
@@ -332,12 +347,16 @@ class CuiPlot {
 		
 		//! @brief Matrix縦ベクトルデータをプロットする関数(バイナリ色データ版)
 		//! @tparam	N	ベクトルの長さ
+		//! @tparam	T	バイナリ色データの型 (uint32_t or uint16_t)
 		//! @param[in]	x		x座標Matrix縦ベクトル
 		//! @param[in]	y		y座標Matrix縦ベクトル
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	バイナリ色データ
-		template <size_t N>
-		void Plot(const Matrix<1,N>& x, const Matrix<1,N>& y, const CuiPlotTypes type, const uint32_t color){
+		template <size_t N, typename T>
+		void Plot(const Matrix<1,N>& x, const Matrix<1,N>& y, const CuiPlotTypes& type, const T& color){
+			// データ型のチェック
+			static_assert(std::is_same_v<T, uint32_t> || std::is_same_v<T, uint16_t>);
+			
 			for(size_t i = 2; i <= N; ++i){
 				PlotSingleData(x[i-1], y[i-1], x[i], y[i], type, color);	// 2点間の描画を配列の長さ分だけ実行
 			}
@@ -361,17 +380,23 @@ class CuiPlot {
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	色の名前
 		template <size_t N>
-		void Plot(const Matrix<1,N>& x, const Matrix<1,N>& y, const CuiPlotTypes type, const FGcolors color){
+		void Plot(const Matrix<1,N>& x, const Matrix<1,N>& y, const CuiPlotTypes& type, const FGcolors& color){
 			Plot(x, y, type, FG.ColorNameToData(color));
 		}
 		
 		//! @brief リングバッファの時系列データをプロットする関数(バイナリ色データ版)
 		//! @tparam	N	バッファサイズ
 		//! @tparam	M	Mutexロックを使うかどうか(デフォルトはfalse)
+		//! @tparam	T	バイナリ色データの型 (uint32_t or uint16_t)
 		//! @param[in]	t	時刻ベクトルが入ったリングバッファへの参照
 		//! @param[in]	y	yデータベクトルが入ったリングバッファへの参照
-		template <unsigned long N, bool M = false>
-		void TimeSeriesPlot(RingBuffer<double, N, M>& t, RingBuffer<double, N, M>& y, const CuiPlotTypes type, const uint32_t color){
+		//! @param[in]	type	プロットタイプ
+		//! @param[in]	color	バイナリ色データ
+		template <unsigned long N, bool M = false, typename T>
+		void TimeSeriesPlot(RingBuffer<double, N, M>& t, RingBuffer<double, N, M>& y, const CuiPlotTypes& type, const T& color){
+			// データ型のチェック
+			static_assert(std::is_same_v<T, uint32_t> || std::is_same_v<T, uint16_t>);
+
 			const double Tnow = t.GetFirstValue();	// 現在の時刻
 			double t1, t2, y1, y2;					// 加工後の座標
 			bool LeapZero = false;					// 時刻ゼロを跨いだか否か
@@ -472,7 +497,7 @@ class CuiPlot {
 		const int PLOT_WIDTH;	//!< [px] プロット平面の幅
 		const int PLOT_HEIGHT;	//!< [px] プロット平面の高さ
 		
-		FrameGraphics<>& FG;	//!< フレームグラフィックスへの参照
+		FrameGraphics<DP>& FG;	//!< フレームグラフィックスへの参照
 		FGcolors AxisColor;		//!< 主軸の色
 		FGcolors GridColor;		//!< グリッドの色
 		FGcolors TextColor;		//!< 文字の色
@@ -539,7 +564,9 @@ class CuiPlot {
 		
 		//! @brief ラベルを描画する関数
 		void DrawLabels(void){
-			if(VisibleFlag == false) return;			// 不可視設定なら何もせず終了
+			// 不可視設定なら何もせず終了
+			if(VisibleFlag == false) return;
+
 			// グリッドラベルの描画
 			for(size_t i = 0; i < XgridNum - 1; ++i){
 				FG.PrintValue(XtoPixel(Xgrid[i]), YtoPixel(Ymin) + LABEL_MARGIN_X, FGalign::ALIGN_CENTER, Xform, Xgrid[i]);	// X軸グリッドラベル
@@ -547,38 +574,49 @@ class CuiPlot {
 			for(size_t i = 0; i < YgridNum - 1; ++i){
 				FG.PrintValue(XtoPixel(Xmin) - LABEL_MARGIN_Y, YtoPixel(Ygrid[i]) - LABEL_VERTICAL_ALIGN, FGalign::ALIGN_RIGHT, Yform, Ygrid[i]);	// Y軸グリッドラベル
 			}
+
 			// X軸 最小値と最大値ラベルの描画
 			FG.PrintValue(XtoPixel(Xmax), YtoPixel(Ymin) + LABEL_MARGIN_X, FGalign::ALIGN_CENTER, Xform, Xmax);	// 最大値ラベル
 			FG.PrintValue(XtoPixel(Xmin), YtoPixel(Ymin) + LABEL_MARGIN_X, FGalign::ALIGN_CENTER, Xform, Xmin);	// 最小値ラベル
+
 			// Y軸 最小値と最大値ラベルの描画
 			FG.PrintValue(XtoPixel(Xmin) - LABEL_MARGIN_Y, YtoPixel(Ymax), FGalign::ALIGN_RIGHT, Yform, Ymax);	// 最大値ラベル	
 			FG.PrintValue(XtoPixel(Xmin) - LABEL_MARGIN_Y, YtoPixel(Ymin) - LABEL_VERTICAL_ALIGN*2, FGalign::ALIGN_RIGHT, Yform, Ymin);	// 最小値ラベル
+
 			// XY軸ラベルの描画
 			FG.PrintText(XtoPixel(Xwidth/2.0 + Xmin), YtoPixel(Ymin) + LABEL_VERTICAL_ALIGN*2 + LABEL_MARGIN_X*2, FGalign::ALIGN_CENTER, Xlabel);	// X軸ラベル
 			FG.PrintText(LEFT + 2, TOP + 2, FGalign::ALIGN_LEFT, Ylabel);	// Y軸ラベル
 		}
 		
 		//! @brief データ1個分をプロットする関数
+		//! @tparam	T	バイナリ色データの型 (uint32_t or uint16_t)
 		//! @param[in]	x1		x1座標
 		//! @param[in]	y1		y1座標
 		//! @param[in]	x2		x2座標
 		//! @param[in]	y2		y2座標
 		//! @param[in]	type	プロットタイプ
 		//! @param[in]	color	バイナリ色データ
-		void PlotSingleData(const double x1, const double y1, const double x2, const double y2, const CuiPlotTypes type, const uint32_t color){
-			if(VisibleFlag == false) return;			// 不可視設定なら何もせず終了
+		template<typename T>
+		void PlotSingleData(const double& x1, const double& y1, const double& x2, const double& y2, const CuiPlotTypes& type, const T& color){
+			// データ型のチェック
+			static_assert(std::is_same_v<T, uint32_t> || std::is_same_v<T, uint16_t>);
+
+			// 不可視設定なら何もせず終了
+			if(VisibleFlag == false) return;
+
+			// プロット種類によって挙動を変える
 			switch(type){
 				case CuiPlotTypes::PLOT_LINE:		// 線プロットのとき
 					FG.DrawLine(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
 					break;
 				case CuiPlotTypes::PLOT_BOLDLINE:	// 太線プロットのとき
-					FG.DrawLine<FGsize::PX_2>(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
+					FG.template DrawLine<FGsize::PX_2>(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
 					break;
 				case CuiPlotTypes::PLOT_DOT:		// 点プロットのとき
 					FG.DrawPoint(XtoPixel(x1), YtoPixel(y1), color);
 					break;
 				case CuiPlotTypes::PLOT_BOLDDOT:	// 太い点プロットのとき
-					FG.DrawPoint<FGsize::PX_3>(XtoPixel(x1), YtoPixel(y1), color);
+					FG.template DrawPoint<FGsize::PX_3>(XtoPixel(x1), YtoPixel(y1), color);
 					break;
 				case CuiPlotTypes::PLOT_CROSS:		// 十字プロットのとき
 					FG.DrawCross(XtoPixel(x1), YtoPixel(y1), color);
@@ -587,11 +625,11 @@ class CuiPlot {
 					FG.DrawStairs(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
 					break;
 				case CuiPlotTypes::PLOT_BOLDSTAIRS:	// 太線階段プロットのとき
-					FG.DrawStairs<FGsize::PX_2>(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
+					FG.template DrawStairs<FGsize::PX_2>(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
 					break;
 				case CuiPlotTypes::PLOT_LINEANDDOT:	// 線と点の複合プロットのとき
 					FG.DrawLine(XtoPixel(x1), YtoPixel(y1), XtoPixel(x2), YtoPixel(y2), color);
-					FG.DrawPoint<FGsize::PX_3>(XtoPixel(x1), YtoPixel(y1), color);
+					FG.template DrawPoint<FGsize::PX_3>(XtoPixel(x1), YtoPixel(y1), color);
 					break;
 				default:
 					arcs_assert(false);	// ここには来ない

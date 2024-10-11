@@ -1,7 +1,7 @@
 //! @file EquipParams.hh
 //! @brief 実験装置用定数値格納用クラス
 //!        ARCSに必要な実験装置に特有な定数値を格納します。
-//! @date 2024/06/24
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -13,6 +13,7 @@
 #include <cmath>
 #include "ARCSparams.hh"
 #include "SFthread.hh"
+#include "FrameGraphics.hh"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief 実験装置用定数値格納用クラス
@@ -32,6 +33,7 @@ class EquipParams {
 		//static constexpr int SCR_VERTICAL_MAX = 66;		//!< [文字] 画面の最大高さ文字数
 		//static constexpr int SCR_HORIZONTAL_MAX = 239;	//!< [文字] 画面の最大幅文字数
 		// それ以外の解像度の場合は各自で値を探すこと
+		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_32BIT;	//!< フレームバッファの色深度
 		
 		// SCHED_FIFOリアルタイムスレッドの設定
 		static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択

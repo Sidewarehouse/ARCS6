@@ -3,7 +3,7 @@
 //!
 //! ARCSシステムコード内で共通に使用するパラメータ設定のための静的関数クラス
 //!
-//! @date 2024/06/26
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -20,7 +20,7 @@ namespace ARCS {	// ARCS名前空間
 class ARCSparams {
 	public:
 		// ARCS改訂番号(ARCS本体側システムコード改変時にちゃんと変えること)
-		static constexpr char ARCS_REVISION[] = "AR6-REV.24080112";	//!< ARCS改訂番号(16文字以内)
+		static constexpr char ARCS_REVISION[] = "AR6-REV.24101112";	//!< ARCS改訂番号(16文字以内)
 		
 		// イベントログの設定
 		static constexpr char EVENTLOG_NAME[] = "EventLog.txt";		//!< イベントログファイル名

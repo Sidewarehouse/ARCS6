@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/10/08
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -12,7 +12,6 @@
 #include <memory>
 #include <cmath>
 #include "ARCSgraphics.hh"
-#include "EquipParams.hh"
 
 using namespace ARCS;
 
@@ -41,7 +40,7 @@ ARCSgraphics::ARCSgraphics(void)
 	
 	// 時系列プロット平面の分だけキュイプロットを生成
 	for(size_t i = 0; i < ConstParams::PLOT_NUM; ++i){
-		Plot.at(i) = std::make_unique<CuiPlot<FGdepth::DEPTH_32BIT>>(
+		Plot.at(i) = std::make_unique<CuiPlot<EquipParams::SCR_DEPTH>>(
 			FG, ConstParams::PLOT_LEFT[i], ConstParams::PLOT_TOP[i], ConstParams::PLOT_WIDTH[i], ConstParams::PLOT_HEIGHT[i]
 		);
 	}
@@ -64,7 +63,7 @@ void ARCSgraphics::SetWorkspace(const std::array<ArcsMat<6,1>, ConstParams::PLOT
 
 //! @brief フレームバッファクラスへの参照を返す関数
 //! @return	FrameGraphicsへの参照
-FrameGraphics<>& ARCSgraphics::GetFGrefs(void){
+FrameGraphics<EquipParams::SCR_DEPTH>& ARCSgraphics::GetFGrefs(void){
 	return FG;
 }
 

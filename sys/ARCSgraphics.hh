@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/10/08
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -16,6 +16,7 @@
 #include <cfloat>
 #include <functional>
 #include "ConstParams.hh"
+#include "EquipParams.hh"
 #include "ArcsMatrix.hh"
 #include "Matrix.hh"
 
@@ -87,12 +88,12 @@ class ARCSgraphics {
 		ARCSgraphics(ARCSgraphics&& r) = delete;					//!< ムーブコンストラクタ使用禁止
 		
 		// フレームバッファとキュイプロット
-		FrameGraphics<FGdepth::DEPTH_32BIT> FG;						//!< フレームバッファ
+		FrameGraphics<EquipParams::SCR_DEPTH> FG;					//!< フレームバッファ
 		std::array<
-			std::unique_ptr< CuiPlot<FGdepth::DEPTH_32BIT> >, ConstParams::PLOT_NUM
+			std::unique_ptr< CuiPlot<EquipParams::SCR_DEPTH> >, ConstParams::PLOT_NUM
 		> Plot;									//!< 時系列用キュイプロットへのスマートポインタのクラス配列
-		CuiPlot<FGdepth::DEPTH_32BIT> PlotXY;	//!< XY作業空間用キュイプロット
-		CuiPlot<FGdepth::DEPTH_32BIT> PlotXZ;	//!< XZ作業空間用キュイプロット
+		CuiPlot<EquipParams::SCR_DEPTH> PlotXY;	//!< XY作業空間用キュイプロット
+		CuiPlot<EquipParams::SCR_DEPTH> PlotXZ;	//!< XZ作業空間用キュイプロット
 		
 		// 時系列プロット読み込み用変数
 		pthread_mutex_t PlotVarsMutex;	//!< プロット描画変数用のMutex

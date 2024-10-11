@@ -3,13 +3,11 @@
 //!
 //! ユーザが自由にカスタマイズできるグラフプロット描画クラス
 //!
-//! @date 2024/06/25
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// MIT License. For details, see the LICENSE file.
 
 #ifndef USERPLOT
 #define USERPLOT
@@ -66,8 +64,8 @@ class UserPlot {
 		static constexpr FGcolors PLOT_CURS_COLOR = FGcolors::GRAY50;	//!< 時刻カーソルの色
 		
 		// 以下にグラフ描画に使用するクラスと変数を定義
-		CuiPlot<FGdepth::DEPTH_32BIT> Plot;	//!< キュイプロット（例）
-		double X1, Y1;						//!< プロット変数（例）
+		CuiPlot<EquipParams::SCR_DEPTH> Plot;	//!< キュイプロット（例）
+		double X1, Y1;							//!< プロット変数（例）
 		
 		//! @brief ユーザカスタムプロット平面を描画する関数
 		//! （この関数はARCSgraphicsクラスの内部で関数オブジェクトを介して開始時に一度だけ実行される）
