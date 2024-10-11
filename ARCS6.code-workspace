@@ -78,7 +78,8 @@
 			"format": "cpp",
 			"iomanip": "cpp",
 			"span": "cpp",
-			"variant": "cpp"
+			"variant": "cpp",
+			"xlocmon": "cpp"
 		}
 	},
 }

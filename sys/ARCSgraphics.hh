@@ -77,8 +77,9 @@ class ARCSgraphics {
 		//! @brief 作業空間プロットに位置ベクトルを設定する関数
 		void SetWorkspace(const std::array<ArcsMat<6,1>, ConstParams::PLOTXYXZ_NUMPT>& AxPosition);
 		
-		FrameGraphics<>& GetFGrefs(void);	//!< フレームバッファクラスへの参照を返す関数
-
+		//! @brief フレームバッファクラスへの参照を返す関数
+		FrameGraphics<EquipParams::SCR_DEPTH>& GetFGrefs(void);
+		
 		//! @brief ユーザカスタムプロット描画関数への関数オブジェクトを設定する関数
 		void SetUserPlotFuncs(const std::function<void(void)>& DrawPlaneFobj, const std::function<void(void)>& DrawPlotFobj);
 		

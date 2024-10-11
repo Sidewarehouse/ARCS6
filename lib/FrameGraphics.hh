@@ -273,7 +273,7 @@ class FrameGraphics {
 			size_t i = ConvCoordinateToIndex(x, y);			// 座標からフレームバッファの要素番号を計算
 			for(int j = 0; j < h; ++j){
 				// 1ラインずつフレームバッファへ書き込む
-				memcpy(Frame + i + width*j, Screen + i + width*j, sizeof(TF)*w);
+				memcpy(Frame + i + width*j, Screen + i + width*j, sizeof(TF)*w);	// 16bit色のときココでSIGSEGV！
 			}
 		}
 		

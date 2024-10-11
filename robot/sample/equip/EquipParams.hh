@@ -33,7 +33,7 @@ class EquipParams {
 		//static constexpr int SCR_VERTICAL_MAX = 66;		//!< [文字] 画面の最大高さ文字数
 		//static constexpr int SCR_HORIZONTAL_MAX = 239;	//!< [文字] 画面の最大幅文字数
 		// それ以外の解像度の場合は各自で値を探すこと
-		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_32BIT;	//!< フレームバッファの色深度
+		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_16BIT;	//!< フレームバッファの色深度
 		
 		// SCHED_FIFOリアルタイムスレッドの設定
 		static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
