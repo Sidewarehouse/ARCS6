@@ -19,21 +19,11 @@ namespace ARCS {	// ARCS名前空間
 //! @brief 実験装置用定数値格納用クラス
 class EquipParams {
 	public:
-		// 画面サイズの設定 (モニタ解像度に合うように設定すること)
-		// 1024×600(WSVGA) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 36;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 127;	//!< [文字] 画面の最大幅文字数
-		// 1024×768(XGA) の場合に下記をアンコメントすること
-		static constexpr int SCR_VERTICAL_MAX = 47;			//!< [文字] 画面の最大高さ文字数
-		static constexpr int SCR_HORIZONTAL_MAX = 127;		//!< [文字] 画面の最大幅文字数
-		// 1280×1024(SXGA) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 63;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 159;	//!< [文字] 画面の最大幅文字数
-		// 1920×1080(Full HD) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 66;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 239;	//!< [文字] 画面の最大幅文字数
-		// それ以外の解像度の場合は各自で値を探すこと
+		// 画面の設定 (モニタ解像度に合うように設定すること)
+		static constexpr FGreso  SCR_RESO  = FGreso::RESO_1024x768;	//!< 画面解像度の設定
 		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_16BIT;	//!< フレームバッファの色深度
+		static constexpr int SCR_VERTICAL_MAX   =  47;	//!< [文字] 画面の最大高さ文字数(カスタム設定用)
+		static constexpr int SCR_HORIZONTAL_MAX = 127;	//!< [文字] 画面の最大幅文字数(カスタム設定用)
 		
 		// SCHED_FIFOリアルタイムスレッドの設定
 		static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択

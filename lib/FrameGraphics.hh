@@ -13,7 +13,7 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2024/10/10
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -55,6 +55,15 @@
 #pragma GCC diagnostic ignored "-Wstrict-overflow"
 
 namespace ARCS {	// ARCS名前空間
+
+//! @brief 分解能の定義
+enum class FGreso {
+	RESO_1024x600,	//!< WSVGA
+	RESO_1024x768,	//!< XGA
+	RESO_1280x1024,	//!< SXGA
+	RESO_1920x1080,	//!< Full HD
+	RESO_CUSTOM		//!< それ以外の場合
+};
 
 //! @brief 色深度の定義
 enum class FGdepth {

@@ -1,7 +1,7 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/06/24
+//! @date 2024/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -49,8 +49,22 @@ ARCSscreen::ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, A
 	PassedLog();				// イベントログにココを通過したことを記録
 	
 	// 画面解像度に従って最大値を設定
-	VERTICAL_MAX = EquipParams::SCR_VERTICAL_MAX;		// [文字] 画面の最大高さ
-	HORIZONTAL_MAX = EquipParams::SCR_HORIZONTAL_MAX;	// [文字] 画面の最大幅
+	if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1024x600){
+		VERTICAL_MAX   =  36;	// [文字] 画面の最大高さ文字数
+		HORIZONTAL_MAX = 127;	// [文字] 画面の最大幅文字数
+	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1024x768){
+		VERTICAL_MAX   =  47;	// [文字] 画面の最大高さ文字数
+		HORIZONTAL_MAX = 127;	// [文字] 画面の最大幅文字数
+	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1280x1024){
+		VERTICAL_MAX   =  63;	// [文字] 画面の最大高さ文字数
+		HORIZONTAL_MAX = 159;	// [文字] 画面の最大幅文字数
+	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1920x1080){
+		VERTICAL_MAX   =  66;	// [文字] 画面の最大高さ文字数
+		HORIZONTAL_MAX = 239;	// [文字] 画面の最大幅文字数
+	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_CUSTOM){
+		VERTICAL_MAX   = EquipParams::SCR_VERTICAL_MAX;		// [文字] 画面の最大高さ文字数(カスタム設定用)
+		HORIZONTAL_MAX = EquipParams::SCR_HORIZONTAL_MAX;	// [文字] 画面の最大幅文字数(カスタム設定用)
+	}
 	
 	// スレッド同期準備
 	pthread_mutex_init(&SyncMutex, nullptr);	// 同期用Mutexの初期化
