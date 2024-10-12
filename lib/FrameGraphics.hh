@@ -13,7 +13,7 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2024/10/11
+//! @date 2024/10/12
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -163,18 +163,33 @@ class FrameGraphics {
 				// フレームバッファが開けたとき
 				// 固定画面情報の取得
 				ioctl(fbfd, FBIOGET_FSCREENINFO, &finfo);
-				xlen = finfo.line_length;
+				xlen = finfo.line_length;		// [-]
 				
 				// 変動画面情報の取得
 				ioctl(fbfd, FBIOGET_VSCREENINFO, &vinfo);
-				width = xlen/4;							// padding対策のため width = vinfo.xres は使用しない
-				height = vinfo.yres;
-				depth = vinfo.bits_per_pixel;
-				xofst = vinfo.xoffset;
-				yofst = vinfo.yoffset;
-				bppx = vinfo.bits_per_pixel;
-				length = (size_t)width*(size_t)height;	// フレームバッファの長さを計算
-				size = length*(size_t)depth/8;			// 1画面データの大きさを計算 [bytes]
+				if constexpr(DP == FGdepth::DEPTH_32BIT){
+					// 32bit色深度の場合
+					width = xlen/4;				// [px] padding対策のため width = vinfo.xres は使用しない
+				}else if constexpr(DP == FGdepth::DEPTH_16BIT){
+					// 16bit色深度の場合
+					width = xlen/2;				// [px] padding対策のため width = vinfo.xres は使用しない
+				}
+				height = vinfo.yres;			// [px]
+				depth = vinfo.bits_per_pixel;	// [bit]
+				xofst = vinfo.xoffset;			// [px]
+				yofst = vinfo.yoffset;			// [px]
+				bppx = vinfo.bits_per_pixel;	// [bit/px]
+				length = (size_t)width*(size_t)height;	// [-] フレームバッファの長さを計算
+				size = length*(size_t)depth/8;			// [bytes] 1画面データの大きさを計算
+
+				// 画面情報のイベントログへの書き出し
+				EventLogVar(xlen);
+				EventLogVar(width);
+				EventLogVar(height);
+				EventLogVar(depth);
+				EventLogVar(bppx);
+				EventLogVar(length);
+				EventLogVar(size);
 
 				// 色深度チェック
 				if constexpr(DP == FGdepth::DEPTH_32BIT){

@@ -1,7 +1,7 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/06/24
+//! @date 2024/10/12
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -73,7 +73,7 @@ class ConstParams {
 		
 		// 時系列グラフプロットの共通設定
 		static constexpr char PLOT_PNGFILENAME[] = "Screenshot.png";//!< スクリーンショットのPNGファイル名
-		static constexpr size_t PLOT_NUM =  4;						//!< [-] グラフプロットの数
+		static constexpr size_t PLOT_NUM =  3;						//!< [-] グラフプロットの数
 		static constexpr double PLOT_TIMESPAN = 10;					//!< [s] プロットの時間幅
 		static constexpr double PLOT_TIMERESO = 0.01;				//!< [s] プロットの時間分解能
 		static constexpr size_t PLOT_RINGBUFF = 1024;				//!< [-] プロット用リングバッファの要素数

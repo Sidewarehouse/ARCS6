@@ -3,7 +3,7 @@
 //!
 //! グラフを描画するクラス
 //!
-//! @date 2024/10/11
+//! @date 2024/10/12
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -57,6 +57,11 @@ class ARCSgraphics {
 			// 再帰で順番に可変長引数を読み込んでいく
 			if(VarsCount == 0){
 				PlotNumBuf = (size_t)u1;	// 1個目の引数はプロット番号として格納
+				if(ConstParams::PLOT_NUM - 1 < PlotNumBuf){
+					// プロット番号が設定よりも超えていたら、
+					VarsCount = 0;			// 再帰カウンタをゼロに戻して、
+					return;					// 即終了
+				}
 			}else{
 				if(VarsCount <= ConstParams::PLOT_VAR_NUM[PlotNumBuf]){
 					// 変数要素数が有効な範囲内なら

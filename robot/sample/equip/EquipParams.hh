@@ -1,7 +1,7 @@
 //! @file EquipParams.hh
 //! @brief 実験装置用定数値格納用クラス
 //!        ARCSに必要な実験装置に特有な定数値を格納します。
-//! @date 2024/10/11
+//! @date 2024/10/12
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -19,9 +19,9 @@ namespace ARCS {	// ARCS名前空間
 //! @brief 実験装置用定数値格納用クラス
 class EquipParams {
 	public:
-		// 画面の設定 (モニタ解像度に合うように設定すること)
+		// 画面の設定 (ディスプレイ解像度に合うように設定すること)
 		static constexpr FGreso  SCR_RESO  = FGreso::RESO_1024x768;	//!< 画面解像度の設定
-		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_16BIT;	//!< フレームバッファの色深度
+		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_32BIT;	//!< フレームバッファの色深度
 		static constexpr int SCR_VERTICAL_MAX   =  47;	//!< [文字] 画面の最大高さ文字数(カスタム設定用)
 		static constexpr int SCR_HORIZONTAL_MAX = 127;	//!< [文字] 画面の最大幅文字数(カスタム設定用)
 		
