@@ -3,7 +3,7 @@
 //!
 //! pthreadのSCHED_FIFOで実時間スレッドを生成＆管理＆破棄する。実際に計測された制御周期や計算消費時間も提供する。
 //!
-//! @date 2024/10/07
+//! @date 2024/10/15
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -41,29 +41,34 @@
 #endif
 
 namespace ARCS {	// ARCS名前空間
-//! @brief リアルタイムアルゴリズムのタイプの定義
+
+//! @brief CFS(Completely Fair Scheduler)の設定の定義
+enum class SFsetCFS {
+	CFS_ENABLED,	//!< CFS有効 (リアルタイム性は低下、1秒毎にスパイク状の遅延が生じることがある)
+	CFS_DISABLED	//!< CFS無効 (リアルタイム性が向上するが、不安定になる場合もある)
+};
+
+//! @brief Preemptの設定の定義
+enum class SFsetPreempt {
+	PREEMPT_NORMAL,	//!< 通常のプリエンプション (リアルタイム性は低下する)
+	PREEMPT_DYNFULL	//!< PREEMPT_DYNAMICの場合にFULLモードにする (新しいkernelでのみ可、uname -a でチェック)
+};
+
+//! @brief Sleepの設定の定義
 //! 解説：
 //! 時間ゼロのスリープを入れるとLinuxが安定動作できるが，リアルタイム性は犠牲になる。
 //! 古い低速の処理系では INSERT_ZEROSLEEP を推奨する。
 //! 新しい高速の処理系では WITHOUT_ZEROSLEEP に設定するとリアルタイム性が改善する。
-enum class SFalgorithm {
-	INSERT_ZEROSLEEP,	//!< リアルタイムループに時間ゼロのスリープを入れる
-	WITHOUT_ZEROSLEEP	//!< スリープは一切入れない
+enum class SFsetSleep {
+	ZEROSLP_INST,	//!< リアルタイムループに時間ゼロのスリープを入れる
+	ZEROSLP_NO		//!< スリープは一切入れない
 };
-
-//! @brief カーネルパラメータのタイプの定義
-enum class SFkernelparam : uint8_t {
-	NO_SETTINGS     = 0b00000000,	//!< 何も設定しない場合
-	CFS_DISABLED	= 0b00000001,	//!< CFS(Completely Fair Scheduler)を無効にする
-	PREEMPT_DYNFULL = 0b00000010	//!< PREEMPT_DYNAMICの場合にFULLモードにする
-};
-// ↑を併用する場合は、
-// static_cast<SFkernelparam>( static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) | static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) )
-// のようにキャストを駆使して論理和を取ること。
 
 //! @brief 実時間スレッド生成・破棄クラス
-//! @tparam	SFA	リアルタイムアルゴリズムのタイプ
-template <SFalgorithm SFA = SFalgorithm::INSERT_ZEROSLEEP, SFkernelparam SFK = SFkernelparam::CFS_DISABLED>
+//! @tparam SFCFS	CFSの設定
+//! @tparam SFPMPT	PREEMPTの設定
+//! @tparam	SFSLP	Sleepの設定
+template <SFsetCFS SFCFS = SFsetCFS::CFS_DISABLED, SFsetPreempt SFPMPT = SFsetPreempt::PREEMPT_NORMAL, SFsetSleep SFSLP = SFsetSleep::ZEROSLP_INST>
 class SFthread {
 	public:
 		//! @brief 動作状態の定義
@@ -96,11 +101,6 @@ class SFthread {
 		{
 			// 実時間スレッドの生成と優先度の設定
 			PassedLog();
-			if constexpr(SFA == SFalgorithm::INSERT_ZEROSLEEP){
-				EventLog("INSERT_ZEROSLEEP MODE.");
-			}else{
-				EventLog("WITHOUT_ZEROSLEEP MODE.");
-			}
 			SetKernelParameters();		// カーネルパラメータをリアルタイム用に設定
 			pthread_mutex_init(&SyncMutex, nullptr);	// 同期用Mutexの初期化
 			pthread_cond_init(&SyncCond, nullptr);		// 同期用条件の初期化
@@ -128,11 +128,6 @@ class SFthread {
 		{
 			// 実時間スレッドの生成と優先度の設定
 			PassedLog();
-			if constexpr(SFA == SFalgorithm::INSERT_ZEROSLEEP){
-				EventLog("INSERT_ZEROSLEEP MODE.");
-			}else{
-				EventLog("WITHOUT_ZEROSLEEP MODE.");
-			}
 			SetKernelParameters();		// カーネルパラメータをリアルタイム用に設定
 			pthread_mutex_init(&SyncMutex, nullptr);	// 同期用Mutexの初期化
 			pthread_cond_init(&SyncCond, nullptr);		// 同期用条件の初期化
@@ -321,7 +316,7 @@ class SFthread {
 				StartTimePrev = StartTime;											// 次回用に今回の開始時刻を格納
 				NextTime = timespec_add(StartTime, PeriodTime);						// 開始時刻に制御周期を加算して次の時刻を計算
 				
-				if constexpr(SFA == SFalgorithm::INSERT_ZEROSLEEP){
+				if constexpr(SFSLP == SFsetSleep::ZEROSLP_INST){
 					clock_nanosleep(CLOCK_MONOTONIC, 0, &PreventStuck, nullptr);	// 「BUG: soft lockup - CPU#0 Stuck for 67s!」を回避するためのスリープ
 				}
 				clock_gettime(CLOCK_MONOTONIC, &EndTime);							// 終了時刻の取得
@@ -464,24 +459,33 @@ class SFthread {
 				EventLog("Setting kernel parameters for x86_64");
 				LinuxCommander::Execute("/bin/dmesg -n 1");	// カーネルメッセージの表示を抑制
 				
-				// カーネルパラメータの設定(CFSを無効にする場合)
-				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) ){
-					// 下記が無いと1秒毎にスパイク状の遅延が生じる
+				// CFS(Completely Fair Scheduler)の設定
+				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
+					// CFSを無効にする場合
 					LinuxCommander::Execute("/bin/echo -1 > /proc/sys/kernel/sched_rt_runtime_us");			// CFSを無効
 					LinuxCommander::Execute("/bin/echo 2147483647 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を最大化
 					EventLog("Kernel param: CFS Disabled");
+				}else{
+					EventLog("Kernel param: CFS Enabled");
 				}
 				
-				// カーネルパラメータの設定(PREEMPT_DYNAMICの場合にFULLモードに設定する場合)
-				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) ){
+				// Preemptの設定
+				if constexpr(SFPMPT == SFsetPreempt::PREEMPT_DYNFULL){
+					// PREEMPT_DYNAMICの場合にFULLモードに設定する場合
 					LinuxCommander::Execute("/bin/echo \"full\" > /sys/kernel/debug/sched/preempt");
 					EventLog("Kernel param: Set to \"full\" mode on PREEMPT_DYNAMIC");
+				}else{
+					EventLog("Kernel param: Set to preempt normal.");
 				}
 				
-				// リアルタイムアルゴリズムのタイプによる設定
-				if constexpr(SFA == SFalgorithm::WITHOUT_ZEROSLEEP){
-					LinuxCommander::Execute("/bin/echo 0 > /proc/sys/kernel/watchdog");					// 「BUG: soft lockup」警告防止
+				// Sleepの設定による設定
+				if constexpr(SFSLP == SFsetSleep::ZEROSLP_NO){
+					// ゼロスリープを入れない場合
+					EventLog("Kernel param: Not insertion of Zero sleep.");
+					LinuxCommander::Execute("/bin/echo 0 > /proc/sys/kernel/watchdog");	// 「BUG: soft lockup」警告防止
 					EventLog("Kernel param: Watchdog Disabled");
+				}else{
+					EventLog("Kernel param: Set to Zero sleep insertion mode.");
 				}
 			#endif
 			
@@ -506,7 +510,7 @@ class SFthread {
 			// x86_64系の場合
 			#ifdef __x86_64__
 				// カーネルパラメータをデフォルト値に戻す(CFSを無効にした場合)
-				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) ){
+				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
 					// 下記のように戻しておいた方が安定性の観点から無難
 					LinuxCommander::Execute("/bin/echo 950000 > /proc/sys/kernel/sched_rt_runtime_us");	// CFSを有効，もとに戻す
 					LinuxCommander::Execute("/bin/echo 1000000 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を元に戻す
@@ -514,7 +518,7 @@ class SFthread {
 				}
 				
 				// カーネルパラメータをデフォルト値に戻す(PREEMPT_DYNAMICの場合にFULLモードに設定した場合)
-				if constexpr( static_cast<uint8_t>(SFK) & static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL) ){
+				if constexpr(SFPMPT == SFsetPreempt::PREEMPT_DYNFULL){
 					LinuxCommander::Execute("/bin/echo \"voluntary\" > /sys/kernel/debug/sched/preempt");
 					EventLog("Kernel param: Set to \"voluntary\" mode on PREEMPT_DYNAMIC");
 				}

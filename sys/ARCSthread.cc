@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/06/24
+//! @date 2024/10/15
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -41,7 +41,7 @@ ARCSthread::ARCSthread(ARCSassert& Asrt, ARCSscrparams& SP, ARCSgraphics& GP) :
 	pthread_cond_init(&InfoCond, nullptr);	// 情報取得スレッド同期用条件初期化
 	CtrlFuncObj = CtrlFuncs.GetCtrlFuncObject();				// 制御用周期実行関数の関数オブジェクトを取得
 	for(size_t i = 0; i < ConstParams::THREAD_NUM; ++i){
-		RTthreads.at(i) = std::make_unique< SFthread<EquipParams::THREAD_TYPE, EquipParams::THREAD_KP> >(
+		RTthreads.at(i) = std::make_unique< SFthread<EquipParams::THREAD_CFS, EquipParams::THREAD_PMPT, EquipParams::THREAD_SLP> >(
 			ConstParams::SAMPLING_TIME.at(i), EquipParams::CPUCORE_NUMBER.at(i)
 		);	// リアルタイムスレッドの生成
 		RTthreads.at(i)->SetRealtimeFunction(CtrlFuncObj[i]);	// 関数オブジェクトをリアルタイムスレッドとして設定

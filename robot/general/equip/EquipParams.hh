@@ -1,7 +1,7 @@
 //! @file EquipParams.hh
 //! @brief 実験装置用定数値格納用クラス
 //!        ARCSに必要な実験装置に特有な定数値を格納します。
-//! @date 2024/06/24
+//! @date 2024/10/15
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -13,50 +13,34 @@
 #include <cmath>
 #include "ARCSparams.hh"
 #include "SFthread.hh"
+#include "FrameGraphics.hh"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief 実験装置用定数値格納用クラス
 class EquipParams {
 	public:
-		// 画面サイズの設定 (モニタ解像度に合うように設定すること)
-		// 1024×600(WSVGA) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 36;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 127;	//!< [文字] 画面の最大幅文字数
-		// 1024×768(XGA) の場合に下記をアンコメントすること
-		static constexpr int SCR_VERTICAL_MAX = 47;			//!< [文字] 画面の最大高さ文字数
-		static constexpr int SCR_HORIZONTAL_MAX = 127;		//!< [文字] 画面の最大幅文字数
-		// 1280×1024(SXGA) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 63;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 159;	//!< [文字] 画面の最大幅文字数
-		// 1920×1080(Full HD) の場合に下記をアンコメントすること
-		//static constexpr int SCR_VERTICAL_MAX = 66;		//!< [文字] 画面の最大高さ文字数
-		//static constexpr int SCR_HORIZONTAL_MAX = 239;	//!< [文字] 画面の最大幅文字数
-		// それ以外の解像度の場合は各自で値を探すこと
+		// 画面の設定 (ディスプレイ解像度に合うように設定すること)
+		static constexpr FGreso  SCR_RESO  = FGreso::RESO_1024x768;	//!< 画面解像度の設定
+		static constexpr FGdepth SCR_DEPTH = FGdepth::DEPTH_32BIT;	//!< フレームバッファの色深度
+		static constexpr int SCR_VERTICAL_MAX   =  47;				//!< [文字] 画面の最大高さ文字数(RESO_CUSTOM設定用)
+		static constexpr int SCR_HORIZONTAL_MAX = 127;				//!< [文字] 画面の最大幅文字数(RESO_CUSTOM設定用)
+		static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";		//!< フレームバッファ ファイルデスクリプタ
 		
 		// SCHED_FIFOリアルタイムスレッドの設定
-		static constexpr SFalgorithm THREAD_TYPE = SFalgorithm::INSERT_ZEROSLEEP;	//!< リアルタイムアルゴリズムの選択
-		// 上記を INSERT_ZEROSLEEP にすると安定性が増すがリアルタイム性は落ちる。遅い処理系の場合に推奨。
-		// WITHOUT_ZEROSLEEP にするとリアルタイム性が向上するが，一時的に操作不能になる可能性が残る。高速な処理系の場合に選択可。
-		// 下記はカーネルパラメータの設定
-		// NO_SETTINGS もしくは CFS_DISABLED と PREEMPT_DYNFULL が併用可。詳細はSFthreadクラスのコメント欄を参照のこと。
-		//static constexpr SFkernelparam THREAD_KP = SFkernelparam::CFS_DISABLED;		//!< CFSをリアルタイム用に設定
-		static constexpr SFkernelparam THREAD_KP = static_cast<SFkernelparam>(
-			static_cast<uint8_t>(SFkernelparam::CFS_DISABLED) | static_cast<uint8_t>(SFkernelparam::PREEMPT_DYNFULL)
-		);	//!< CFSとPREEMPTの設定を併用する場合の例
+		static constexpr SFsetCFS THREAD_CFS      = SFsetCFS::CFS_DISABLED;			//!< CFS(Completely Fair Scheduler)の設定の選択
+		static constexpr SFsetPreempt THREAD_PMPT = SFsetPreempt::PREEMPT_DYNFULL;	//!< Preemptの設定の選択
+		static constexpr SFsetSleep THREAD_SLP    = SFsetSleep::ZEROSLP_INST;		//!< Sleepの設定の選択
 		
 		//! @brief 使用CPUコアの設定
 		//! CPU0番コアはOSとARCSシステム、CPU1番コアはARCS描画系が使用しているので、2番目以上が望ましい
 		static constexpr std::array<size_t, ARCSparams::THREAD_MAX> CPUCORE_NUMBER = {
-				3,	// [-] 制御用周期実行関数1 (スレッド1) 使用するCPUコア番号
-				2,	// [-] 制御用周期実行関数2 (スレッド2) 使用するCPUコア番号
-				1,	// [-] 制御用周期実行関数3 (スレッド3) 使用するCPUコア番号
+			3,	// [-] 制御用周期実行関数1 (スレッド1) 使用するCPUコア番号
+			2,	// [-] 制御用周期実行関数2 (スレッド2) 使用するCPUコア番号
+			1,	// [-] 制御用周期実行関数3 (スレッド3) 使用するCPUコア番号
 		};
 		
-		// 時系列グラフプロットの設定
-		static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";//!< フレームバッファ ファイルデスクリプタ
-		
 		// 実験機アクチュエータの設定
-		static constexpr size_t ACTUATOR_NUM = 1;			//!< [基] 実験装置のアクチュエータの総数
+		static constexpr size_t ACTUATOR_NUM = 1;	//!< [基] 実験装置のアクチュエータの総数
 		
 		//! @brief 実験機アクチュエータの種類の設定（リニアモータか回転モータかの設定）
 		//! 下記が使用可能

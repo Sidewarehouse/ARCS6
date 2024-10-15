@@ -3,7 +3,7 @@
 //!
 //! リアルタイムスレッドの生成、開始、停止、破棄などの管理をします。
 //!
-//! @date 2024/06/25
+//! @date 2024/10/15
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -49,7 +49,7 @@ namespace ARCS {	// ARCS名前空間
 			ControlFunctions CtrlFuncs;								//!< 制御用周期実行関数群
 			std::array<std::function<bool(const double, const double, const double)>, ARCSparams::THREAD_MAX> CtrlFuncObj;	//!< 制御用周期実行関数の関数オブジェクト配列
 			std::array<
-				std::unique_ptr< SFthread<EquipParams::THREAD_TYPE, EquipParams::THREAD_KP> >
+				std::unique_ptr< SFthread<EquipParams::THREAD_CFS, EquipParams::THREAD_PMPT, EquipParams::THREAD_SLP> >
 			, ARCSparams::THREAD_MAX> RTthreads;					//!< リアルタイムマルチスレッドへのスマートポインタ配列
 			
 			//! @brief スレッド状態の定義
