@@ -1,5 +1,5 @@
 # gitでの共有を無視するファイル・ディレクトリ
-# Yokokura, Yuki 2023/02/21
+# Yokokura, Yuki 2024/10/15
 
 # C++上での基本的に不必要なファイル
 # Prerequisites
@@ -39,7 +39,6 @@ EventLog.txt
 # 下記で列挙されているロボット以外は非公開
 /robot/*
 !/robot/general/
-!/robot/SA2RasPi/
 !/robot/sample/
+!/robot/ServoEducator/
 !/robot/ZFA01/
-

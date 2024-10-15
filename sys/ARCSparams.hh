@@ -20,7 +20,7 @@ namespace ARCS {	// ARCS名前空間
 class ARCSparams {
 	public:
 		// ARCS改訂番号(ARCS本体側システムコード改変時にちゃんと変えること)
-		static constexpr char ARCS_REVISION[] = "AR6-REV.24101211";	//!< ARCS改訂番号(16文字以内)
+		static constexpr char ARCS_REVISION[] = "AR6-REV.24101511";	//!< ARCS改訂番号(16文字以内)
 		
 		// イベントログの設定
 		static constexpr char EVENTLOG_NAME[] = "EventLog.txt";		//!< イベントログファイル名
