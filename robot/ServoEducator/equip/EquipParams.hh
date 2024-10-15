@@ -27,9 +27,9 @@ class EquipParams {
 		static constexpr char PLOT_FRAMEBUFF[] = "/dev/fb0";		//!< フレームバッファ ファイルデスクリプタ
 		
 		// SCHED_FIFOリアルタイムスレッドの設定
-		static constexpr SFsetCFS THREAD_CFS      = SFsetCFS::CFS_ENABLED;			//!< CFS(Completely Fair Scheduler)の設定の選択
+		static constexpr SFsetCFS THREAD_CFS      = SFsetCFS::CFS_DISABLED;			//!< CFS(Completely Fair Scheduler)の設定の選択
 		static constexpr SFsetPreempt THREAD_PMPT = SFsetPreempt::PREEMPT_NORMAL;	//!< Preemptの設定の選択
-		static constexpr SFsetSleep THREAD_SLP    = SFsetSleep::ZEROSLP_INST;		//!< Sleepの設定の選択
+		static constexpr SFsetSleep THREAD_SLP    = SFsetSleep::ZEROSLP_NO;			//!< Sleepの設定の選択
 		
 		//! @brief 使用CPUコアの設定
 		//! CPU0番コアはOSとARCSシステム、CPU1番コアはARCS描画系が使用しているので、2番目以上が望ましい

@@ -1,6 +1,6 @@
 //! @file InterfaceFunctions.hh
 //! @brief インターフェースクラス
-//! @date 2024/06/25
+//! @date 2024/10/15
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2024 Yokokura, Yuki
@@ -20,6 +20,7 @@
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"
 #include "Limiter.hh"
+#include "SA2-RasPi2.hh"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief インターフェースクラス
@@ -29,11 +30,12 @@ class InterfaceFunctions {
 		// ここにインターフェース関連の定数を記述する(記述例はsampleを参照)
 		
 		// ここにD/A，A/D，エンコーダIFボードクラス等々の宣言を記述する(記述例はsampleを参照)
-		
+		SA2RasPi2 SA2IF;	// SA2インターフェース
+
 		//! @brief コンストラクタ
 		InterfaceFunctions()
 			// ここにD/A，A/D，エンコーダIFボードクラス等々の初期化子リストを記述する(記述例はsampleを参照)
-			//:
+			: SA2IF()
 		{
 			PassedLog();
 		}
@@ -147,6 +149,22 @@ class InterfaceFunctions {
 			
 		}
 		
+		//! @brief SA2IF処理開始
+		void StartSA2IF(void){
+			SA2IF.StartProcess();
+		}
+
+		//! @brief SA2IF処理終了
+		void EndSA2IF(void){
+			SA2IF.EndProcess();
+		}
+
+		//! @brief SA2IF-DACに電圧を設定する関数
+		//! @param[in]	Vdac	[V] 出力電圧 CH1
+		void SetDACvoltage(const double& Vdac){
+			SA2IF.SetVoltageDAC1(Vdac);
+		}
+
 	private:
 		InterfaceFunctions(const InterfaceFunctions&) = delete;					//!< コピーコンストラクタ使用禁止
 		const InterfaceFunctions& operator=(const InterfaceFunctions&) = delete;//!< 代入演算子使用禁止
