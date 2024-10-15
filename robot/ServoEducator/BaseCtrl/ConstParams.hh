@@ -28,7 +28,7 @@ class ConstParams {
 		static constexpr double DATA_START =  0;		//!< [s] 保存開始時刻
 		static constexpr double DATA_END   = 10;		//!< [s] 保存終了時刻
 		static constexpr double DATA_RESO  = 0.01;		//!< [s] データの時間分解能
-		static constexpr size_t DATA_NUM  =  10;		//!< [-] 保存する変数の数
+		static constexpr size_t DATA_NUM  =  5;			//!< [-] 保存する変数の数
 
 		// SCHED_FIFOリアルタイムスレッドの設定
 		static constexpr size_t THREAD_NUM = 1;			//!< 動作させるスレッドの数 (最大数は ARCSparams::THREAD_NUM_MAX 個まで)

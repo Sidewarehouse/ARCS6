@@ -487,12 +487,23 @@ class SFthread {
 				}else{
 					EventLog("Kernel param: Set to Zero sleep insertion mode.");
 				}
+
 			#endif
 			
 			// ARM系の場合
 			#ifdef __ARM_ARCH
 				EventLog("Setting kernel parameters for ARM");
-				// パラメータなし
+				LinuxCommander::Execute("/bin/dmesg -n 1");	// カーネルメッセージの表示を抑制
+				
+				// CFS(Completely Fair Scheduler)の設定
+				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
+					// CFSを無効にする場合
+					LinuxCommander::Execute("/bin/echo -1 > /proc/sys/kernel/sched_rt_runtime_us");			// CFSを無効
+					EventLog("Kernel param: CFS Disabled");
+				}else{
+					EventLog("Kernel param: CFS Enabled");
+				}
+
 			#endif
 			
 			// 下記は実験的なカーネルパラメータ(様子見中)
@@ -509,6 +520,7 @@ class SFthread {
 			
 			// x86_64系の場合
 			#ifdef __x86_64__
+
 				// カーネルパラメータをデフォルト値に戻す(CFSを無効にした場合)
 				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
 					// 下記のように戻しておいた方が安定性の観点から無難
@@ -525,11 +537,22 @@ class SFthread {
 				
 				LinuxCommander::Execute("/bin/dmesg -n 3");	// カーネルメッセージの表示をデフォルト値に戻す
 				EventLog("Kernel param: Returned to default settings.");
+
 			#endif
 			
 			// ARM系の場合
 			#ifdef __ARM_ARCH
-				// パラメータなし
+
+				// カーネルパラメータをデフォルト値に戻す(CFSを無効にした場合)
+				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
+					// 下記のように戻しておいた方が安定性の観点から無難
+					LinuxCommander::Execute("/bin/echo 950000 > /proc/sys/kernel/sched_rt_runtime_us");	// CFSを有効，もとに戻す
+					EventLog("Kernel param: CFS Enabled");
+				}
+
+				LinuxCommander::Execute("/bin/dmesg -n 3");	// カーネルメッセージの表示をデフォルト値に戻す
+				EventLog("Kernel param: Returned to default settings.");
+
 			#endif
 			
 			// 下記は実験的なカーネルパラメータ(様子見中)

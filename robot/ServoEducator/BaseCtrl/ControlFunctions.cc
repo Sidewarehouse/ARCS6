@@ -56,7 +56,7 @@ bool ControlFunctions::ControlFunction1(const double t, const double Tact, const
 		// ここに制御アルゴリズムを記述する
 		
 		//Interface.SetCurrent(iqref);	// [A] 電流指令ベクトルの出力
-		Interface.SetDACvoltage(cos(2.0*M_PI*50.0*t));
+		Interface.SetDACvoltage(cos(2.0*M_PI*10.0*t));
 		/*
 		Screen.SetVarIndicator(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
 		Graph.SetTime(Tact, t);									// [s] グラフ描画用の周期と時刻のセット
@@ -64,7 +64,7 @@ bool ControlFunctions::ControlFunction1(const double t, const double Tact, const
 		Graph.SetVars(1, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(2, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
 		UsrGraph.SetVars(0, 0);						// ユーザカスタムプロット（例）
-		Memory.SetData(Tact, t, 0, 0, 0, 0, 0, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
+		Memory.SetData(Tact, t, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		*/
 		Interface.EndSA2IF();		// SA2IF処理終了
 		// リアルタイム制御ここまで

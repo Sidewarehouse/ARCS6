@@ -11,7 +11,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSgraphics.hh ../../../sys/ControlFunctions.hh \
  ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
  ../equip/EquipParams.hh ../../../lib/Limiter.hh \
- ../../../lib/ArcsMatrix.hh UserPlot.hh
+ ../../../lib/ArcsMatrix.hh ../../../lib/SA2-RasPi2.hh \
+ ../../../lib/RPi2GPIO.hh UserPlot.hh
 ../equip/EquipBase.o: ../equip/EquipBase.cc ../equip/EquipBase.hh
 ../equip/EquipTemplate.o: ../equip/EquipTemplate.cc \
  ../equip/EquipTemplate.hh
@@ -170,17 +171,12 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/PCI-3180.o: ../../../lib/PCI-3180.cc \
  ../../../lib/PCI-3180.hh ../../../sys/ARCSassert.hh \
  ../../../sys/ARCSeventlog.hh
-../../../lib/PCI-3340.o: ../../../lib/PCI-3340.cc \
- ../../../lib/PCI-3340.hh ../../../sys/ARCSeventlog.hh
-../../../lib/PCI-3343A.o: ../../../lib/PCI-3343A.cc \
- ../../../lib/PCI-3343A.hh ../../../sys/ARCSeventlog.hh \
- ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh \
- ../../../lib/Matrix.hh
+../../../lib/PCI-3340.o: ../../../lib/PCI-3340.cc
+../../../lib/PCI-3343A.o: ../../../lib/PCI-3343A.cc
 ../../../lib/PCI-46610x.o: ../../../lib/PCI-46610x.cc \
  ../../../lib/PCI-46610x.hh ../../../sys/ARCSassert.hh \
  ../../../sys/ARCSeventlog.hh
-../../../lib/PCI-6205C.o: ../../../lib/PCI-6205C.cc \
- ../../../lib/PCI-6205C.hh ../../../sys/ARCSeventlog.hh
+../../../lib/PCI-6205C.o: ../../../lib/PCI-6205C.cc
 ../../../lib/PCIe-AC01.o: ../../../lib/PCIe-AC01.cc \
  ../../../lib/PCIe-AC01.hh
 ../../../lib/PDcontroller.o: ../../../lib/PDcontroller.cc \
@@ -351,7 +347,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSprint.hh ../../../lib/Matrix.hh ../equip/EquipParams.hh \
  ../../../lib/ArcsMatrix.hh ../../../lib/Limiter.hh \
- ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../sys/ARCSgraphics.hh \
+ ../../../lib/ArcsMatrix.hh ../../../lib/SA2-RasPi2.hh \
+ ../../../lib/RPi2GPIO.hh UserPlot.hh ../../../sys/ARCSgraphics.hh \
  ../../../sys/ARCSmemory.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSassert.hh ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
@@ -430,7 +427,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSeventlog.hh ../../../sys/ARCSprint.hh \
  ../../../sys/ARCScommon.hh ../../../lib/Matrix.hh \
  ../equip/EquipParams.hh ../../../lib/ArcsMatrix.hh \
- ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh UserPlot.hh \
+ ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh \
+ ../../../lib/SA2-RasPi2.hh ../../../lib/RPi2GPIO.hh UserPlot.hh \
  ../../../sys/ARCSgraphics.hh ../equip/EquipParams.hh \
  ../../../sys/ARCSmemory.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSassert.hh ../../../sys/ARCSparams.hh \
@@ -445,7 +443,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSeventlog.hh ../../../sys/ARCSprint.hh \
  ../../../sys/ARCScommon.hh ../../../lib/Matrix.hh \
  ../equip/EquipParams.hh ../../../lib/ArcsMatrix.hh \
- ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh
+ ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh \
+ ../../../lib/SA2-RasPi2.hh ../../../lib/RPi2GPIO.hh
 ../../../sys/UserPlot.o: ../../../sys/UserPlot.cc UserPlot.hh \
  ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSgraphics.hh ConstParams.hh ../../../sys/ARCSparams.hh \
