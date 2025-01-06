@@ -26,6 +26,7 @@
 #include <cassert>
 #include <array>
 #include <complex>
+#include <cstdint>
 
 // ARCS組込み用マクロ
 #ifdef ARCS_IN
