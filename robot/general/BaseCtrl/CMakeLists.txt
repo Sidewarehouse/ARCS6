@@ -5,9 +5,11 @@ set(CMAKE_CXX_STANDARD 17)
 # 共通のコンパイルオプション
 set(CMAKE_CXX_FLAGS "-fconcepts -Wall -Weffc++ -ftree-vectorize -march=native -DARCS_IN")
 # Releaseのコンパイルオプション
-set(CMAKE_CXX_FLAGS_RELEASE "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O2 -pipe")
+set(CMAKE_C_FLAGS_RELEASE "-O2 -pipe")
 # Debugのコンパイルオプション
 set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -Og")
+set(CMAKE_C_FLAGS_DEBUG "-ggdb3 -Og")
 # アセンブリリスト出力用
 set(CMAKE_CXX_FLAGS_ASM  "-S -g")
 
@@ -73,4 +75,20 @@ target_link_libraries(
         png
         z
         ${CMAKE_THREAD_LIBS_INIT}
+)
+
+# ソースコード行数カウント用のターゲット
+add_custom_target(count_lines
+        COMMAND wc -l
+        ${ARCS_SOURCE_DIR}/*.cc
+        ${ARCS_SOURCE_DIR}/*.hh
+        ${arcs_robot_dir}/equip/*.cc
+        ${arcs_robot_dir}/equip/*.hh
+        ${arcs_robot_dir}/equip/c/*.c
+        ${arcs_robot_dir}/equip/c/*.h
+        ${arcs_root_dir}/lib/*.cc
+        ${arcs_root_dir}/lib/*.hh
+        ${arcs_root_dir}/sys/*.cc
+        ${arcs_root_dir}/sys/*.hh
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 )
