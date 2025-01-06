@@ -42,3 +42,7 @@ EventLog.txt
 !/robot/sample/
 !/robot/ServoEducator/
 !/robot/ZFA01/
+
+# CMkae関連のディレクトリ
+.idea/
+**/cmake-build-*/
