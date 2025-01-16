@@ -24,6 +24,7 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <cassert>
 #include "CPUSettings.hh"
 #include "LinuxCommander.hh"
 
