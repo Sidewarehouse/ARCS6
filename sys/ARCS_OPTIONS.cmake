@@ -35,6 +35,9 @@ set(CMAKE_CXX_FLAGS_RELEASE "-O2 -pipe")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -pipe")
 set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -Og")
 set(CMAKE_C_FLAGS_DEBUG "-ggdb3 -Og")
+# アセンブリ出力用オプション
+set(CMAKE_CXX_FLAGS_ASM "-S -g")
+set(CMAKE_C_FLAGS_ASM "-S -g")
 
 # C++バージョン指定
 set(CMAKE_CXX_STANDARD 17)

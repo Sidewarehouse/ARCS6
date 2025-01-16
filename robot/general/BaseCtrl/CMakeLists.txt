@@ -15,8 +15,9 @@ add_compile_options(
         ${ARCS_MAIN_OPTIONS}
 )
 
-# lib, sysのファイルを.cmakeから取得
+# libを取得 (static リンク)
 add_subdirectory(${arcs_root_dir}/lib lib)
+# sysのファイルを.cmakeから取得
 include(${arcs_root_dir}/sys/ARCS_SYS.cmake)
 
 # ロボットフォルダを取得
