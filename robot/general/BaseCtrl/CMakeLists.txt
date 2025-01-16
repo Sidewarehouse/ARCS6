@@ -1,25 +1,22 @@
 cmake_minimum_required(VERSION 3.16)
 project(ARCS)
 
-set(CMAKE_CXX_STANDARD 17)
-# 共通のコンパイルオプション
-set(CMAKE_CXX_FLAGS "-fconcepts -Wall -Weffc++ -ftree-vectorize -march=native -DARCS_IN")
-# Releaseのコンパイルオプション
-set(CMAKE_CXX_FLAGS_RELEASE "-O2 -pipe")
-set(CMAKE_C_FLAGS_RELEASE "-O2 -pipe")
-# Debugのコンパイルオプション
-set(CMAKE_CXX_FLAGS_DEBUG "-ggdb3 -Og")
-set(CMAKE_C_FLAGS_DEBUG "-ggdb3 -Og")
-# アセンブリリスト出力用
-set(CMAKE_CXX_FLAGS_ASM  "-S -g")
-
 # pthreadを見つける
 find_package(Threads REQUIRED)
 
 # ARCSのルートディレクトリを取得
 get_filename_component(arcs_root_dir ${ARCS_SOURCE_DIR}/../../.. ABSOLUTE)
-# lib, src, sysのファイルを.cmakeから取得
-include(${arcs_root_dir}/lib/ARCS_LIB.cmake)
+
+# 共通オプションとメインプロジェクト用オプションを追加
+include(${arcs_root_dir}/sys/ARCS_OPTIONS.cmake)
+add_compile_options(
+        ${ARCS_COMMON_CXX_OPTIONS}
+        ${ARCS_COMMON_C_OPTIONS}
+        ${ARCS_MAIN_OPTIONS}
+)
+
+# lib, sysのファイルを.cmakeから取得
+add_subdirectory(${arcs_root_dir}/lib lib)
 include(${arcs_root_dir}/sys/ARCS_SYS.cmake)
 
 # ロボットフォルダを取得
@@ -34,10 +31,9 @@ include_directories(${ARCS_SOURCE_DIR})
 # 実行ファイルARCSを生成
 add_executable(
         ARCS
-        ${ARCS_LIB_files}
+        ${ARCS_CC_file} # ARCS.cc オンライン用
         ${ARCS_SYS_files}
         ${ARCS_EQUIP_files}
-        ${ARCS_CC_file} # ARCS.cc オンライン用
         ConstParams.hh
         ControlFunctions.cc
 )
@@ -52,14 +48,15 @@ target_link_libraries(
         png
         z
         ${CMAKE_THREAD_LIBS_INIT}
+        ARCS_LIB
 )
 
 
 # 実行ファイルARCS_offlineを生成
 add_executable(
         ARCS_offline
-        ${ARCS_LIB_files}
         ${ARCS_SYS_files}
+        ${ARCS_EQUIP_files}
         OfflineFunction.cc # ARCS.ccの代わりにオフライン
         ConstParams.hh
         ControlFunctions.cc
@@ -75,6 +72,7 @@ target_link_libraries(
         png
         z
         ${CMAKE_THREAD_LIBS_INIT}
+        ARCS_LIB
 )
 
 # ソースコード行数カウント用のターゲット
