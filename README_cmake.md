@@ -31,3 +31,24 @@ JetBrains CLionを用いてUbuntu Serverがインストールされている制�
 通常の設定方法だとBaseCtrl以下のファイルしか同期されないため，CLionのPreferences-Build, Execution, Deployment-MappingsのLocal path:をARCS6に変更する．
 
 ロボットや制御を変更するときは，CMakeLists.txtを右クリックしてLoad CMake Projectする．
+
+## ライブラリとして使用
+このように記述することで，ARCS6をライブラリとして使用できる．
+
+```cmake
+include(FetchContent)
+FetchContent_Declare(
+        ARCS
+        GIT_REPOSITORY https://github.com/Sidewarehouse/ARCS6.git
+        GIT_TAG main
+)
+FetchContent_MakeAvailable(ARCS)
+add_subdirectory(${arcs_SOURCE_DIR}/lib)
+add_executable(BIN_NAME
+        main.cpp
+)
+target_link_libraries(BIN_NAME
+        PRIVATE
+        ARCS_LIB
+)
+```
