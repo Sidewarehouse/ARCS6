@@ -1,10 +1,10 @@
-% TransferFunctioクラスのテスト用スクリプト
-% 2022/11/11 Yokokura, Yuki
+% TransferFunctionクラスのテスト用スクリプト
+% 2025/01/17 Yokokura, Yuki
 clc;
 clear;
 
 % CSVファイル名設定
-FileName = '../DATA.csv';
+FileName = '../041_任意の伝達関数/DATA.csv';
 
 % テスト対象の伝達関数
 s = tf('s');
@@ -25,11 +25,12 @@ clear CsvData;
 tlen = length(t);
 
 % 真値の計算
-Ts = t(tlen)/(tlen-1);
+Ts = t(tlen)/(tlen-1);	% 平均サンプリング周期
 ti = 0:Ts:t(tlen);
 y1i = lsim(G1, u, ti);
 y2i = lsim(G2, u, ti);
 y3i = lsim(G3, u, ti);
+fprintf('\n Ts = %16.15e s\n', Ts);
 
 % グラフ描画
 figure(1);

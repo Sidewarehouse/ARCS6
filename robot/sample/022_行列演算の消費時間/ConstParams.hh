@@ -21,7 +21,7 @@ namespace ARCS {	// ARCS名前空間
 class ConstParams {
 	public:
 		// タイトルに表示させる制御系の名前(識別用に好きな名前を入力)
-		static constexpr char CTRLNAME[] = "<TITLE: NOTITLE >";	//!< (画面に入る文字数以内)
+		static constexpr char CTRLNAME[] = "<TITLE: ArcsMatrix Computational Time Check >";	//!< (画面に入る文字数以内)
 		
 		// 実験データCSVファイルの設定
 		static constexpr char DATA_NAME[] = "DATA.csv";	//!< CSVファイル名

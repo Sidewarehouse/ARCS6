@@ -1,10 +1,10 @@
 //! @file ConstParams.hh
 //! @brief 定数値格納用クラス
 //!        ARCSに必要な定数値を格納します。
-//! @date 2024/08/06
+//! @date 2025/01/17
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef CONSTPARAMS
@@ -21,7 +21,7 @@ namespace ARCS {	// ARCS名前空間
 class ConstParams {
 	public:
 		// タイトルに表示させる制御系の名前(識別用に好きな名前を入力)
-		static constexpr char CTRLNAME[] = "<TITLE: NOTITLE >";	//!< (画面に入る文字数以内)
+		static constexpr char CTRLNAME[] = "<TITLE: ArcsControl Sample Code >";	//!< (画面に入る文字数以内)
 		
 		// 実験データCSVファイルの設定
 		static constexpr char DATA_NAME[] = "DATA.csv";	//!< CSVファイル名

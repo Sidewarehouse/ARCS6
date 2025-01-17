@@ -1,5 +1,5 @@
-% 行列演算チェック用MATLABコード
-% Yokokura, Yuki 2024/07/02
+% ARCS-Matrix行列演算チェック用MATLABコード
+% Yokokura, Yuki 2025/01/17
 clc;
 clear;
 format short

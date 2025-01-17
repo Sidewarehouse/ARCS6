@@ -1,10 +1,10 @@
-% StateSpaceSystemクラスのテスト用スクリプト
-% 2023/10/26 Yokokura, Yuki
+% ArcsControl::StateSpaceクラスのテスト用スクリプト
+% 2025/01/17 Yokokura, Yuki
 clc;
 clear;
 
 % CSVファイル名設定
-FileName = '../DATA.csv';
+FileName = '../042_任意の状態空間モデル/DATA.csv';
 
 % テスト対象の状態空間モデル
 A = [

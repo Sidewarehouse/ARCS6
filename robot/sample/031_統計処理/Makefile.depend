@@ -25,7 +25,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/ArcTangent.o: ../../../lib/ArcTangent.cc \
  ../../../lib/ArcTangent.hh
 ../../../lib/ArcsControl.o: ../../../lib/ArcsControl.cc \
- ../../../lib/ArcsControl.hh ../../../lib/Matrix.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh \
+ ../../../lib/Matrix.hh
 ../../../lib/ArcsMatrix.o: ../../../lib/ArcsMatrix.cc \
  ../../../lib/ArcsMatrix.hh
 ../../../lib/BatchProcessor.o: ../../../lib/BatchProcessor.cc \
@@ -66,7 +67,7 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/DisturbanceObsrv.o: ../../../lib/DisturbanceObsrv.cc \
  ../../../lib/DisturbanceObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh ../../../lib/StateSpaceSystem.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/FRAgenerator.o: ../../../lib/FRAgenerator.cc \
  ../../../lib/FRAgenerator.hh ../../../sys/ARCSeventlog.hh
 ../../../lib/FeedforwardNeuralNet3.o: \
@@ -119,7 +120,7 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/LoadVelocityObsrv.o: ../../../lib/LoadVelocityObsrv.cc \
  ../../../lib/LoadVelocityObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh ../../../lib/StateSpaceSystem.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/LoadsideDistObsrv.o: ../../../lib/LoadsideDistObsrv.cc \
  ../../../lib/LoadsideDistObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh ../../../sys/ARCSeventlog.hh
@@ -133,12 +134,12 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/MotorSimulator.o: ../../../lib/MotorSimulator.cc \
  ../../../lib/MotorSimulator.hh ../../../lib/Matrix.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/MotorSimulators.o: ../../../lib/MotorSimulators.cc \
  ../../../lib/MotorSimulators.hh ../../../lib/Matrix.hh \
  ../../../lib/MotorParamDef.hh ../../../lib/MotorSimulator.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/MovingAverage.o: ../../../lib/MovingAverage.cc \
  ../../../lib/MovingAverage.hh ../../../lib/RingBuffer.hh \
  ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh \
@@ -151,7 +152,7 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/Observer.o: ../../../lib/Observer.cc \
  ../../../lib/Observer.hh ../../../lib/Matrix.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/P-Dcontroller.o: ../../../lib/P-Dcontroller.cc \
  ../../../lib/P-Dcontroller.hh ../../../lib/MovingDifferentiator.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
@@ -161,11 +162,14 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/P-Dcontroller.hh ../../../lib/MovingDifferentiator.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh
 ../../../lib/PCI-2826CV.o: ../../../lib/PCI-2826CV.cc \
- ../../../lib/PCI-2826CV.hh ../../../sys/ARCSeventlog.hh
+ ../../../lib/PCI-2826CV.hh ../../../sys/ARCSassert.hh \
+ ../../../sys/ARCSeventlog.hh
 ../../../lib/PCI-3133.o: ../../../lib/PCI-3133.cc \
- ../../../lib/PCI-3133.hh ../../../sys/ARCSeventlog.hh
+ ../../../lib/PCI-3133.hh ../../../sys/ARCSassert.hh \
+ ../../../sys/ARCSeventlog.hh
 ../../../lib/PCI-3180.o: ../../../lib/PCI-3180.cc \
- ../../../lib/PCI-3180.hh ../../../sys/ARCSeventlog.hh
+ ../../../lib/PCI-3180.hh ../../../sys/ARCSassert.hh \
+ ../../../sys/ARCSeventlog.hh
 ../../../lib/PCI-3340.o: ../../../lib/PCI-3340.cc \
  ../../../lib/PCI-3340.hh ../../../sys/ARCSeventlog.hh
 ../../../lib/PCI-3343A.o: ../../../lib/PCI-3343A.cc \
@@ -213,14 +217,14 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/ResoLoopCutDistObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/TransferFunction.hh ../../../lib/StateSpaceSystem.hh \
  ../../../lib/Discret.hh ../../../lib/ArcsControl.hh \
- ../../../lib/TwoInertiaParamDef.hh
+ ../../../lib/ArcsMatrix.hh ../../../lib/TwoInertiaParamDef.hh
 ../../../lib/ResoLoopCutDistObsrvs.o: \
  ../../../lib/ResoLoopCutDistObsrvs.cc \
  ../../../lib/ResoLoopCutDistObsrvs.hh \
  ../../../lib/ResoLoopCutDistObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/TransferFunction.hh ../../../lib/StateSpaceSystem.hh \
  ../../../lib/Discret.hh ../../../lib/ArcsControl.hh \
- ../../../lib/TwoInertiaParamDef.hh
+ ../../../lib/ArcsMatrix.hh ../../../lib/TwoInertiaParamDef.hh
 ../../../lib/RingBuffer.o: ../../../lib/RingBuffer.cc \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
  ../../../lib/Matrix.hh
@@ -267,7 +271,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/StairsWave.hh
 ../../../lib/StateSpaceSystem.o: ../../../lib/StateSpaceSystem.cc \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Matrix.hh \
- ../../../lib/Discret.hh ../../../lib/ArcsControl.hh
+ ../../../lib/Discret.hh ../../../lib/ArcsControl.hh \
+ ../../../lib/ArcsMatrix.hh
 ../../../lib/Statistics.o: ../../../lib/Statistics.cc \
  ../../../lib/Statistics.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Matrix.hh
@@ -284,7 +289,7 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/TransferFunction.o: ../../../lib/TransferFunction.cc \
  ../../../lib/TransferFunction.hh ../../../lib/Matrix.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/TriangleWave.o: ../../../lib/TriangleWave.cc \
  ../../../lib/TriangleWave.hh
 ../../../lib/TrqbsdVelocityObsrv.o: ../../../lib/TrqbsdVelocityObsrv.cc \
@@ -293,32 +298,33 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/TwoInertiaParamDef.hh ../../../lib/TwoInertiaSimulator.hh \
  ../../../lib/Matrix.hh ../../../lib/StateSpaceSystem.hh \
  ../../../lib/Discret.hh ../../../lib/ArcsControl.hh \
- ../../../lib/Integrator.hh
+ ../../../lib/ArcsMatrix.hh ../../../lib/Integrator.hh
 ../../../lib/TwoInertiaSimulators.o: ../../../lib/TwoInertiaSimulators.cc \
  ../../../lib/TwoInertiaSimulators.hh ../../../lib/Matrix.hh \
  ../../../lib/TwoInertiaParamDef.hh ../../../lib/TwoInertiaSimulator.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh ../../../lib/Integrator.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh \
+ ../../../lib/Integrator.hh
 ../../../lib/TwoInertiaStateDistObsrv.o: \
  ../../../lib/TwoInertiaStateDistObsrv.cc \
  ../../../lib/TwoInertiaStateDistObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh ../../../lib/Matrix.hh \
  ../../../lib/TwoInertiaParamDef.hh ../../../lib/Observer.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/TwoInertiaStateFeedback.o: \
  ../../../lib/TwoInertiaStateFeedback.cc \
  ../../../lib/TwoInertiaStateFeedback.hh ../../../lib/Matrix.hh \
  ../../../lib/TwoInertiaParamDef.hh ../../../lib/TwoInertiaStateObsrv.hh \
  ../../../lib/Matrix.hh ../../../lib/Discret.hh ../../../lib/Observer.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/TwoInertiaStateObsrv.o: ../../../lib/TwoInertiaStateObsrv.cc \
  ../../../lib/TwoInertiaStateObsrv.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh ../../../lib/Matrix.hh \
  ../../../lib/TwoInertiaParamDef.hh ../../../lib/Observer.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/Discret.hh \
- ../../../lib/ArcsControl.hh
+ ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh
 ../../../lib/TwoStairsWave.o: ../../../lib/TwoStairsWave.cc \
  ../../../lib/TwoStairsWave.hh ../../../lib/TriangleWave.hh
 ../../../lib/TwoStepWave.o: ../../../lib/TwoStepWave.cc \
@@ -371,8 +377,9 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/LinuxCommander.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/FrameFontSmall.hh ../../../lib/CuiPlot.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
- ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh ../../../lib/Matrix.hh \
- ../equip/EquipParams.hh
+ ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh \
+ ../equip/EquipParams.hh ../../../lib/ArcsMatrix.hh \
+ ../../../lib/Matrix.hh
 ../../../sys/ARCSmemory.o: ../../../sys/ARCSmemory.cc \
  ../../../sys/ARCSmemory.hh ConstParams.hh ../../../sys/ARCSparams.hh \
  ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
@@ -407,12 +414,11 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSscrparams.hh ../../../sys/ARCSparams.hh \
  ../equip/EquipParams.hh ../../../sys/ARCSparams.hh \
  ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
- ../../../lib/LinuxCommander.hh ConstParams.hh \
- ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh \
- ../../../lib/CuiPlot.hh ../../../lib/FrameGraphics.hh \
- ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh ../../../lib/ArcsMatrix.hh \
- ../../../sys/ARCSeventlog.hh
+ ../../../lib/LinuxCommander.hh ../../../lib/FrameGraphics.hh \
+ ../../../lib/FrameFontSmall.hh ConstParams.hh ../../../lib/CuiPlot.hh \
+ ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
+ ../../../sys/ARCSassert.hh ../../../lib/Matrix.hh \
+ ../../../lib/ArcsMatrix.hh ../../../sys/ARCSeventlog.hh
 ../../../sys/ARCSthread.o: ../../../sys/ARCSthread.cc \
  ../../../sys/ARCSthread.hh ../../../sys/ControlFunctions.hh \
  ConstParams.hh ../../../sys/ARCSparams.hh ../../../lib/SFthread.hh \
@@ -425,10 +431,10 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCScommon.hh ../../../lib/Matrix.hh \
  ../equip/EquipParams.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh UserPlot.hh \
- ../../../sys/ARCSgraphics.hh ../../../sys/ARCSmemory.hh \
- ../../../sys/ARCSeventlog.hh ../../../sys/ARCSassert.hh \
- ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
- ../equip/EquipParams.hh ../../../sys/ARCSgraphics.hh
+ ../../../sys/ARCSgraphics.hh ../equip/EquipParams.hh \
+ ../../../sys/ARCSmemory.hh ../../../sys/ARCSeventlog.hh \
+ ../../../sys/ARCSassert.hh ../../../sys/ARCSparams.hh \
+ ../../../sys/ARCSscrparams.hh ../../../sys/ARCSgraphics.hh
 ../../../sys/InterfaceFunctions.o: ../../../sys/InterfaceFunctions.cc \
  ../equip/InterfaceFunctions.hh ConstParams.hh ../../../sys/ARCSparams.hh \
  ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
@@ -447,7 +453,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/LinuxCommander.hh ../../../lib/FrameGraphics.hh \
  ../../../lib/FrameFontSmall.hh ../../../lib/CuiPlot.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
- ../../../lib/Matrix.hh ../../../lib/Matrix.hh
+ ../../../lib/Matrix.hh ../equip/EquipParams.hh \
+ ../../../lib/ArcsMatrix.hh ../../../lib/Matrix.hh
 OfflineFunction.o: OfflineFunction.cc ../../../lib/ArcsMatrix.hh \
  ../../../lib/CsvManipulator.hh ../../../lib/Matrix.hh \
  ../../../lib/Matrix.hh ../../../lib/Statistics.hh \

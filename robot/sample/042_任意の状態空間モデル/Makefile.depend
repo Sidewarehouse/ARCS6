@@ -11,7 +11,7 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSgraphics.hh ../../../sys/ControlFunctions.hh \
  ../equip/InterfaceFunctions.hh ../../../sys/ARCSeventlog.hh \
  ../equip/EquipParams.hh ../../../lib/Limiter.hh \
- ../../../lib/ArcsMatrix.hh UserPlot.hh
+ ../../../lib/ArcsMatrix.hh UserPlot.hh ../../../lib/SquareWave.hh
 ../equip/EquipBase.o: ../equip/EquipBase.cc ../equip/EquipBase.hh
 ../equip/EquipTemplate.o: ../equip/EquipTemplate.cc \
  ../equip/EquipTemplate.hh
@@ -456,6 +456,4 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/Matrix.hh ../equip/EquipParams.hh \
  ../../../lib/ArcsMatrix.hh ../../../lib/Matrix.hh
 OfflineFunction.o: OfflineFunction.cc ../../../lib/ArcsMatrix.hh \
- ../../../lib/CsvManipulator.hh ../../../lib/Matrix.hh \
- ../../../lib/Matrix.hh ../../../lib/RandomGenerator.hh \
- ../../../lib/ArcsMatrix.hh
+ ../../../lib/CsvManipulator.hh ../../../lib/Matrix.hh

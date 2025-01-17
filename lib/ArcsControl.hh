@@ -3,10 +3,10 @@
 //!
 //! 制御理論に関係する様々なアルゴリズムを詰め合わせたヘッダ
 //!
-//! @date 2024/08/16
+//! @date 2025/01/17
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef ARCSCONTROL
@@ -1080,9 +1080,10 @@ class DiscTransFunc {
 				// 状態空間モデルに設定
 				Sys.SetSystem(A, b, c, d);
 
-				disp(Num); disp(Den);
-				disp(b_n); disp(a_d);
-				disp(A); disp(b); disp(c); disp(d);
+				// デバッグ用表示
+				//disp(Num); disp(Den);
+				//disp(b_n); disp(a_d);
+				//disp(A); disp(b); disp(c); disp(d);
 			}
 
 		}
@@ -1606,9 +1607,10 @@ class TransFunc {
 				// 状態空間モデルに設定
 				Sys.SetSystem(A, b, c, d, Tsmpl);
 
-				disp(Num); disp(Den);
-				disp(b_n); disp(a_d);
-				disp(A); disp(b); disp(c); disp(d);
+				// デバッグ用表示
+				//disp(Num); disp(Den);
+				//disp(b_n); disp(a_d);
+				//disp(A); disp(b); disp(c); disp(d);
 			}
 
 		}

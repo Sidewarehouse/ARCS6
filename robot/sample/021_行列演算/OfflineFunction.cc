@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2024/07/19
+//! @date 2025/01/17
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -9,7 +9,7 @@
 //! - ARCSライブラリはもちろんそのままいつも通り使用可能。
 //! - 従って，オフラインで何か計算をしたいときに，このソースコードに記述すれば良い。
 //!
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
@@ -888,7 +888,7 @@ int main(void){
 	printf("norm<inf>(k1) = % 7.4f\n", norm<NormType::AMT_LINF>(k1));	// 無限大L∞ノルムを計算する (戻り値渡し版のみ)
 	constexpr double inormk1 = norm<NormType::AMT_LINF>(k1);			// コンパイル時に無限大L∞ノルムを計算
 	printf("norm<inf>(k1) = % 7.4f\n\n", inormk1);
-	auto k1cmpx = sqrt(static_cast<ArcsMat<7,1,std::complex<double>>>(-k1));
+	auto k1cmpx = sqrt(-static_cast<ArcsMat<7,1,std::complex<double>>>(k1));
 	dispf(k1cmpx, "% 7.4f");
 	printf("norm<euc>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_L2>(k1cmpx));		// 複素数ユークリッドL2ノルムを計算する (戻り値渡し版のみ)
 	printf("norm<man>(k1cmpx) = % 7.4f\n", norm<NormType::AMT_L1>(k1cmpx));		// 複素数絶対値L1ノルムを計算する (戻り値渡し版のみ)
