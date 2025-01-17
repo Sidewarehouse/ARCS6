@@ -1,0 +1,30 @@
+include_directories(${CMAKE_CURRENT_LIST_DIR})
+
+set(
+        ARCS_SYS_files
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSassert.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSassert.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCScommon.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCScommon.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSeventlog.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSeventlog.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSgraphics.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSgraphics.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSmemory.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSmemory.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSparams.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSprint.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSprint.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSscreen.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSscreen.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSscrparams.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSscrparams.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSthread.cc
+        ${CMAKE_CURRENT_LIST_DIR}/ARCSthread.hh
+        ${CMAKE_CURRENT_LIST_DIR}/ControlFunctions.hh
+)
+
+set(
+        ARCS_CC_file
+        ${CMAKE_CURRENT_LIST_DIR}/ARCS.cc
+)
