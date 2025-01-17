@@ -1,12 +1,12 @@
 //! @file SFthread.hh
-//! @brief SCHED_FIFOリアルタイムスレッドクラス(sleep使用不使用テンプレート可変版, 関数オブジェクト版)
+//! @brief SCHED_FIFOリアルタイムスレッドクラス(関数オブジェクト版、テンプレート引数設定版)
 //!
 //! pthreadのSCHED_FIFOで実時間スレッドを生成＆管理＆破棄する。実際に計測された制御周期や計算消費時間も提供する。
 //!
-//! @date 2024/10/15
+//! @date 2025/01/17
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef SFTHREADING
@@ -52,7 +52,7 @@ enum class SFsetCFS {
 //! @brief Preemptの設定の定義
 enum class SFsetPreempt {
 	PREEMPT_NORMAL,	//!< 通常のプリエンプション (リアルタイム性は低下する)
-	PREEMPT_DYNFULL	//!< PREEMPT_DYNAMICの場合にFULLモードにする (新しいkernelでのみ可、uname -a でチェック)
+	PREEMPT_DYNFULL	//!< PREEMPT_DYNAMICの場合にFULLモードにする (Linux Kernel 5.12 以降でのみ可、uname -a でチェックのこと)
 };
 
 //! @brief Sleepの設定の定義
@@ -464,7 +464,7 @@ class SFthread {
 				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
 					// CFSを無効にする場合
 					LinuxCommander::Execute("/bin/echo -1 > /proc/sys/kernel/sched_rt_runtime_us");			// CFSを無効
-					LinuxCommander::Execute("/bin/echo 2147483647 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を最大化
+					//LinuxCommander::Execute("/bin/echo 2147483647 > /proc/sys/kernel/sched_rt_period_us");// リアルタイムタスク割り当て時間を最大化(フリーズ問題発生のため保留)
 					EventLog("Kernel param: CFS Disabled");
 				}else{
 					EventLog("Kernel param: CFS Enabled");
@@ -525,8 +525,8 @@ class SFthread {
 				// カーネルパラメータをデフォルト値に戻す(CFSを無効にした場合)
 				if constexpr(SFCFS == SFsetCFS::CFS_DISABLED){
 					// 下記のように戻しておいた方が安定性の観点から無難
-					LinuxCommander::Execute("/bin/echo 950000 > /proc/sys/kernel/sched_rt_runtime_us");	// CFSを有効，もとに戻す
-					LinuxCommander::Execute("/bin/echo 1000000 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を元に戻す
+					LinuxCommander::Execute("/bin/echo 950000 > /proc/sys/kernel/sched_rt_runtime_us");		// CFSを有効，もとに戻す
+					//LinuxCommander::Execute("/bin/echo 1000000 > /proc/sys/kernel/sched_rt_period_us");	// リアルタイムタスク割り当て時間を元に戻す(フリーズ問題発生のため保留)
 					EventLog("Kernel param: CFS Enabled");
 				}
 				
