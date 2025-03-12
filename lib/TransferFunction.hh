@@ -17,7 +17,7 @@
 #define TRANSFERFUNCTION
 
 #include <cassert>
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "StateSpaceSystem.hh"
 
 // ARCS組込み用マクロ
@@ -48,10 +48,10 @@ class TransferFunction {
 		}
 		
 		//! @brief コンストラクタ
-		//! @param[in]	Num	分子の係数ベクトル 例：(b1*s + b0) のとき Matrix<1,2> Num = {b1, b0}
-		//! @param[in]	Den	分母の係数ベクトル 例：(a2*s^2 + a1*s + a0) のとき Matrix<1,3> Den = {a2, a1, a0}
+		//! @param[in]	Num	分子の係数ベクトル 例：(b1*s + b0) のとき ArcsMat<2,1> Num = {b1, b0}
+		//! @param[in]	Den	分母の係数ベクトル 例：(a2*s^2 + a1*s + a0) のとき ArcsMat<3,1> Den = {a2, a1, a0}
 		//! @param[in]	SmplTime	サンプリング周期 [s]
-		TransferFunction(const Matrix<1,N+1>& Num, const Matrix<1,D+1>& Den, const double SmplTime)
+		TransferFunction(const ArcsMat<N+1,1>& Num, const ArcsMat<D+1,1>& Den, const double SmplTime)
 			: Sys()
 		{
 			static_assert(N <= D);				// プロパーかどうかのチェック
@@ -73,35 +73,39 @@ class TransferFunction {
 		}
 
 		//! @brief 伝達関数の係数を設定する関数
-		//! @param[in]	Num	分子の係数ベクトル 例：(b1*s + b0) のとき Matrix<1,2> Num = {b1, b0}
-		//! @param[in]	Den	分母の係数ベクトル 例：(a2*s^2 + a1*s + a0) のとき Matrix<1,3> Den = {a2, a1, a0}
+		//! @param[in]	Num	分子の係数ベクトル 例：(b1*s + b0) のとき ArcsMat<2,1> Num = {b1, b0}
+		//! @param[in]	Den	分母の係数ベクトル 例：(a2*s^2 + a1*s + a0) のとき ArcsMat<3,1> Den = {a2, a1, a0}
 		//! @param[in]	Ts	サンプリング周期 [s]
-		void SetCoefficients(const Matrix<1,N+1>& Num, const Matrix<1,D+1>& Den, const double SmplTime){
+		void SetCoefficients(const ArcsMat<N+1,1>& Num, const ArcsMat<D+1,1>& Den, const double SmplTime){
 			// 分母の最上位係数を1に変形
-			const Matrix<1,N+1> b_n = Num/Den[1];
-			const Matrix<1,D+1> a_d = Den/Den[1];
+			const ArcsMat<N+1,1> b_n = Num/Den[1];
+			const ArcsMat<D+1,1> a_d = Den/Den[1];
 			
 			// 可制御正準系の連続系状態空間モデルの作成
 			// A行列の生成
-			Matrix<D,D> A;		// 連続系A行列
+			ArcsMat<D,D> A;		// 連続系A行列
 			for(size_t i = 1; i < D; ++i){
-				A.SetElement(i + 1, i, 1);
+				//A.SetElement(i + 1, i, 1);
+				A(i,i+1)=1;
+
 			}
 			for(size_t i = 1; i <= D; ++i){
-				A.SetElement(i, D, -a_d[D + 2 - i]);
+				//A.SetElement(i, D, -a_d[D + 2 - i]);
+				A(D,i)=-a_d[D + 2 - i];
 			}
 			
 			// B行列の生成
-			Matrix<1,D> b;		// 連続系bベクトル
+			ArcsMat<D,1> b;		// 連続系bベクトル
 			b[D] = 1;
 			
 			// C行列とD行列の生成
 			if constexpr(N != D){
 				// 直達項が無い，相対次数が1以上の場合
 				// C行列のみ生成
-				Matrix<D,1> c;	// cベクトル
+				ArcsMat<1,D> c;	// cベクトル
 				for(size_t i = 1; i <= N + 1; ++i){
-					c.SetElement(i, 1, b_n[N + 2 - i]);
+					//c.SetElement(i, 1, b_n[N + 2 - i]);
+					c(1,i)=b_n[N + 2 - i];
 				}
 				
 				// 状態空間モデルに設定
@@ -110,13 +114,14 @@ class TransferFunction {
 				// 直達項が有る，相対次数が0の場合
 				
 				// C行列の生成
-				Matrix<D,1> c;	// cベクトル
+				ArcsMat<1,D> c;	// cベクトル
 				for(size_t i = 1; i <= D; ++i){
-					c.SetElement(i, 1, b_n[D + 2 - i] - a_d[D + 2 - i]*b_n[1]);
+					//c.SetElement(i, 1, b_n[D + 2 - i] - a_d[D + 2 - i]*b_n[1]);
+					c(1,i)=b_n[D + 2 - i] - a_d[D + 2 - i]*b_n[1];
 				}
 				
 				// D行列の生成
-				Matrix<1,1> d;	// dベクトル
+				ArcsMat<1,1> d;	// dベクトル
 				d[1] = b_n[1];
 				
 				// 状態空間モデルに設定

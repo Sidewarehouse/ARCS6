@@ -19,6 +19,7 @@
 #include <stdint.h>
 #include <algorithm>
 #include <array>
+#include "ArcsMatrix.hh"
 
 namespace ARCS {	// ARCS名前空間
 	//! @brief PCI-6205C入出力クラス
@@ -33,6 +34,7 @@ namespace ARCS {	// ARCS名前空間
 			void ZpulseClear(bool flag);			//!< Z相クリア設定
 			void GetCount(long count[MAX_CH]);		//!< エンコーダカウンタからカウント値を読み込む関数(生配列版)
 			void GetCount(std::array<long, MAX_CH>& count);	//!< エンコーダカウンタからカウント値を読み込む関数(std::array版)
+			void GetCount(ArcsMat<MAX_CH,1,long>& count);	//!< エンコーダカウンタからカウント値を読み込む関数(ArcsMat版)
 			void ClearAllCounter(void);				//!< エンコーダカウンタの値を零(0x000000)にする関数
 			void ClearUpperCounter(void);			//!< 上位カウンタをクリアする関数
 		

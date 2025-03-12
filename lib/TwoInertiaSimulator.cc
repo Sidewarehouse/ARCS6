@@ -211,20 +211,20 @@ void TwoInertiaSimulator::SetSpring(const double Stiffness){
 void TwoInertiaSimulator::SetStateSpaceModel(void){
 	// 連続系A行列の設定
 	// 状態ベクトルの定義 xp = [ωl, θs, ωm]^T
-	const Matrix<3,3> A = {
+	const ArcsMat<3,3> A = {
 		-(Dl + Ds)/Jl,	Ks/Jl,			Ds/(Jl*Rg)			  ,
 		-1,				0,				1.0/Rg				  ,
 		Ds/(Jm*Rg),		-Ks/(Jm*Rg),	-(Ds/(Rg*Rg) + Dm)/Jm
 	};
 	
 	// 連続系B行列の設定
-	const Matrix<2,3> B = {
+	const ArcsMat<3,2> B = {
 		0		, -1.0/Jl,
 		0		, 0	     ,
 		Kt/Jm	, 0
 	};
 	
-	const auto C = Matrix<3,3>::eye();		// C行列の設定
+	const auto C = ArcsMat<3,3>::eye();		// C行列の設定
 	PlantSys.SetContinuous(A, B, C, Ts);	// 状態空間モデルの設定＆離散化
 	LoadInteg.SetSmplTime(Ts);				// 積分器にサンプリング周期を設定
 	MotorInteg.SetSmplTime(Ts);				// 積分器にサンプリング周期を設定

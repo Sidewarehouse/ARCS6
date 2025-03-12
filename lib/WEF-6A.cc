@@ -12,11 +12,13 @@
 // For details, see the License.txt file.
 
 #include <unistd.h>
+#include <string>
 #include <array>
 #include <tuple>
 #include "ARCSeventlog.hh"
 #include "WEF-6A.hh"
 #include "ARCSprint.hh"
+#include "ArcsMatrix.hh"
 
 using namespace ARCS;
 
@@ -175,13 +177,13 @@ bool WEF6A::Get6axisForce(double& Fx, double& Fy, double& Fz, double& Mx, double
 	return IsSuccessful;	// 正常終了か異常検知を返す
 }
 
-//! @brief 6軸力覚センサ値を取得する関数(配列版)
+//! @brief 6軸力覚センサ値を取得する関数(ArcsMat版)
 //! @param[out]	Force 各軸の並進力 [N], 各軸のトルク [Nm]
 //! @return	true = 正常終了, false = 異常検知
-bool WEF6A::Get6axisForce(std::array<double, 6>& Force){
+bool WEF6A::Get6axisForce(ArcsMat<6,1>& Force){
 	bool IsSuccessful = false;	// 正常終了フラグ
-	std::array<double, 6> Fi;	// 力覚センサ値
-	IsSuccessful = Get6axisForce(Fi[0], Fi[1], Fi[2], Fi[3], Fi[4], Fi[5]);	// 値を取得
+	ArcsMat<6,1> Fi={0};	// 力覚センサ値
+	IsSuccessful = Get6axisForce(Fi[1], Fi[2], Fi[3], Fi[4], Fi[5], Fi[6]);	// 値を取得
 	Force = Fi;					// 力覚センサ値を出力
 	return IsSuccessful;		// 正常終了か異常検知を返す
 }

@@ -17,7 +17,7 @@
 
 #include <cassert>
 #include <complex>
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "TwoInertiaParamDef.hh"
 #include "TwoInertiaStateObsrv.hh"
 
@@ -121,7 +121,7 @@ class TwoInertiaStateFeedback {
 		//! @param[in]	Current	q軸電流指令 [A]
 		//! @param[in]	Velocity	モータ側速度 [rad/s]
 		double GetFeedbackCurrent(const double Current, const double Velocity){
-			const Matrix<1,1> ireg = f*SOB.GetEstimatedVect(Current, Velocity);
+			const ArcsMat<1,1> ireg = f*SOB.GetEstimatedVect(Current, Velocity);
 			return ireg[1];
 		}
 		
@@ -137,7 +137,7 @@ class TwoInertiaStateFeedback {
 		double Rg;	//!< [-] 減速比
 		double gsob;//!< [rad/s] 状態オブザーバの帯域
 		double Ts;	//!< [s] サンプリング周期
-		Matrix<3,1> f;				//!< 状態フィードバックゲインベクトル
+		ArcsMat<1,3> f;				//!< 状態フィードバックゲインベクトル
 		TwoInertiaStateObsrv<> SOB;	//!< 状態オブザーバ
 		
 		//! @brief 状態フィードバックゲインを計算する関数(実数極版)

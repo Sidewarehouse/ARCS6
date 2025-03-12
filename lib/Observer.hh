@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <complex>
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "StateSpaceSystem.hh"
 
 // ARCS組込み用マクロ
@@ -46,11 +46,11 @@ class Observer {
 		}
 		
 		//! @brief コンストラクタ
-		Observer(const Matrix<N,N>& A, const Matrix<1,N>& b, const Matrix<N,1>& c)
+		Observer(const ArcsMat<N,N>& A, const ArcsMat<N,1>& b, const ArcsMat<1,N>& c)
 			: ObsrvSys()
 		{
-			Matrix<1,N,std::complex<double>> lambda = eigen(A);
-			PrintMat(tp(lambda));
+			ArcsMat<N,1,std::complex<double>> lambda = eig(A);
+			PrintMat(ArcsMatrix::tp(lambda));
 			PassedLog();
 		}
 		
@@ -73,26 +73,26 @@ class Observer {
 		//! @param[in]	c	プラントのcベクトル
 		//! @param[in]	k	オブザーバゲインベクトル
 		//! @param[in]	Ts	サンプリング周期 [s]
-		void SetPlantModelAndGain(const Matrix<N,N>& A, const Matrix<1,N>& b, const Matrix<N,1>& c, const Matrix<1,N>& k, const double Ts){
-			const Matrix<N,N> Ao = A - k*c;			// オブザーバの連続系A行列
-			Matrix<2,N> Bo;							// オブザーバの連続系B行列
+		void SetPlantModelAndGain(const ArcsMat<N,N>& A, const ArcsMat<N,1>& b, const ArcsMat<1,N>& c, const ArcsMat<N,1>& k, const double Ts){
+			const ArcsMat<N,N> Ao = A - k*c;			// オブザーバの連続系A行列
+			ArcsMat<N,2> Bo;							// オブザーバの連続系B行列
 			setcolumn(Bo, b, 1);					// オブザーバの連続系B行列1列目
 			setcolumn(Bo, k, 2);					// オブザーバの連続系B行列2列目
-			const auto Co = Matrix<N,N>::eye();		// オブザーバの出力行列
+			const auto Co = ArcsMat<N,N>::eye();		// オブザーバの出力行列
 			ObsrvSys.SetContinuous(Ao, Bo, Co, Ts);	// オブザーバの状態空間モデルを設定
 		}
 		
 		//! @brief 状態推定の計算をして状態ベクトルを返す関数(普通版)
 		//! @param[in]	u	オブザーバの入力ベクトル
 		//! @param[out]	xhat	推定状態ベクトル
-		void Estimate(const Matrix<1,2>& u, Matrix<1,N>& xhat){
+		void Estimate(const ArcsMat<2,1>& u, ArcsMat<N,1>& xhat){
 			ObsrvSys.GetResponses(u, xhat);			// 推定演算
 		}
 		
 		//! @brief 状態推定の計算をして状態ベクトルを返す関数(ベクトルを返す版)
 		//! @param[in]	u	オブザーバの入力ベクトル
 		//! @return 推定状態ベクトル
-		Matrix<1,N> Estimate(const Matrix<1,2>& u){
+		ArcsMat<N,1> Estimate(const ArcsMat<2,1>& u){
 			return ObsrvSys.GetResponses(u);		// 推定演算
 		}
 		

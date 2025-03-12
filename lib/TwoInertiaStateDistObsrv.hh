@@ -17,7 +17,7 @@
 
 #include <cassert>
 #include <tuple>
-#include <Matrix.hh>
+#include <ArcsMatrix.hh>
 #include <Discret.hh>
 #include "TwoInertiaParamDef.hh"
 #include "Observer.hh"
@@ -96,8 +96,8 @@ class TwoInertiaStateDistObsrv {
 		//! @param[in]	Current	q軸電流 [A]
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @param[out]	xhat	状態ベクトル(負荷側外乱を含む) [ωl θs ωm τl]^T
-		void GetEstimatedVect(const double Current, const double Velocity, Matrix<1,4>& xhat){
-			const Matrix<1,2> u = {Current, Velocity};
+		void GetEstimatedVect(const double Current, const double Velocity, ArcsMat<4,1>& xhat){
+			const ArcsMat<2,1> u = {Current, Velocity};
 			StateDistObsrv.Estimate(u, xhat);
 		}
 		
@@ -105,8 +105,8 @@ class TwoInertiaStateDistObsrv {
 		//! @param[in]	Current	q軸電流 [A]
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @return	推定した状態変数ベクトル(負荷側外乱を含む) [ωl θs ωm τl]^T
-		Matrix<1,4> GetEstimatedVect(const double Current, const double Velocity){
-			const Matrix<1,2> u = {Current, Velocity};
+		ArcsMat<4,1> GetEstimatedVect(const double Current, const double Velocity){
+			const ArcsMat<2,1> u = {Current, Velocity};
 			return StateDistObsrv.Estimate(u);
 		}
 		
@@ -115,8 +115,8 @@ class TwoInertiaStateDistObsrv {
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @return	タプル( 負荷側速度 [rad/s], ねじれ角 [rad], モータ側速度 [rad/s], 負荷側外乱 [Nm] )
 		std::tuple<double,double,double,double> GetEstimatedVars(const double Current, const double Velocity){
-			const Matrix<1,2> u = {Current, Velocity};
-			Matrix<1,4> xhat = StateDistObsrv.Estimate(u);
+			const ArcsMat<2,1> u = {Current, Velocity};
+			ArcsMat<4,1> xhat = StateDistObsrv.Estimate(u);
 			return std::forward_as_tuple(xhat[1], xhat[2], xhat[3], xhat[4]);
 		}
 		
@@ -125,9 +125,9 @@ class TwoInertiaStateDistObsrv {
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @param[out]	xhat	状態ベクトル(負荷側外乱を含まない) [ωl θs ωm]^T
 		//! @param[out]	LoadDisturbance	負荷側外乱トルク [Nm]
-		void GetEstimatedVect(const double Current, const double Velocity, Matrix<1,3>& xhat, double& LoadDisturbance){
-			const Matrix<1,2> u = {Current, Velocity};
-			Matrix<1,4> xhat_dis;
+		void GetEstimatedVect(const double Current, const double Velocity, ArcsMat<3,1>& xhat, double& LoadDisturbance){
+			const ArcsMat<2,1> u = {Current, Velocity};
+			ArcsMat<4,1> xhat_dis;
 			StateDistObsrv.Estimate(u, xhat_dis);
 			xhat[1] = xhat_dis[1];
 			xhat[2] = xhat_dis[2];
@@ -147,10 +147,10 @@ class TwoInertiaStateDistObsrv {
 		double Rg;	//!< [-] 減速比
 		double g;	//!< [rad/s] オブザーバの帯域
 		double Ts;	//!< [s] サンプリング周期
-		Matrix<4,4> A;	//!< プラントのA行列
-		Matrix<1,4> b;	//!< プラントのBベクトル
-		Matrix<4,1> c;	//!< プラントのCベクトル
-		Matrix<1,4> k;	//!< オブザーバのゲインベクトル
+		ArcsMat<4,4> A;	//!< プラントのA行列
+		ArcsMat<4,1> b;	//!< プラントのBベクトル
+		ArcsMat<1,4> c;	//!< プラントのCベクトル
+		ArcsMat<4,1> k;	//!< オブザーバのゲインベクトル
 		Observer<4> StateDistObsrv;	//!< 状態外乱オブザーバ
 		
 		//! @brief プラントの状態空間モデルを計算する関数

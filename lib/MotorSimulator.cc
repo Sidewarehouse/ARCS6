@@ -157,7 +157,7 @@ void MotorSimulator::SetStateSpaceModel(void){
 		    0,       0
 	);
 	
-	auto C = Matrix<2,2>::eye();		// C行列の設定
+	auto C = ArcsMat<2,2>::eye();		// C行列の設定
 	PlantSys.SetContinuous(A, B, C, Ts);// 状態空間モデルの設定
 }
 
