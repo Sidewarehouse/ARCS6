@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <tuple>
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "Discret.hh"
 #include "StateSpaceSystem.hh"
 
@@ -56,21 +56,21 @@ class LoadVelocityObsrv {
 			const double k3 = Bandwidth;	// [rad/s]
 			
 			// 連続系オブザーバのA行列
-			const Matrix<3,3> Ao = {
+			const ArcsMat<3,3> Ao = {
 				-(k1 + k2 + k3)             , -Ks	 ,  0,
 				(k1*k2 + k2*k3 + k3*k1)/Ks	, 0      ,  1,
 				k1*k2*k3/Ks              	, 0      ,  0
 			};
 			
 			// 連続系オブザーバのB行列
-			const Matrix<2,3> Bo = {
+			const ArcsMat<3,2> Bo = {
 				Ks/Rg,  ( k1 + k2 + k3 ),
 				0     ,  -( k1*k2 + k2*k3 + k3*k1 )/Ks,
 				0     ,  -k1*k2*k3/Ks
 			};
 			
 			// オブザーバのC行列
-			const Matrix<3,1> co = {
+			const ArcsMat<1,3> co = {
 				0,  1,  0
 			};
 			
@@ -102,8 +102,8 @@ class LoadVelocityObsrv {
 		//! @param[in]	TorsionTorque	ねじれトルク [Nm]
 		//! @return	推定した負荷側速度 [rad/s]
 		double GetLoadVelocity(const double MotorVelocity, const double TorsionTorque){
-			const Matrix<1,2> u = {MotorVelocity, TorsionTorque};
-			const Matrix<1,1> y = ObsrvSys.GetNextResponses(u);
+			const ArcsMat<2,1> u = {MotorVelocity, TorsionTorque};
+			const ArcsMat<1,1> y = ObsrvSys.GetNextResponses(u);
 			return y[1];
 		}
 		

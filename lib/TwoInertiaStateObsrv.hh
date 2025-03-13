@@ -16,7 +16,7 @@
 
 #include <cassert>
 #include <tuple>
-#include <Matrix.hh>
+#include <ArcsMatrix.hh>
 #include <Discret.hh>
 #include "TwoInertiaParamDef.hh"
 #include "Observer.hh"
@@ -95,8 +95,8 @@ class TwoInertiaStateObsrv {
 		//! @param[in]	Current	q軸電流 [A]
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @param[in]	xhat	推定した状態変数ベクトル
-		void GetEstimatedVect(const double Current, const double Velocity, Matrix<1,3>& xhat){
-			const Matrix<1,2> u = {Current, Velocity};
+		void GetEstimatedVect(const double Current, const double Velocity, ArcsMat<3,1>& xhat){
+			const ArcsMat<2,1> u = {Current, Velocity};
 			return StateObsrv.Estimate(u, xhat);
 		}
 		
@@ -104,8 +104,8 @@ class TwoInertiaStateObsrv {
 		//! @param[in]	Current	q軸電流 [A]
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @return	推定した状態変数ベクトル
-		Matrix<1,3> GetEstimatedVect(const double Current, const double Velocity){
-			const Matrix<1,2> u = {Current, Velocity};
+		ArcsMat<3,1> GetEstimatedVect(const double Current, const double Velocity){
+			const ArcsMat<2,1> u = {Current, Velocity};
 			return StateObsrv.Estimate(u);
 		}
 		
@@ -114,8 +114,8 @@ class TwoInertiaStateObsrv {
 		//! @param[in]	Velocity	モータ速度 [rad/s]
 		//! @return	タプル( 負荷側速度 [rad/s], ねじれ角 [rad], モータ側速度 [rad/s] )
 		std::tuple<double,double,double> GetEstimatedVars(const double Current, const double Velocity){
-			const Matrix<1,2> u = {Current, Velocity};
-			Matrix<1,3> xhat = StateObsrv.Estimate(u);
+			const ArcsMat<2,1> u = {Current, Velocity};
+			ArcsMat<3,1> xhat = StateObsrv.Estimate(u);
 			return std::forward_as_tuple(xhat[1], xhat[2], xhat[3]);
 		}
 		
@@ -131,10 +131,10 @@ class TwoInertiaStateObsrv {
 		double Rg;	//!< [-] 減速比
 		double g;	//!< [rad/s] オブザーバの帯域
 		double Ts;	//!< [s] サンプリング周期
-		Matrix<3,3> A;	//!< プラントのA行列
-		Matrix<1,3> b;	//!< プラントのBベクトル
-		Matrix<3,1> c;	//!< プラントのCベクトル
-		Matrix<1,3> k;	//!< オブザーバのゲインベクトル
+		ArcsMat<3,3> A;	//!< プラントのA行列
+		ArcsMat<3,1> b;	//!< プラントのBベクトル
+		ArcsMat<1,3> c;	//!< プラントのCベクトル
+		ArcsMat<3,1> k;	//!< オブザーバのゲインベクトル
 		Observer<3> StateObsrv;	//!< 状態オブザーバ
 		
 		//! @brief プラントの状態空間モデルを計算する関数

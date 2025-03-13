@@ -18,6 +18,7 @@
 #include <string>
 #include <memory>
 #include "PCI-46610x.hh"
+#include "ArcsMatrix.hh"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief ワコーテック社製 DynPick WEF-6A 6軸力覚センサクラス
@@ -48,8 +49,8 @@ class WEF6A {
 			double& Fx, double& Fy, double& Fz,
 			double& Mx, double& My, double& Mz
 		);													//!< 6軸力覚センサ値を取得する関数
-		bool Get6axisForce(std::array<double, 6>& Force);	//!< 6軸力覚センサ値を取得する関数(配列版)
-		
+		bool Get6axisForce(ArcsMat<6,1>& Force);	//!< 6軸力覚センサ値を取得する関数(ArcsMat版)
+
 	private:
 		WEF6A(const WEF6A&) = delete;						//!< コピーコンストラクタ使用禁止
 		const WEF6A& operator=(const WEF6A&) = delete;		//!< 代入演算子使用禁止

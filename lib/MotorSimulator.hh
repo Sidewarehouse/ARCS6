@@ -14,7 +14,7 @@
 #ifndef MOTORSIMULATOR
 #define MOTORSIMULATOR
 
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "StateSpaceSystem.hh"
 
 namespace ARCS {	// ARCS名前空間
@@ -44,10 +44,10 @@ namespace ARCS {	// ARCS名前空間
 			double Ts;	//!< [s]	サンプリング時間
 			double iq;	//!< [A]	q軸電流
 			double taul;//!< [Nm]	負荷トルク
-			Matrix<2,2> A;	//!< 連続系 A行列
-			Matrix<2,2> B;	//!< 連続系 B行列
-			Matrix<1,2> u;	//!< 入力ベクトル
-			Matrix<1,2> y;	//!< 出力ベクトル
+			ArcsMat<2,2> A;	//!< 連続系 A行列
+			ArcsMat<2,2> B;	//!< 連続系 B行列
+			ArcsMat<2,1> u;	//!< 入力ベクトル
+			ArcsMat<2,1> y;	//!< 出力ベクトル
 			StateSpaceSystem<2,2,2> PlantSys;	//!< モータの状態空間モデル
 			
 			void SetStateSpaceModel(void);	//!< 状態空間モデルを設定する関数

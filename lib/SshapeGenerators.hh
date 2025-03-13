@@ -16,6 +16,7 @@
 
 #include <cassert>
 #include <array>
+#include "ArcsMatrix.hh"
 #include "SshapeGenerator.hh"
 
 // ARCS組込み用マクロ
@@ -61,7 +62,7 @@ class SshapeGenerators {
 		//! @brief S字軌道の最新値を取得する関数(引数で返す版)
 		//! @param[in]	input	入力ベクトル
 		//! @param[out]	output	S字軌道の最新の出力ベクトル
-		void GetShapedSignal(const Matrix<1,M>& input, Matrix<1,M>& output){
+		void GetShapedSignal(const ArcsMat<M,1>& input, ArcsMat<M,1>& output){
 			for(size_t i = 1; i <= M; ++i){
 				output[i] = SshapeGeneratorVec[i-1].GetShapedSignal(input[i]);
 			}
@@ -70,15 +71,15 @@ class SshapeGenerators {
 		//! @brief S字軌道の最新値を取得する関数(ベクトルで返す版)
 		//! @param[in]	input	入力ベクトル
 		//! @return	output	S字軌道の最新の出力ベクトル
-		Matrix<1,M> GetShapedSignal(const Matrix<1,M>& input){
-			Matrix<1,M> ret;
+		ArcsMat<M,1> GetShapedSignal(const ArcsMat<M,1>& input){
+			ArcsMat<M,1> ret;
 			GetShapedSignal(input, ret);
 			return ret;
 		}
 		
 		//! @brief S字軌道の初期値を設定する関数
 		//! @param[in]	init	初期値ベクトル
-		void SetInitialValue(const Matrix<1,M>& init){
+		void SetInitialValue(const ArcsMat<M,1>& init){
 			for(size_t i = 1; i <= M; ++i) SshapeGeneratorVec[i-1].SetInitialValue(init[i]);
 		}
 		

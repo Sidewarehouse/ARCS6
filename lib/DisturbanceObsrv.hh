@@ -16,7 +16,7 @@
 #define DISTURBANCEOBSRV
 
 #include <array>
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "Discret.hh"
 #include "StateSpaceSystem.hh"
 
@@ -63,7 +63,7 @@ namespace ARCS {	// ARCS名前空間
 			//! @param [in] Inertia		[kgm^2] 慣性
 			//! @param [in] Bandwidth	[rad/s] 推定帯域
 			//! @param [in] SmplTime	[s] 制御周期
-			DisturbanceObsrv(const Matrix<1,N>& TrqConst, const Matrix<1,N>& Inertia, const Matrix<1,N>& Bandwidth, const double SmplTime)
+			DisturbanceObsrv(const ArcsMat<N,1>& TrqConst, const ArcsMat<N,1>& Inertia, const ArcsMat<N,1>& Bandwidth, const double SmplTime)
 				: u(), tdis(), uVec(), tdisVec(), DOb(), DObVec()
 			{
 				// オブザーバの個数（＝ベクトルの長さ）分だけ回す
@@ -104,8 +104,8 @@ namespace ARCS {	// ARCS名前空間
 			//! @brief 外乱トルクを推定する関数(ベクトル版)
 			//! @param [in] Current		[A] 電流
 			//! @param [in] MotorSpeed	[rad/s] モータ側速度
-			Matrix<1,N> GetDistTorque(const Matrix<1,N>& Current, const Matrix<1,N>& MotorSpeed){
-				Matrix<1,N> ret;
+			ArcsMat<N,1> GetDistTorque(const ArcsMat<N,1>& Current, const ArcsMat<N,1>& MotorSpeed){
+				ArcsMat<N,1> ret;
 				// オブザーバの個数（＝ベクトルの長さ）分だけ回す
 				for(size_t i = 1; i <= N; ++i){
 					// 入力ベクトルの設定
@@ -146,10 +146,10 @@ namespace ARCS {	// ARCS名前空間
 				return 0;
 			}
 			
-			Matrix<1,2> u;						//!< [A,rad/s] 入力ベクトル[iq, wm]^T （スカラー版）
-			Matrix<1,1> tdis;					//!< [Nm] 推定外乱（スカラー版）
-			std::array<Matrix<1,2>, N> uVec;	//!< [A,rad/s] 入力ベクトル[iq, wm]^Tの配列 （ベクトル版）
-			std::array<Matrix<1,1>, N> tdisVec;	//!< [Nm] 推定外乱の配列（ベクトル版）
+			ArcsMat<2,1> u;						//!< [A,rad/s] 入力ベクトル[iq, wm]^T （スカラー版）
+			ArcsMat<1,1> tdis;					//!< [Nm] 推定外乱（スカラー版）
+			std::array<ArcsMat<2,1>, N> uVec;	//!< [A,rad/s] 入力ベクトル[iq, wm]^Tの配列 （ベクトル版）
+			std::array<ArcsMat<1,1>, N> tdisVec;	//!< [Nm] 推定外乱の配列（ベクトル版）
 			
 			// 外乱オブザーバの本体
 			StateSpaceSystem<GetOrder(), 2, 1> DOb;						//!< 外乱オブザーバの状態空間モデル（スカラー版）
@@ -174,19 +174,19 @@ namespace ARCS {	// ARCS名前空間
 				// 同一次元0次オブザーバの場合
 				if constexpr(T == DObType::FULL_0TH){
 					// 連続系A行列の設定
-					const Matrix<2,2> A = {
+					const ArcsMat<2,2> A = {
 						l1 + l2,  -1.0/Jmn,
 						Jmn*l1*l2,       0
 					};
 					
 					// 連続系B行列の設定
-					const Matrix<2,2> B = {
+					const ArcsMat<2,2> B = {
 						Ktn/Jmn,  - l1 - l2,
 								0, -Jmn*l1*l2
 					};
 					
 					// C行列の設定
-					const Matrix<2,1> c = {
+					const ArcsMat<1,2> c = {
 						0, 1
 					};
 					
@@ -196,21 +196,21 @@ namespace ARCS {	// ARCS名前空間
 				// 同一次元1次オブザーバの場合
 				if constexpr(T == DObType::FULL_1ST){
 					// 連続系のA行列
-					const Matrix<3,3> A = {
+					const ArcsMat<3,3> A = {
 						l1 + l2 + l3               , -1.0/Jmn,  0,
 						Jmn*(l1*l2 + l2*l3 + l3*l1), 0       ,  1,
 						-Jmn*l1*l2*l3              , 0       ,  0
 					};
 					
 					// 連続系のB行列
-					const Matrix<2,3> B = {
+					const ArcsMat<3,2> B = {
 						Ktn/Jmn, -( l1 + l2 + l3 ),
 						0      , -Jmn*( l1*l2 + l2*l3 + l3*l1 ),
 						0      , Jmn*l1*l2*l3
 					};
 					
 					// C行列
-					const Matrix<3,1> c = {
+					const ArcsMat<1,3> c = {
 						0,  1,  0
 					};
 					

@@ -16,7 +16,7 @@
 #define RESOLOOPCUTDISTOBSRV
 
 #include <cassert>
-#include "Matrix.hh"
+#include "ArcsMatrix.hh"
 #include "TransferFunction.hh"
 #include "TwoInertiaParamDef.hh"
 
@@ -143,12 +143,12 @@ class ResoLoopCutDistObsrv {
 		double Rg;	//!< [-] 減速比
 		double gd;	//!< [rad/s] 推定帯域
 		double Ts;	//!< [s] サンプリング周期
-		Matrix<1,1> Lnum;	//!< オブザーバ左側ループの伝達関数の分子係数ベクトル
-		Matrix<1,2> Lden;	//!< オブザーバ左側ループの伝達関数の分母係数ベクトル
-		Matrix<1,2> Rnum;	//!< オブザーバ右側ループの伝達関数の分子係数ベクトル
-		Matrix<1,2> Rden;	//!< オブザーバ右側ループの伝達関数の分母係数ベクトル
-		Matrix<1,2> Qnum;	//!< オブザーバフィルタと左側ループの逆系の乗算結果の伝達関数の分子係数ベクトル
-		Matrix<1,2> Qden;	//!< オブザーバフィルタと左側ループの逆系の乗算結果の伝達関数の分母係数ベクトル
+		ArcsMat<1,1> Lnum;	//!< オブザーバ左側ループの伝達関数の分子係数ベクトル
+		ArcsMat<2,1> Lden;	//!< オブザーバ左側ループの伝達関数の分母係数ベクトル
+		ArcsMat<2,1> Rnum;	//!< オブザーバ右側ループの伝達関数の分子係数ベクトル
+		ArcsMat<2,1> Rden;	//!< オブザーバ右側ループの伝達関数の分母係数ベクトル
+		ArcsMat<2,1> Qnum;	//!< オブザーバフィルタと左側ループの逆系の乗算結果の伝達関数の分子係数ベクトル
+		ArcsMat<2,1> Qden;	//!< オブザーバフィルタと左側ループの逆系の乗算結果の伝達関数の分母係数ベクトル
 		TransferFunction<0,1> L;	//!< 外乱オブザーバの左側の伝達関数
 		TransferFunction<1,1> R;	//!< 外乱オブザーバの右側の伝達関数
 		TransferFunction<1,1> QLinv;//!< 外乱オブザーバのLPFと左側の逆系の乗算結果の伝達関数

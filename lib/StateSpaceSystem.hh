@@ -14,8 +14,8 @@
 #define STATESPACESYSTEM
 
 #include <cassert>
-#include "Matrix.hh"
-#include "Discret.hh"
+#include "ArcsMatrix.hh"
+//#include "Discret.hh"
 #include "ArcsControl.hh"
 
 // ARCS組込み用マクロ
@@ -51,7 +51,7 @@ class StateSpaceSystem {
 		//! @param[in]	B	連続系B行列
 		//! @param[in]	C	C行列
 		//! @param[in]	Ts	サンプリング周期 [s]
-		StateSpaceSystem(const Matrix<N,N>& A, const Matrix<I,N>& B, const Matrix<N,O>& C, const double Ts)
+		StateSpaceSystem(const ArcsMat<N,N>& A, const ArcsMat<N,I>& B, const ArcsMat<O,N>& C, const double Ts)
 			: Ad(), Bd(), Cd(), Dd(), u(), x(), x_next(), y(), y_next(), DirectTerm(true)
 		{
 			SetContinuous(A, B, C, Ts);		// 連続系のA行列，B行列，C行列を設定して離散化
@@ -64,7 +64,7 @@ class StateSpaceSystem {
 		//! @param[in]	C	C行列
 		//! @param[in]	D	D行列
 		//! @param[in]	Ts	サンプリング周期 [s]
-		StateSpaceSystem(const Matrix<N,N>& A, const Matrix<I,N>& B, const Matrix<N,O>& C, const Matrix<I,O>& D, const double Ts)
+		StateSpaceSystem(const ArcsMat<N,N>& A, const ArcsMat<N,I>& B, const ArcsMat<O,N>& C, const ArcsMat<O,I>& D, const double Ts)
 			: Ad(), Bd(), Cd(), Dd(), u(), x(), x_next(), y(), y_next(), DirectTerm(true)
 		{
 			SetContinuous(A, B, C, D, Ts);	// 連続系のA行列，B行列，C行列，D行列を設定して離散化
@@ -89,7 +89,7 @@ class StateSpaceSystem {
 		//! @param[in]	B	連続系B行列
 		//! @param[in]	C	C行列
 		//! @param[in]	Ts	サンプリング周期 [s]
-		void SetContinuous(const Matrix<N,N>& A, const Matrix<I,N>& B, const Matrix<N,O>& C, const double Ts){
+		void SetContinuous(const ArcsMat<N,N>& A, const ArcsMat<N,I>& B, const ArcsMat<O,N>& C, const double Ts){
 			if constexpr(N == 1){
 				// 次数が1次のときは平衡化せずに離散化
 				auto Ah = A;
@@ -112,7 +112,7 @@ class StateSpaceSystem {
 		//! @param[in]	C	C行列
 		//! @param[in]	D	D行列
 		//! @param[in]	Ts	サンプリング周期 [s]
-		void SetContinuous(const Matrix<N,N>& A, const Matrix<I,N>& B, const Matrix<N,O>& C, const Matrix<I,O>& D, const double Ts){
+		void SetContinuous(const ArcsMat<N,N>& A, const ArcsMat<N,I>& B, const ArcsMat<O,N>& C, const ArcsMat<O,I>& D, const double Ts){
 			SetContinuous(A, B, C, Ts);
 			Dd = D;				// D行列は何もせずそのまま
 			DirectTerm = true;	// 直達項は有り
@@ -122,7 +122,7 @@ class StateSpaceSystem {
 		//! @param[in]	A	離散系A行列
 		//! @param[in]	B	離散系B行列
 		//! @param[in]	C	C行列
-		void SetDiscrete(const Matrix<N,N>& A, const Matrix<I,N>& B, const Matrix<N,O>& C){
+		void SetDiscrete(const ArcsMat<N,N>& A, const ArcsMat<N,I>& B, const ArcsMat<O,N>& C){
 			Ad = A;
 			Bd = B;
 			Cd = C;
@@ -134,7 +134,7 @@ class StateSpaceSystem {
 		//! @param[in]	B	離散系B行列
 		//! @param[in]	C	C行列
 		//! @param[in]	D	D行列
-		void SetDiscrete(const Matrix<N,N>& A, const Matrix<I,N>& B, const Matrix<N,O>& C, const Matrix<I,O>& D){
+		void SetDiscrete(const ArcsMat<N,N>& A, const ArcsMat<N,I>& B, const ArcsMat<O,N>& C, const ArcsMat<O,I>& D){
 			Ad = A;
 			Bd = B;
 			Cd = C;
@@ -144,7 +144,7 @@ class StateSpaceSystem {
 		
 		//! @brief 状態空間モデルへの入力ベクトルを予め設定する関数
 		//! @param[in]	uin	入力ベクトル
-		void SetInput(const Matrix<1,I>& uin){
+		void SetInput(const ArcsMat<I,1>& uin){
 			u = uin;
 		}
 		
@@ -179,13 +179,13 @@ class StateSpaceSystem {
 		
 		//! @brief 状態空間モデルからの出力ベクトルを取得する関数(引数で返す版)
 		//! @param[out]	you	出力ベクトル
-		void GetOutput(Matrix<1,O>& yout){
+		void GetOutput(ArcsMat<O,1>& yout){
 			yout = y;
 		}
 		
 		//! @brief 状態空間モデルからの出力ベクトルを取得する関数(ベクトルで返す版)
 		//! @return	出力ベクトル
-		Matrix<1,O> GetOutput(void){
+		ArcsMat<O,1> GetOutput(void){
 			return y;
 		}
 		
@@ -198,13 +198,13 @@ class StateSpaceSystem {
 		
 		//! @brief 状態空間モデルからの、次の時刻の出力ベクトルを取得する関数(引数で返す版)
 		//! @param[out]	you	出力ベクトル
-		void GetNextOutput(Matrix<1,O>& yout){
+		void GetNextOutput(ArcsMat<O,1>& yout){
 			yout = y_next;
 		}
 		
 		//! @brief 状態空間モデルからの、次の時刻の出力ベクトルを取得する関数(ベクトルで返す版)
 		//! @return	出力ベクトル
-		Matrix<1,O> GetNextOutput(void){
+		ArcsMat<O,1> GetNextOutput(void){
 			return y_next;
 		}
 		
@@ -218,7 +218,7 @@ class StateSpaceSystem {
 		//! @brief 状態空間モデルの応答を計算して取得する関数(引数で返す版)
 		//! @param[in]	uin		入力ベクトル
 		//! @param[out]	yout	出力ベクトル
-		void GetResponses(const Matrix<1,I>& uin, Matrix<1,O>& yout){
+		void GetResponses(const ArcsMat<I,1>& uin, ArcsMat<O,1>& yout){
 			u = uin;	// 入力ベクトルを設定
 			Update();	// 状態空間モデルの応答を計算して状態ベクトルを更新
 			yout = y;	// 出力ベクトルを返す
@@ -227,8 +227,8 @@ class StateSpaceSystem {
 		//! @brief 状態空間モデルの応答を計算して取得する関数(ベクトルで返す版)
 		//! @param[in]	uin	入力ベクトル
 		//! @return	出力ベクトル
-		Matrix<1,O> GetResponses(const Matrix<1,I>& uin){
-			Matrix<1,O> yout;			// 出力ベクトル
+		ArcsMat<O,1> GetResponses(const ArcsMat<I,1>& uin){
+			ArcsMat<O,1> yout;			// 出力ベクトル
 			GetResponses(uin, yout);	// 応答計算
 			return yout;				// 出力ベクトルを返す
 		}
@@ -238,8 +238,8 @@ class StateSpaceSystem {
 		//! @return	出力
 		double GetResponse(const double uin){
 			static_assert(I == 1 && O == 1);// SISOかチェック
-			Matrix<1,I> u_vec;				// 入力ベクトル
-			Matrix<1,O> y_vec;				// 出力ベクトル
+			ArcsMat<I,1> u_vec;				// 入力ベクトル
+			ArcsMat<O,1> y_vec;				// 出力ベクトル
 			u_vec[1] = uin;
 			GetResponses(u_vec, y_vec);		// 応答計算
 			return y_vec[1];				// 出力を返す
@@ -251,8 +251,8 @@ class StateSpaceSystem {
 		//! @return	出力
 		double GetResponse(const double u1, const double u2){
 			static_assert(I == 2 && O == 1);// 2入力1出力かチェック
-			Matrix<1,I> u_vec;				// 入力ベクトル
-			Matrix<1,O> y_vec;				// 出力ベクトル
+			ArcsMat<I,1> u_vec;				// 入力ベクトル
+			ArcsMat<O,1> y_vec;				// 出力ベクトル
 			u_vec[1] = u1;
 			u_vec[2] = u2;
 			GetResponses(u_vec, y_vec);		// 応答計算
@@ -262,7 +262,7 @@ class StateSpaceSystem {
 		//! @brief 状態空間モデルの応答を計算して取得する関数(次の時刻の出力ベクトルを即時に返す版)
 		//! @param[in]	uin		入力ベクトル
 		//! @param[out]	yout	出力ベクトル
-		void GetNextResponses(const Matrix<1,I>& uin, Matrix<1,O>& yout){
+		void GetNextResponses(const ArcsMat<I,1>& uin, ArcsMat<O,1>& yout){
 			u = uin;		// 入力ベクトルを設定
 			Update();		// 状態空間モデルの応答を計算して状態ベクトルを更新
 			yout = y_next;	// 次の時刻の出力ベクトルを返す
@@ -271,8 +271,8 @@ class StateSpaceSystem {
 		//! @brief 状態空間モデルの応答を計算して取得する関数(次の時刻の出力ベクトルを即時に返す版)(ベクトルで返す版)
 		//! @param[in]	uin	入力ベクトル
 		//! @return	出力ベクトル
-		Matrix<1,O> GetNextResponses(const Matrix<1,I>& uin){
-			Matrix<1,O> yout;			// 出力ベクトル
+		ArcsMat<O,1> GetNextResponses(const ArcsMat<I,1>& uin){
+			ArcsMat<O,1> yout;			// 出力ベクトル
 			GetNextResponses(uin, yout);	// 応答計算
 			return yout;				// 出力ベクトルを返す
 		}
@@ -282,8 +282,8 @@ class StateSpaceSystem {
 		//! @return	出力
 		double GetNextResponse(const double uin){
 			static_assert(I == 1 && O == 1);// SISOかチェック
-			Matrix<1,I> u_vec;				// 入力ベクトル
-			Matrix<1,O> y_vec;				// 出力ベクトル
+			ArcsMat<I,1> u_vec;				// 入力ベクトル
+			ArcsMat<O,1> y_vec;				// 出力ベクトル
 			u_vec[1] = uin;
 			GetNextResponses(u_vec, y_vec);	// 応答計算
 			return y_vec[1];				// 出力を返す
@@ -294,8 +294,8 @@ class StateSpaceSystem {
 		//! @return	出力
 		double GetNextResponse(const double u1, const double u2){
 			static_assert(I == 2 && O == 1);// 2入力1出力かチェック
-			Matrix<1,I> u_vec;				// 入力ベクトル
-			Matrix<1,O> y_vec;				// 出力ベクトル
+			ArcsMat<I,1> u_vec;				// 入力ベクトル
+			ArcsMat<O,1> y_vec;				// 出力ベクトル
 			u_vec[1] = u1;
 			u_vec[2] = u2;
 			GetNextResponses(u_vec, y_vec);	// 応答計算
@@ -304,21 +304,21 @@ class StateSpaceSystem {
 		
 		//! @brief 状態ベクトルをクリアする関数
 		void ClearStateVector(void){
-			x = Matrix<1,N>::zeros();
+			x = ArcsMat<N,1>::zeros();
 		}
 		
 	private:
 		StateSpaceSystem(const StateSpaceSystem&) = delete;					//!< コピーコンストラクタ使用禁止
 		const StateSpaceSystem& operator=(const StateSpaceSystem&) = delete;//!< 代入演算子使用禁止
-		Matrix<N,N> Ad;		//!< 離散系A行列
-		Matrix<I,N> Bd;		//!< 離散系B行列
-		Matrix<N,O> Cd;		//!< C行列
-		Matrix<I,O> Dd;		//!< D行列
-		Matrix<1,I> u;		//!< 入力ベクトル
-		Matrix<1,N> x;		//!< 状態ベクトル
-		Matrix<1,N> x_next;	//!< 次の時刻の状態ベクトル
-		Matrix<1,O> y;		//!< 出力ベクトル
-		Matrix<1,O> y_next;	//!< 次の時刻の出力ベクトル
+		ArcsMat<N,N> Ad;		//!< 離散系A行列
+		ArcsMat<N,I> Bd;		//!< 離散系B行列
+		ArcsMat<O,N> Cd;		//!< C行列
+		ArcsMat<O,I> Dd;		//!< D行列
+		ArcsMat<I,1> u;		//!< 入力ベクトル
+		ArcsMat<N,1> x;		//!< 状態ベクトル
+		ArcsMat<N,1> x_next;	//!< 次の時刻の状態ベクトル
+		ArcsMat<O,1> y;		//!< 出力ベクトル
+		ArcsMat<O,1> y_next;	//!< 次の時刻の出力ベクトル
 		bool DirectTerm;	//!< 直達項の有無フラグ(true = 直達項あり，false = 直達項なし)
 };
 }

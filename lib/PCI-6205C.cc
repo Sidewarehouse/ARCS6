@@ -186,6 +186,16 @@ void PCI6205C::GetCount(std::array<long, MAX_CH>& count){
 	GetCount(count.data());
 }
 
+//! @brief エンコーダカウンタからカウント値を読み込む関数(ArcsMat版)
+//! @param[out] count エンコーダカウント値
+//! @param array エンコーダカウント値(一度std::arrayに変換する)
+void PCI6205C::GetCount(ArcsMat<MAX_CH,1,long>& count){
+	std::array<long, MAX_CH> array;
+	count.StoreArray(array);
+	GetCount(array.data());
+	count.LoadArray(array);
+}
+
 //! @brief エンコーダカウンタの値を零(0x000000)に設定，および上位カウンタをクリアする関数
 void PCI6205C::ClearAllCounter(void){
 	for(unsigned int i=0;i<NUM_CH;i++)SetEncData(0x000000, i);	// カウンタクリア
@@ -364,6 +374,5 @@ bool PCI6205C::GetBitStatus(uint8_t in, uint8_t bit){
 	}
 	return ret;
 }
-
 #endif
 // x86_64系の場合のみ対応-ここまで
