@@ -4,10 +4,10 @@
 //! ユニパルス社製(ロボテック社製)ユニサーボの通信規格UNINET
 //! 通信用USV-PCIE7ボードとのインターフェースを提供します
 //!
-//! @date 2022/03/18
+//! @date 2025/03/13
 //! @author Juan Padron and Yokokura, Yuki
 //
-// Copyright (C) 2011-2021 Juan Padron and Yokokura, Yuki
+// Copyright (C) 2011-2025 Juan Padron and Yokokura, Yuki
 // This program is free software;
 // you can redistribute it and/or modify it under the terms of the BSD License.
 // For details, see the License.txt file.
@@ -48,10 +48,17 @@ class USV_PCIE7{
 			ACCELERATION_CTRL,	//!< 加速度制御モード
 			CURRENT_CTRL		//!< 電流制御モード
 		};
+
+		//! @brief 空コンストラクタ
+		USV_PCIE7(void)
+			: ADDR_BASE(0), fd(0), Memptr(nullptr)
+		{
+			// 空コンストラクタ
+		}
 		
 		//! @brief コンストラクタ
 		//! @param[in] Addr ベースアドレス(lspciコマンドで表示される「Region1」のアドレス)
-		USV_PCIE7(const unsigned long Addr)
+		USV_PCIE7(const size_t Addr)
 			: ADDR_BASE(Addr), fd(0), Memptr(nullptr)
 		{
 			PassedLog();
