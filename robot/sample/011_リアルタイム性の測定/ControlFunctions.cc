@@ -1,9 +1,9 @@
 //! @file ControlFunctions.cc
 //! @brief 制御用周期実行関数群クラス
-//! @date 2024/06/25
+//! @date 2025/03/23
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 // 基本のインクルードファイル
@@ -13,6 +13,7 @@
 #include "ARCSmemory.hh"
 #include "ARCSscrparams.hh"
 #include "ARCSgraphics.hh"
+#include "ConstParams.hh"
 #include "ControlFunctions.hh"
 #include "InterfaceFunctions.hh"
 

@@ -1,0 +1,19 @@
+{
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "gcc/C++ ARCS6 Make for VSCode",
+			"command": "/usr/bin/make",
+			"args": [
+				" offline"
+			],
+			"problemMatcher": [
+				"$gcc"
+			],
+			"group": {
+				"kind": "build",
+				"isDefault": true
+			}
+		}
+	]
+}

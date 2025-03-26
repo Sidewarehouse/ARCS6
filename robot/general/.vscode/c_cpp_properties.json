@@ -2,7 +2,13 @@
     "configurations": [
         {
             "name": "Linux/WSL2",
-            "defines": [
+            "includePath": [
+                "/usr/include/**",
+                "../../lib/",
+                "../../sys/",
+				"./equip/**"
+            ],
+			"defines": [
                 "_DEBUG",
                 "UNICODE",
                 "_UNICODE",
@@ -16,6 +22,12 @@
         },
         {
             "name": "Linux/Samba",
+            "includePath": [
+                "%INCLUDE%/**",
+                "../../lib/",
+                "../../sys/",
+				"./equip/**"
+            ],
             "defines": [
                 "_DEBUG",
                 "UNICODE",
