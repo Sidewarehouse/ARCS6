@@ -2,10 +2,12 @@
 //! @brief 統計処理クラス(テンプレート行列＆std::array版)
 //! 平均，分散，標準偏差，共分散，相関係数を計算する
 //!
-//! @date 2024/07/23
+//! このクラスは廃止予定、ArcsMatrixに統合されます！
+//!
+//! @date 2025/08/05
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef STATISTICS

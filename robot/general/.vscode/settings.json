@@ -1,5 +1,6 @@
 {
 	"C_Cpp.dimInactiveRegions": false,
 	"C_Cpp.errorSquiggles": "disabled",
-	"cmake.configureOnOpen": true
+	"cmake.configureOnOpen": true,
+	"cmake.ignoreCMakeListsMissing": true
 }

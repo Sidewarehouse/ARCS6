@@ -658,3 +658,26 @@ Yexp1 = expm(Aexp1)
 format short
 Yexp2x = expm(Lkrn2)
 
+fprintf('\n');
+disp 'š “Œvˆ—ŠÖ”'
+Ast1 = [
+		0, 1, 1;
+		2, 3, 2;
+		1, 3, 2;
+		4, 2, 2];
+yst1 = mean(Ast1)
+yst2 = mean(Ast1, 2)
+meanAst1 = mean(mean(Ast1))
+Ast2 = [4 -2 1; 9 5 7];
+yst3 = var(Ast2)
+yst4 = var(Ast2, 0 , 2)
+varyst3 = var(yst3)
+varyst4 = var(yst4)
+varAst2 = var(Ast2, 0 , 'All')
+Ast3 = [6 4 23 -3; 9 -10 4 11; 2 8 -5 1];
+yst5 = std(Ast3)
+yst6 = std(Ast3, 0, 2)
+varyst5 = std(yst5, 0, 'All')
+varyst6 = std(yst6, 0, 'All')
+varAst3 = std(Ast3, 0, 'All')
+

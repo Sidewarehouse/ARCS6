@@ -1509,6 +1509,86 @@ int main(void){
 	constexpr auto Yexp2x = expm(Lkrn2);		// コンパイル時に行列指数関数を計算
 	dispf(Yexp2x, "% 8.4f");
 
+	// 統計処理関数
+	printf("\n★★★★★★★ 統計処理関数\n");
+	constexpr ArcsMat<4,3> Ast1 = {
+		0, 1, 1,
+		2, 3, 2,
+		1, 3, 2,
+		4, 2, 2
+	};
+	disp(Ast1);
+	ArcsMat<1,3> yst1;
+	meancolumn(Ast1, yst1);		// 行列の縦方向の平均を計算 (引数渡し版)
+	yst1 = meancolumn(Ast1);	// 行列の縦方向の平均を計算 (戻り値返し版)
+	disp(yst1);
+	constexpr auto yst1x = meancolumn(Ast1);		// コンパイル時に行列の縦方向の平均を計算
+	disp(yst1x);
+	ArcsMat<4,1> yst2;
+	meanrow(Ast1, yst2);		// 行列の横方向の平均を計算 (引数渡し版)
+	yst2 = meanrow(Ast1);		// 行列の横方向の平均を計算 (戻り値返し版)
+	disp(yst2);
+	constexpr auto yst2x = meanrow(Ast1);			// コンパイル時に行列の横方向の平均を計算
+	disp(yst2x);
+	printf("meanyst1  = % g\n", meanvec(yst1));	// 横ベクトルの平均（＝行列全体の平均）を計算 (戻り値返し版のみ)
+	constexpr auto meanyst1x = meanvec(yst1x);		// コンパイル時に横ベクトルの平均を計算 
+	printf("meanyst1x = % g\n", meanyst1x);
+	printf("meanyst2  = % g\n", meanvec(yst2));	// 縦ベクトルの平均（＝行列全体の平均）を計算 (戻り値返し版のみ)
+	constexpr auto meanyst2x = meanvec(yst2x);		// コンパイル時に縦ベクトルの平均を計算 
+	printf("meanyst2x = % g\n", meanyst2x);
+	printf("meanAst1  = % g\n", mean(Ast1));	// 行列全体の平均を計算 (戻り値返し版のみ)
+	constexpr double meanAst1x = mean(Ast1);		// コンパイル時に行列全体の平均を計算
+	printf("meanAst1x = % g\n", meanAst1x);
+	constexpr ArcsMat<2,3> Ast2 = {
+		 4, -2,  1,
+		 9,  5,  7
+	};
+	disp(Ast2);
+	ArcsMat<1,3> yst3;
+	varcolumn(Ast2, yst3);	// 行列の縦方向の分散を計算 (引数渡し版)
+	yst3 = varcolumn(Ast2);	// 行列の縦方向の分散を計算 (戻り値返し版)
+	disp(yst3);
+	constexpr auto yst3x = varcolumn(Ast2);			// コンパイル時に行列の縦方向の分散を計算
+	disp(yst3x);
+	ArcsMat<2,1> yst4;
+	varrow(Ast2, yst4);		// 行列の横方向の分散を計算 (引数渡し版)
+	yst4 = varrow(Ast2);	// 行列の横方向の分散を計算 (戻り値返し版)
+	disp(yst4);
+	constexpr auto yst4x = varrow(Ast2);			// コンパイル時に行列の縦方向の分散を計算
+	disp(yst4x);
+	printf("varyst3  = % g\n", varvec(yst3));	// 横ベクトルの分散を計算 (戻り値返し版のみ)
+	constexpr auto varyst3x = varvec(yst3x);		// コンパイル時に横ベクトルの分散を計算 
+	printf("varyst3x = % g\n", varyst3x);
+	printf("varyst4  = % g\n", varvec(yst4));	// 縦ベクトルの分散を計算 (戻り値返し版のみ)
+	constexpr auto varyst4x = varvec(yst4x);		// コンパイル時に縦ベクトルの分散を計算 
+	printf("varyst4x = % g\n", varyst4x);
+	printf("varAst2  = % g\n", var(Ast2));		// 行列全体の分散を計算 (戻り値返し版のみ)
+	constexpr double varAst2x = var(Ast2);			// コンパイル時に行列全体の分散を計算
+	printf("varAst2x = % g\n", varAst2x);
+	constexpr ArcsMat<3,4> Ast3 = {
+		6,   4, 23, -3,
+		9, -10,  4, 11,
+		2,   8, -5,  1
+	};
+	disp(Ast3);
+	ArcsMat<1,4> yst5;
+	stdevcolumn(Ast3, yst5);	// 行列の縦方向の標準偏差を計算 (引数渡し版)
+	yst5 = stdevcolumn(Ast3);	// 行列の縦方向の標準偏差を計算 (戻り値返し版)
+	disp(yst5);
+	constexpr auto yst5x = stdevcolumn(Ast3);		// コンパイル時に縦方向の標準偏差を計算
+	disp(yst5x);
+	ArcsMat<3,1> yst6;
+	stdevrow(Ast3, yst6);		// 行列の横方向の標準偏差を計算 (引数渡し版)
+	yst6 = stdevrow(Ast3);		// 行列の横方向の標準偏差を計算 (戻り値返し版)
+	disp(yst6);
+	constexpr auto yst6x = stdevrow(Ast3);			// コンパイル時に縦方向の標準偏差を計算
+	disp(yst6x);
+	printf("stdyst5  = % g\n", stdev(yst5));	// 横ベクトルの標準偏差を計算 (戻り値返し版のみ)
+	printf("stdyst6  = % g\n", stdev(yst6));	// 縦ベクトルの標準偏差を計算 (戻り値返し版のみ)
+	printf("stdAst3  = % g\n", stdev(Ast3));	// 行列全体の標準偏差を計算 (戻り値返し版のみ)
+	constexpr auto stdAst3x = stdev(Ast3);			// コンパイル時に行列全体の標準偏差を計算
+	printf("stdAst3x = % g\n", stdAst3x);
+
 	// MATファイルへの保存 (MATLAB Level 4対応)
 	printf("\n★★★★★★★ MATファイルへの保存 (MATLAB Level 4)\n");
 	MatExport MatFile1("save_test.mat");// MATファイルを新規作成

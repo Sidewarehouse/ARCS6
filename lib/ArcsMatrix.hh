@@ -3,10 +3,10 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2024/08/08
+//! @date 2025/08/05
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 //
 // ・各関数における計算結果はMATLAB/Maximaと比較して合っていることを確認済み。
@@ -3354,7 +3354,7 @@ class ArcsMat {
 		
 		//! @brief 行列指数関数 (引数渡し版)
 		//! @tparam	K	パデ近似の次数 (デフォルト値 = 13)
-		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U	入力行列
 		//! @param[out]	Y	出力行列
 		template<size_t K = 13, size_t MY, size_t NY, typename TY = double>
@@ -3409,11 +3409,225 @@ class ArcsMat {
 			return Y;
 		}
 		
+		//! @brief 縦方向の平均を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void meancolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			y = ArcsMat<M,N,T>::sumcolumn(U)/static_cast<T>(M);	// 縦方向に加算して行列の高さで割って平均を算出
+		}
+
+		//! @brief 縦方向の平均を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<1,N,T> meancolumn(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,N,T> y;
+			ArcsMat<M,N,T>::meancolumn(U, y);
+			return y;
+		}
+		
+		//! @brief 横方向の平均を計算する関数 行列入力-縦ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void meanrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			y = ArcsMat<M,N,T>::sumrow(U)/static_cast<T>(N);	// 横方向に加算して行列の幅で割って平均を算出
+		}
+
+		//! @brief 横方向の平均を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<M,1,T> meanrow(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,1,T> y;
+			ArcsMat<M,N,T>::meanrow(U, y);
+			return y;
+		}
+
+		//! @brief ベクトルの平均を計算する関数 ベクトル入力-スカラ出力版 (戻り値返し版のみ)
+		//! @param[in]	u	入力ベクトル
+		//! @return	平均値(スカラー)
+		static constexpr T meanvec(const ArcsMat<M,N,T>& u){
+			static_assert(M == 1 || N == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// 縦ベクトルか横ベクトルかでアルゴリズムを変える
+			ArcsMat<1,1,T> y;
+			if constexpr(N == 1){
+				// 入力が縦ベクトルの場合
+				y = ArcsMat<M,N,T>::meancolumn(u);
+			}else if constexpr(M == 1){
+				// 入力が横ベクトルの場合
+				y = ArcsMat<M,N,T>::meanrow(u);
+			}else{
+				arcs_assert(false);	// ここには来ない
+			}
+			
+			return y[1];
+		}
+		
+		//! @brief 行列全体の平均を計算する関数 (戻り値返し版のみ)
+		//! @param[in]	U	入力行列
+		//! @return	平均値(スカラー)
+		static constexpr T mean(const ArcsMat<M,N,T>& U){
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			return ArcsMat<1,N,T>::meanvec(ArcsMat<M,N,T>::meancolumn(U));	// 列優先で平均を計算
+		}
+		
+		//! @brief 縦方向の分散を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void varcolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			const ArcsMat<1,N,T> ubar = ArcsMat<M,N,T>::meancolumn(U);	// 列ごとの平均を計算
+			ArcsMat<M,N,T> W;
+			for(size_t m = 1; m <= M; ++m){
+				ArcsMat<M,N,T>::setrow(W, ArcsMat<M,N,T>::getrow(U, m) - ubar, m);	// 列の平均で引く
+			}
+			y = ArcsMat<M,N,T>::sumcolumn(W & W)/static_cast<T>(M - 1);	// 要素ごとに2乗して列の総和、不偏分散を計算
+		}
+
+		//! @brief 縦方向の分散を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<1,N,T> varcolumn(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,N,T> y;
+			ArcsMat<M,N,T>::varcolumn(U, y);
+			return y;
+		}
+
+		//! @brief 横方向の分散を計算する関数 行列入力-縦ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void varrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			const ArcsMat<M,1,T> ubar = ArcsMat<M,N,T>::meanrow(U);	// 行ごとの平均を計算
+			ArcsMat<M,N,T> W;
+			for(size_t n = 1; n <= N; ++n){
+				ArcsMat<M,N,T>::setcolumn(W, ArcsMat<M,N,T>::getcolumn(U, n) - ubar, n);	// 行の平均で引く
+			}
+			y = ArcsMat<M,N,T>::sumrow(W & W)/static_cast<T>(N - 1);	// 要素ごとに2乗して行の総和、不偏分散を計算
+		}
+
+		//! @brief 横方向の分散を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<M,1,T> varrow(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,1,T> y;
+			ArcsMat<M,N,T>::varrow(U, y);
+			return y;
+		}
+
+		//! @brief ベクトルの分散を計算する関数 ベクトル入力-スカラ出力版 (戻り値返し版のみ)
+		//! @param[in]	u	入力ベクトル
+		//! @return	分散(スカラー)
+		static constexpr T varvec(const ArcsMat<M,N,T>& u){
+			static_assert(M == 1 || N == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+
+			// 縦ベクトルか横ベクトルかでアルゴリズムを変える
+			ArcsMat<1,1,T> y;
+			if constexpr(N == 1){
+				// 入力が縦ベクトルの場合
+				y = ArcsMat<M,N,T>::varcolumn(u);
+			}else if constexpr(M == 1){
+				// 入力が横ベクトルの場合
+				y = ArcsMat<M,N,T>::varrow(u);
+			}else{
+				arcs_assert(false);	// ここには来ない
+			}
+			
+			return y[1];
+		}
+
+		//! @brief 行列全体の分散を計算する関数 (戻り値返し版のみ)
+		//! @param[in]	U	入力行列
+		//! @return	分散
+		static constexpr T var(const ArcsMat<M,N,T>& U){
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			const T Ubar = ArcsMat<M,N,T>::mean(U);	// 要素全体の平均を計算
+			const ArcsMat<M,N,T> W = U - Ubar;		// 平均で引く
+			return ArcsMat<M,N,T>::sum(W & W)/static_cast<T>(M*N - 1);	// 要素ごとに2乗して総和、不偏分散を計算
+		}
+
+		//! @brief 縦方向の標準偏差を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void stdevcolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			y = ArcsMat<1,N,T>::sqrt( ArcsMat<M,N,T>::varcolumn(U) );	// 分散を計算して平方根を通して出力
+		}
+
+		//! @brief 縦方向の標準偏差を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<1,N,T> stdevcolumn(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,N,T> y;
+			ArcsMat<M,N,T>::stdevcolumn(U, y);
+			return y;
+		}
+
+		//! @brief 横方向の標準偏差を計算する関数 行列入力-縦ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void stdevrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			y = ArcsMat<M,1,T>::sqrt( ArcsMat<M,N,T>::varrow(U) );	// 分散を計算して平方根を通して出力
+		}
+
+		//! @brief 横方向の標準偏差を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<M,1,T> stdevrow(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,1,T> y;
+			ArcsMat<M,N,T>::stdevrow(U, y);
+			return y;
+		}
+
+		//! @brief 行列全体の標準偏差を計算する関数 (戻り値返し版のみ)
+		//! @param[in]	U	入力行列
+		//! @return	標準偏差
+		static constexpr T stdev(const ArcsMat<M,N,T>& U){
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			return std::sqrt( ArcsMat<M,N,T>::var(U) );	// 全体の分散を計算して平方根を通して出力
+		}
+		
 	public:
 		// 公開版基本定数
 		static constexpr double EPSILON = 1e-14;		//!< 零とみなす閾値(実数版)
 		static constexpr std::complex<double> EPSLCOMP = std::complex(1e-14, 1e-14);	//!< 零とみなす閾値(複素数版)
-
+		
 	private:
 		// 非公開版基本定数
 		static constexpr size_t ITERATION_MAX = 10000;	//!< 反復計算の最大値
@@ -4948,6 +5162,159 @@ namespace ArcsMatrix {
 	constexpr ArcsMat<M,N,T> expm(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::template expm<K>(U);
 	}
+
+	//! @brief 縦方向の平均を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void meancolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::meancolumn(U, y);
+	}
+
+	//! @brief 縦方向の平均を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<1,N,T> meancolumn(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::meancolumn(U);
+	}
+	
+	//! @brief 横方向の平均を計算する関数 行列入力-縦ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void meanrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::meanrow(U, y);
+	}
+
+	//! @brief 横方向の平均を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,1,T> meanrow(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::meanrow(U);
+	}
+
+	//! @brief ベクトルの平均を計算する関数 ベクトル入力-スカラ出力版 (戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	u	入力ベクトル
+	//! @return	平均値(スカラー)
+	template<size_t M, size_t N, typename T = double>
+	constexpr T meanvec(const ArcsMat<M,N,T>& u){
+		return ArcsMat<M,N,T>::meanvec(u);
+	}
+
+	//! @brief 行列全体の平均を計算する関数 (戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	平均値(スカラー)
+	template<size_t M, size_t N, typename T = double>
+	constexpr T mean(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::mean(U);
+	}
+	
+	//! @brief 縦方向の分散を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void varcolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::varcolumn(U, y);
+	}
+
+	//! @brief 縦方向の分散を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<1,N,T> varcolumn(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::varcolumn(U);
+	}
+
+	//! @brief 横方向の分散を計算する関数 行列入力-縦ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void varrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::varrow(U, y);
+	}
+
+	//! @brief 横方向の分散を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,1,T> varrow(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::varrow(U);
+	}
+
+	//! @brief ベクトルの分散を計算する関数 ベクトル入力-スカラ出力版 (戻り値返し版のみ)
+	//! @param[in]	u	入力ベクトル
+	//! @return	分散(スカラー)
+	template<size_t M, size_t N, typename T = double>
+	constexpr T varvec(const ArcsMat<M,N,T>& u){
+		return ArcsMat<M,N,T>::varvec(u);
+	}
+
+	//! @brief 行列全体の分散を計算する関数 (戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	分散(スカラー)
+	template<size_t M, size_t N, typename T = double>
+	constexpr T var(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::var(U);
+	}
+
+	//! @brief 縦方向の標準偏差を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void stdevcolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::stdevcolumn(U, y);
+	}
+
+	//! @brief 縦方向の標準偏差を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<1,N,T> stdevcolumn(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::stdevcolumn(U);
+	}
+
+	//! @brief 横方向の標準偏差を計算する関数 行列入力-縦ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void stdevrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::stdevrow(U, y);
+	}
+
+	//! @brief 横方向の標準偏差を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,1,T> stdevrow(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::stdevrow(U);
+	}
+
+	//! @brief 行列全体の標準偏差を計算する関数 (戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	分散(スカラー)
+	template<size_t M, size_t N, typename T = double>
+	constexpr T stdev(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::stdev(U);
+	}
+
 
 }
 
