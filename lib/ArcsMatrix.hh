@@ -27,6 +27,7 @@
 #include <array>
 #include <complex>
 #include <cstdint>
+#include <algorithm>
 
 // ARCS組込み用マクロ
 #ifdef ARCS_IN
@@ -61,6 +62,12 @@ namespace ArcsMatrix {
 		AMT_L2,		//!< ユークリッドノルム(2-ノルム)
 		AMT_L1,		//!< 絶対値ノルム(1-ノルム)
 		AMT_LINF	//!< 無限大ノルム(最大値ノルム)
+	};
+
+	//! @brief ソート方法の定義
+	enum class SortType {
+		AMT_ASCENT,	//!< 昇順
+		AMT_DESCENT	//!< 降順
 	};
 }
 
@@ -1575,6 +1582,70 @@ class ArcsMat {
 			return Y;
 		}
 		
+		//! @brief 行列を縦方向にソートする関数 (引数渡し版)
+		//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT, size_t P, size_t Q, typename R = double>
+		static constexpr void sortcolumn(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			std::array<T,M> v = {0};
+			ArcsMat<M,1,T> w;
+			for(size_t n = 1; n <= N; ++n){
+				(ArcsMat<M,N,T>::getcolumn(U, n)).StoreArray(v);// std::arrayに読み込んでから、
+				if constexpr(ST == ArcsMatrix::SortType::AMT_ASCENT){
+					std::sort(v.begin(), v.end());				// 昇順ソートを実行
+				}else if constexpr(ST == ArcsMatrix::SortType::AMT_DESCENT){
+					std::sort(v.begin(), v.end(), [](const T& v1, const T& v2){ return v2 < v1;  } );	// 降順ソートを実行
+				}else{
+					arcs_assert(false);							// ここには来ない
+				}
+				w.LoadArray(v);									// ArcsMatに結果を読み込んで、
+				ArcsMat<M,N,T>::setcolumn(Y, w, n);				// 結果を書き込み
+			}
+		}
+
+		//! @brief 行列を縦方向にソートする関数 (戻り値返し版)
+		//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+		//! @param[in]	U	入力行列
+		//! @return	出力行列
+		template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT>
+		static constexpr ArcsMat<M,N,T> sortcolumn(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::sortcolumn(U, Y);
+			return Y;
+		}
+
+		//! @brief 行列を横方向にソートする関数 (引数渡し版)
+		//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+		//! @tparam	P, Q, R	出力行列の高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	Y	出力行列
+		template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT, size_t P, size_t Q, typename R = double>
+		static constexpr void sortrow(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<R>, "ArcsMat: Type Error");	// 対応可能型チェック
+			ArcsMat<N,M,T> Ut, Yt;
+			ArcsMat<M,N,T>::tp(U, Ut);						// 転置して、
+			ArcsMat<N,M,T>::template sortcolumn<ST>(Ut, Yt);// 縦方向にソートして、
+			ArcsMat<N,M,T>::tp(Yt, Y);						// また転置してもとに戻す
+		}
+
+		//! @brief 行列を横方向にソートする関数 (戻り値返し版)
+		//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+		//! @param[in]	U	入力行列
+		//! @return	出力行列
+		template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT>
+		static constexpr ArcsMat<M,N,T> sortrow(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,N,T> Y;
+			ArcsMat<M,N,T>::template sortrow<ST>(U, Y);
+			return Y;
+		}
+
 		//! @brief 行列を縦に連結する関数(引数渡し版)
 		//! @tparam	P, Q, R, D, E, F	入力行列2と出力行列の高さ, 幅, 要素の型
 		//! @param[in]	U1	入力行列1
@@ -3482,7 +3553,69 @@ class ArcsMat {
 		//! @return	平均値(スカラー)
 		static constexpr T mean(const ArcsMat<M,N,T>& U){
 			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
-			return ArcsMat<1,N,T>::meanvec(ArcsMat<M,N,T>::meancolumn(U));	// 列優先で平均を計算
+			return ArcsMat<1,N,T>::meanvec(ArcsMat<M,N,T>::meancolumn(U));		// 列優先で平均を計算
+		}
+
+		//! @brief 縦方向の中央値を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void mediancolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == N, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+			ArcsMat<M,N,T> Usrt;
+			ArcsMat<M,N,T>::sortcolumn(U, Usrt);		// 縦方向にソート
+			if constexpr((M % 2) == 1){
+				// 奇数行のとき
+				ArcsMat<M,N,T>::getrow(Usrt, y, M/2);	// 中央値の行を抽出 
+			}else{
+				// 偶数行のとき
+				ArcsMat<M,N,T>::getrow(Usrt, y, M/2);	// 中央値の行を抽出
+			}
+		}
+
+		//! @brief 縦方向の中央値を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<1,N,T> mediancolumn(const ArcsMat<M,N,T>& U){
+			ArcsMat<1,N,T> y;
+			ArcsMat<M,N,T>::mediancolumn(U, y);
+			return y;
+		}
+
+		//! @brief 横方向の中央値を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @param[out]	y	出力ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void medianrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+		}
+
+		//! @brief 行列全体の中央値を計算する関数 (戻り値返し版のみ)
+		//! @param[in]	U	入力行列
+		//! @return	中央値(スカラー)
+		static constexpr T median(const ArcsMat<M,N,T>& U){
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+
+		}
+		
+		//! @brief 横方向の中央値を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+		//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+		//! @param[in]	U	入力行列
+		//! @return	出力ベクトル
+		static constexpr ArcsMat<M,1,T> medianrow(const ArcsMat<M,N,T>& U){
+			ArcsMat<M,1,T> y;
+			ArcsMat<M,N,T>::medianrow(U, y);
+			return y;
 		}
 		
 		//! @brief 縦方向の分散を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
@@ -4227,6 +4360,7 @@ namespace ArcsMatrix {
 	constexpr void shiftright(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y, const size_t n = 1){
 		ArcsMat<M,N,T>::shiftright(U, Y, n);
 	}
+
 	//! @brief 行列の各要素を右にn列分シフトする関数(左段の列はゼロになる)(戻り値渡し版)
 	//! @tparam	M, N, T	入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
@@ -4236,7 +4370,47 @@ namespace ArcsMatrix {
 	constexpr ArcsMat<M,N,T> shiftright(const ArcsMat<M,N,T>& U, const size_t n = 1){
 		return ArcsMat<M,N,T>::shiftright(U, n);
 	}
-	
+
+	//! @brief 行列を縦方向にソートする関数 (引数渡し版)
+	//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT, size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void sortcolumn(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::template sortcolumn<ST>(U, Y);
+	}
+
+	//! @brief 行列を縦方向にソートする関数 (戻り値返し版)
+	//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力行列
+	template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT, size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> sortcolumn(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::sortcolumn(U);
+	}
+
+	//! @brief 行列を横方向にソートする関数 (引数渡し版)
+	//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+	//! @tparam	M, N, T, P, Q, R	入力行列の高さ, 幅, 要素の型, 出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	Y	出力行列
+	template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT, size_t M, size_t N, typename T = double, size_t P, size_t Q, typename R = double>
+	constexpr void sortrow(const ArcsMat<M,N,T>& U, ArcsMat<P,Q,R>& Y){
+		ArcsMat<M,N,T>::template sortrow<ST>(U, Y);
+	}
+
+	//! @brief 行列を横方向にソートする関数 (戻り値返し版)
+	//! @tparam	ST	ソート方法： AMT_ASCENT = 昇順(デフォルト), AMT_DESCENT = 降順
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力行列
+	template<ArcsMatrix::SortType ST = ArcsMatrix::SortType::AMT_ASCENT, size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,N,T> sortrow(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::sortrow(U);
+	}
+
 	//! @brief 行列を縦に連結する関数(引数渡し版)
 	//! @tparam	M, N, T, P, Q, R, D, E, F	入力行列1と2と出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U1	入力行列1
@@ -5216,7 +5390,52 @@ namespace ArcsMatrix {
 	constexpr T mean(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::mean(U);
 	}
+
+	//! @brief 縦方向の中央値を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void mediancolumn(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::mediancolumn(U, y);
+	}
+
+	//! @brief 縦方向の中央値を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<1,N,T> mediancolumn(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::mediancolumn(U);
+	}
+
+	//! @brief 横方向の中央値を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
+	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @param[out]	y	出力ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void medianrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::medianrow(U, y);
+	}
+
+	//! @brief 横方向の中央値を計算する関数 行列入力-横ベクトル出力版 (戻り値返し版)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	出力ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,1,T> medianrow(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::medianrow(U);
+	}
 	
+	//! @brief 行列全体の中央値を計算する関数 (戻り値返し版のみ)
+	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
+	//! @param[in]	U	入力行列
+	//! @return	中央値(スカラー)
+	template<size_t M, size_t N, typename T = double>
+	constexpr T median(const ArcsMat<M,N,T>& U){
+		return ArcsMat<M,N,T>::median(U);
+	}
+
 	//! @brief 縦方向の分散を計算する関数 行列入力-横ベクトル出力版 (引数渡し版)
 	//! @tparam	M, N, T, MY, NY, TY 入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
@@ -5243,7 +5462,7 @@ namespace ArcsMatrix {
 	constexpr void varrow(const ArcsMat<M,N,T>& U, ArcsMat<MY,NY,TY>& y){
 		ArcsMat<M,N,T>::varrow(U, y);
 	}
-
+	
 	//! @brief 横方向の分散を計算する関数 行列入力-縦ベクトル出力版 (戻り値返し版)
 	//! @tparam	M, N, T	入力行列の高さ, 幅, 要素の型
 	//! @param[in]	U	入力行列
@@ -5314,7 +5533,6 @@ namespace ArcsMatrix {
 	constexpr T stdev(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::stdev(U);
 	}
-
 
 }
 

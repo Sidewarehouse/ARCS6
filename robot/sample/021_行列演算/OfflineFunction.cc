@@ -616,6 +616,30 @@ int main(void){
 	constexpr auto Gx4 = shiftright(Fx, 4);				// コンパイル時に右にシフト
 	disp(Gx4);
 	
+	// ソート関連の関数
+	printf("\n★★★★★★★ ソート関連の関数\n");
+	constexpr ArcsMat<4,3> Asrt1 = {
+		10, -12,  8,
+		 6,  -9,  0,
+		 2,   3, -2,
+		 1,   1,  3
+	};
+	disp(Asrt1);
+	ArcsMat<4,3> Ysrt1;
+	sortcolumn(Asrt1, Ysrt1);	// 行列の縦方向に昇順ソート (引数渡し版)
+	Ysrt1 = sortcolumn(Asrt1);	// 行列の縦方向に昇順ソート (戻り値返し版)
+	disp(Ysrt1);
+	//constexpr auto Ystr1x = sortcolumn(Asrt1);		// コンパイル時に縦方向ソート [C++20移行時に対応]
+	sortcolumn<ArcsMatrix::SortType::AMT_DESCENT>(Asrt1, Ysrt1);	// 降順ソート
+	disp(Ysrt1);
+	sortrow(Asrt1, Ysrt1);		// 行列の横方向に昇順ソート (引数渡し版)
+	Ysrt1 = sortrow(Asrt1);		// 行列の横方向に昇順ソート (戻り値返し版)
+	disp(Ysrt1);
+	//constexpr auto Ystr1x = sortcolumn(Asrt1);		// コンパイル時に横方向ソート [C++20移行時に対応]
+	sortrow<ArcsMatrix::SortType::AMT_DESCENT>(Asrt1, Ysrt1);		// 降順ソート
+	disp(Ysrt1);
+
+/*	
 	// 連結関連の関数
 	printf("\n★★★★★★★ 連結関連の関数\n");
 	constexpr ArcsMat<2,3> Hx1 = {
@@ -1598,7 +1622,7 @@ int main(void){
 	MatFile1.Save("Yexp2x", Yexp2x);	// MATファイルに行列データを書き出し
 	dispf(Acmpx2, "% 8.4f");
 	MatFile1.Save("Acmpx2", Acmpx2);	// MATファイルに行列データを書き出し
-
+*/
 	return EXIT_SUCCESS;	// 正常終了
 }
 
