@@ -2,7 +2,7 @@
 //! @brief PCI-3341A入出力クラス
 //! Interface社製PCI-3341Aのための入出力機能を提供します。
 //! PCI-3343Aのチャンネル数を拡張
-//! @date 2024/04/09
+//! @date 2024/07/21
 //! @author Yokokura, Yuki Kosaka, Kohki
 //
 // Copyright (C) 2011-2020 Yokokura, Yuki
@@ -23,7 +23,8 @@ namespace ARCS {
 			PCI3341A();										//!< 空コンストラクタ
 			~PCI3341A();									//!< デストラクタ
 			static const unsigned int MAX_CH = 8;	//!< チャネル最大値
-            void SetVoltage(const ArcsMat<MAX_CH,1>& Vout);	//!< 指定した電圧を出力する関数
+            void SetVoltage(const ArcsMat<MAX_CH,1>& Vout);	//!< 指定した電圧を出力する関数(全チャンネル指定)
+			void SetVoltage(const ArcsMat<MAX_CH, 1>& Vout, const uint8_t SelectCh); //!< 指定した電圧を出力する関数(特定のチャンネルを指定)
 			//Vout[n]:nchの電圧
 		
 		private:
