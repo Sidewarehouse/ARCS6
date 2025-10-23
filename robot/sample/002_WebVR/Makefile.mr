@@ -35,5 +35,5 @@ start:
 	$(eval UPLOAD_URL := $(shell curl $(BASE_URL)/api/v1/get-upload-url | jq -r .uploadUrl))
 	curl -X PUT -H "Content-Type: application/octet-stream" --data-binary @out.wasm "$(UPLOAD_URL)"
 	$(eval DOWNLOAD_URL := $(shell curl "$(BASE_URL)/api/v1/get-download-url?uploadUrl=$(UPLOAD_URL)" | jq -r .downloadUrl))
-	$(eval ARTIFACT := $(shell printf "%s" "$(DOWNLOAD_URL)" | base64 | tr '+/' '-_' | tr -d '='))
+	$(eval ARTIFACT := $(shell printf "%s" "$(DOWNLOAD_URL)" | base64 -w 0 | tr '+/' '-_' | tr -d '='))
 	echo "Access to https://robot-arm-vr.vercel.app/?artifact=$(ARTIFACT)"
