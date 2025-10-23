@@ -7,6 +7,8 @@
 // Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
+#ifndef ARCS_MR
+
 #include <tuple>
 #include "ARCSscrparams.hh"
 #include "ARCSeventlog.hh"
@@ -222,4 +224,56 @@ void ARCSscrparams::SetOnlineSetVar(const unsigned int VarNum, const double VarV
 	pthread_mutex_unlock(&OnsetMutex);
 }
 
+#else // ARCS_MR
 
+#include "ARCSscrparams.hh"
+#include "WebXR.hh"
+
+using namespace ARCS;
+
+void ARCSscrparams::SetNetworkLink(const bool LinkFlag) {}
+
+void ARCSscrparams::SetInitializing(const bool InitFlag) {}
+
+void ARCSscrparams::SetCurrentAndPosition(
+		const ArcsMat<ConstParams::ACTUATOR_NUM, 1>& Current,
+		const ArcsMat<ConstParams::ACTUATOR_NUM, 1>& Position
+	) {
+  for (int i = 1; i <= ConstParams::ACTUATOR_NUM; ++i) {
+    int status = ACTUATOR_STATUS_NORMAL;
+
+    setActuatorStatus(i, status, Current(i, 1), Position(i, 1));
+  }
+}
+
+void ARCSscrparams::SetVarIndicator(
+    const std::array<double, ConstParams::INDICVARS_MAX> &Vars) {
+  for (int i = 0; i < ConstParams::INDICVARS_NUM; ++i) {
+    setReadVariable(i, Vars[i]);
+  }
+}
+
+void ARCSscrparams::GetOnlineSetVars(
+    std::array<double, ConstParams::ONLINEVARS_MAX> &Vars) {
+  for (int i = 0; i < ConstParams::INDICVARS_NUM; ++i) {
+    if (canGetWriteVariable(i)) {
+      Vars[i] = getWriteVariable(i);
+    }
+  }
+}
+
+void ARCSscrparams::SetOnlineSetVars(
+    const std::array<double, ConstParams::ONLINEVARS_MAX> &Vars) {
+  for (int i = 0; i < ConstParams::ONLINEVARS_NUM; ++i) {
+    setWriteVariable(i, Vars[i]);
+  }
+}
+
+void ARCSscrparams::SetOnlineSetVar(const unsigned int VarNum,
+                                   const double VarVal) {
+  setWriteVariable(VarNum, VarVal);
+}
+
+void ARCSscrparams::UpdateOnlineSetVar() { GetOnlineSetVars(OnlineSetVar); }
+
+#endif // ARCS_MR

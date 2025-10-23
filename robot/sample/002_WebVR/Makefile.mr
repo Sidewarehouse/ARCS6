@@ -1,0 +1,39 @@
+LIBPATH = ../../../lib
+SYSPATH = ../../../sys
+WEBXRPATH = ../../../webxr
+
+run:
+	docker run -it --rm -v $(PWD):/workspace alma-emcc:latest
+
+mr:
+	emcc -O2 \
+		-s EXPORTED_FUNCTIONS=_invokeFunctionsCallback,_updateModeCallback \
+		-s ERROR_ON_UNDEFINED_SYMBOLS=0 \
+		-o out.js \
+		-I. \
+		-I $(LIBPATH) \
+		-I $(SYSPATH) \
+		-I $(WEBXRPATH) \
+		-D ARCS_MR \
+		*.cc $(WEBXRPATH)/WebXR.cc \
+		$(SYSPATH)/ARCSgraphics.cc \
+		$(SYSPATH)/ARCSscrparams.cc \
+		2>&1 \
+	| grep -v -e "warning: undefined symbol: canGetWriteVariable" \
+		-e "warning: undefined symbol: getWriteVariable" \
+		-e "warning: undefined symbol: setActuatorStatus" \
+		-e "warning: undefined symbol: canGetWriteVariable" \
+		-e "warning: undefined symbol: setAxisRadian" \
+		-e "warning: undefined symbol: setPlot" \
+		-e "warning: undefined symbol: setReadVariable" \
+		-e "warning: undefined symbol: setWriteVariable" \
+		-e "emcc: warning: warnings in JS library compilation" \
+		|| true
+
+start:
+	$(eval BASE_URL := https://robot-arm-api-581611052166.asia-northeast1.run.app)
+	$(eval UPLOAD_URL := $(shell curl $(BASE_URL)/api/v1/get-upload-url | jq -r .uploadUrl))
+	curl -X PUT -H "Content-Type: application/octet-stream" --data-binary @out.wasm "$(UPLOAD_URL)"
+	$(eval DOWNLOAD_URL := $(shell curl "$(BASE_URL)/api/v1/get-download-url?uploadUrl=$(UPLOAD_URL)" | jq -r .downloadUrl))
+	$(eval ARTIFACT := $(shell printf "%s" "$(DOWNLOAD_URL)" | base64 | tr '+/' '-_' | tr -d '='))
+	echo "Access to https://robot-arm-vr.vercel.app/?artifact=$(ARTIFACT)"

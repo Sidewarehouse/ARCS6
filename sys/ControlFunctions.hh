@@ -7,7 +7,9 @@
 // MIT License. For details, see the LICENSE file.
 
 #ifndef CONTROL_FUNCTIONS
-#define CONTROL_FUCNTIONS
+#define CONTROL_FUNCTIONS
+
+#ifndef ARCS_MR
 
 #include <array>
 #include <functional>
@@ -113,6 +115,54 @@ class ControlFunctions {
 		bool ControlFunction3(const double t, const double Tact, const double Tcmp);	//!< 制御用周期実行関数3
 };
 }
+
+#else // ARCS_MR
+
+#include "ARCSgraphics.hh"
+#include "ARCSscrparams.hh"
+#include "WebXRInterfaceFunctions.hh"
+
+// 前方宣言
+namespace ARCS{
+	class ARCSgraphics;
+}
+
+namespace ARCS {
+class ControlFunctions {
+public:
+  enum CtrlFuncMode {
+    CTRL_INIT,
+    CTRL_LOOP,
+    CTRL_EXIT,
+  };
+
+  ControlFunctions()
+      : Screen(), Graph(), Interface(), CmdFlag(CTRL_INIT), NetworkLink(false),
+        Initializing(false) {}
+
+  bool ControlFunction1(double t, double Tact, double Tcmp);
+  bool ControlFunction2(double t, double Tact, double Tcmp);
+  bool ControlFunction3(double t, double Tact, double Tcmp);
+  void UpdateControlValue();
+  void UpdateMode(CtrlFuncMode NewCmdFlag) {
+		  CmdFlag = NewCmdFlag;
+	}
+
+  void UpdateScreen() {
+		Screen.UpdateOnlineSetVar();
+	}
+
+private:
+  ARCSscrparams Screen;
+  ARCSgraphics Graph;
+  InterfaceFunctions Interface;
+  CtrlFuncMode CmdFlag;
+  bool NetworkLink;
+  bool Initializing;
+};
+} // namespace ARCS
+
+#endif // ARCS_MR
 
 #endif
 
