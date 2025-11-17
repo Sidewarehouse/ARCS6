@@ -30,6 +30,11 @@ Wc = gram(sys,'c')
 Wo = gram(sys,'o')
 
 fprintf('\n');
+disp '◆ 可制御性行列/可観測性行列のテスト'
+Uc = ctrb(Ap, bp)
+Uo = obsv(Ap, cp)
+
+fprintf('\n');
 disp '◆ 平衡実現のテスト'
 [sys2,g,T,Ti] = balreal(sys);
 Ah = sys2.a

@@ -91,6 +91,16 @@ int main(void){
 	constexpr auto Wpox = ArcsControl::GramianObsv(Ap, cp);// コンパイル時に可観測グラミアンを計算
 	dispf(Wpox, "% 8.4f");
 
+	printf("◆ 可制御性行列/可観測性行列(MATLABでいうctrb/obsv)\n");
+	ArcsMat<3,3> Uc;
+	ArcsControl::CtrbMat(Ap, bp, Uc);		// 可制御性行列 (引数渡し版)
+	Uc = ArcsControl::CtrbMat(Ap, bp);		// 可制御性行列 (戻り値返し版)
+	dispf(Uc, "%8.4f");
+	ArcsMat<3,3> Uo;
+	ArcsControl::ObsvMat(Ap, cp, Uo);		// 可観測性行列 (引数渡し版)
+	Uo = ArcsControl::ObsvMat(Ap, cp);		// 可観測性行列 (戻り値返し版)
+	dispf(Uo, "%8.4f");
+
 	printf("◆ 平衡実現(入出力平衡化、MATLABでいうbalreal)\n");
 	ArcsMat<3,3> Aph, Tl, Tr;
 	ArcsMat<3,1> bph;

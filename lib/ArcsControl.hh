@@ -3,7 +3,7 @@
 //!
 //! 制御理論に関係する様々なアルゴリズムを詰め合わせたヘッダ
 //!
-//! @date 2025/01/17
+//! @date 2025/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2025 Yokokura, Yuki
@@ -194,7 +194,101 @@ namespace ArcsControl {	// ArcsControl名前空間
 		GramianObsv(A, C, Wo);
 		return Wo;
 	}
+
+	//! @brief 状態空間モデルのA行列とC行列から可制御性行列を計算する関数 (引数渡し版)
+	//! @param[in]	A	A行列
+	//! @param[in]	C	C行列
+	//! @tparam	M	A行列の高さ
+	//! @tparam	N	A行列の幅
+	//! @tparam	T	A行列のデータ型
+	//! @tparam	MB	B行列の高さ
+	//! @tparam	NB	B行列の幅
+	//! @tparam	TB	B行列のデータ型
+	//! @tparam	MU	可制御性行列の高さ
+	//! @tparam	NU	可制御性行列の幅
+	//! @tparam	TU	可制御性行列のデータ型
+	template<
+		size_t M, size_t N, typename T = double,
+		size_t MB, size_t NB, typename TB = double,
+		size_t MU, size_t NU, typename TU = double
+	>
+	static constexpr void CtrbMat(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MU,NU,TU>& Uo){
+		static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
+		static_assert(MB == M , "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(MU == MB, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(NU == NB*M, "ArcsCtrl: Size Error");	// サイズチェック
+
+		ArcsMat<MB,NB,TB> AB;
+		for(size_t i = 0; i < M; ++i){
+			AB = (A^i)*B;
+			copymatrix(AB,1,MB,1,NB, Uo,1,i*NB+1);	// 可制御性行列を生成
+		}
+	}
+
+	//! @brief 状態空間モデルのA行列とC行列から可制御性行列を計算する関数 (戻り値返し版)
+	//! @param[in]	A	A行列
+	//! @param[in]	C	C行列
+	//! @tparam	M	A行列の高さ
+	//! @tparam	N	A行列の幅
+	//! @tparam	T	A行列のデータ型
+	//! @tparam	MB	B行列の高さ
+	//! @tparam	NB	B行列の幅
+	//! @tparam	TB	B行列のデータ型
+	template<
+		size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double>
+	static constexpr ArcsMat<MB,NB*M,T> CtrbMat(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
+		ArcsMat<MB,NB*M,T> Uc;
+		CtrbMat(A, B, Uc);
+		return Uc;
+	}
 	
+	//! @brief 状態空間モデルのA行列とC行列から可観測性行列を計算する関数 (引数渡し版)
+	//! @param[in]	A	A行列
+	//! @param[in]	C	C行列
+	//! @tparam	M	A行列の高さ
+	//! @tparam	N	A行列の幅
+	//! @tparam	T	A行列のデータ型
+	//! @tparam	MC	C行列の高さ
+	//! @tparam	NC	C行列の幅
+	//! @tparam	TC	C行列のデータ型
+	//! @tparam	MU	可観測性行列の高さ
+	//! @tparam	NU	可観測性行列の幅
+	//! @tparam	TU	可観測性行列のデータ型
+	template<
+		size_t M, size_t N, typename T = double,
+		size_t MC, size_t NC, typename TC = double,
+		size_t MU, size_t NU, typename TU = double
+	>
+	static constexpr void ObsvMat(const ArcsMat<M,N,T>& A, const ArcsMat<MC,NC,TC>& C, ArcsMat<MU,NU,TU>& Uo){
+		static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
+		static_assert(NC == M, "ArcsCtrl: Size Error");		// サイズチェック
+		static_assert(MU == MC*M, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(NU == NC, "ArcsCtrl: Size Error");	// サイズチェック
+
+		ArcsMat<MC,NC,TC> CA;
+		for(size_t i = 0; i < M; ++i){
+			CA = C*(A^i);
+			copymatrix(CA,1,MC,1,NC, Uo,i*MC+1,1);	// 可観測性行列を生成
+		}
+	}
+
+	//! @brief 状態空間モデルのA行列とC行列から可観測性行列を計算する関数 (戻り値返し版)
+	//! @param[in]	A	A行列
+	//! @param[in]	C	C行列
+	//! @tparam	M	A行列の高さ
+	//! @tparam	N	A行列の幅
+	//! @tparam	T	A行列のデータ型
+	//! @tparam	MC	C行列の高さ
+	//! @tparam	NC	C行列の幅
+	//! @tparam	TC	C行列のデータ型
+	template<
+		size_t M, size_t N, typename T = double, size_t MC, size_t NC, typename TC = double>
+	static constexpr ArcsMat<MC*M,NC,T> ObsvMat(const ArcsMat<M,N,T>& A, const ArcsMat<MC,NC,TC>& C){
+		ArcsMat<MC*M,NC,T> Uo;
+		ObsvMat(A, C, Uo);
+		return Uo;
+	}
+
 	//! @brief 状態空間モデルを平衡化する関数 (引数渡し版, 変換行列も渡す版)
 	//! @tparam		M,MH	A行列の高さ
 	//! @tparam		N,NH	A行列の幅
@@ -428,13 +522,7 @@ namespace ArcsControl {	// ArcsControl名前空間
 		static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
 		static_assert(NC == M , "ArcsCtrl: Size Error");	// サイズチェック
 
-		ArcsMat<MC,NC,TC> CA;
-		ArcsMat<MC*M,NC,TC> Ob;
-		for(size_t i = 0; i < M; ++i){
-			CA = C*(Ac^i);
-			copymatrix(CA,1,MC,1,NC, Ob,i*MC+1,1);	// 可観測性行列を生成
-		}
-		return M == rank(Ob);	// ランクを計算して状態数と同一なら可観測
+		return M == rank(ObsvMat(Ac, C));	// 可観測性行列のランクを計算して状態数と同一なら可観測
 	}
 
 	//! @brief 連続系状態空間モデルのA行列とB行列が可制御かどうかを返す関数
@@ -452,13 +540,7 @@ namespace ArcsControl {	// ArcsControl名前空間
 		static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
 		static_assert(MB == M , "ArcsCtrl: Size Error");	// サイズチェック
 
-		ArcsMat<MB,NB,TB> AB;
-		ArcsMat<MB,NB*M,TB> Co;
-		for(size_t i = 0; i < M; ++i){
-			AB = (Ac^i)*Bc;
-			copymatrix(AB,1,MB,1,NB, Co,1,i*NB+1);	// 可制御性行列を生成
-		}
-		return M == rank(Co);	// ランクを計算して状態数と同一なら可観測
+		return M == rank(CtrbMat(Ac, Bc));	// 可制御性行列のランクを計算して状態数と同一なら可観測
 	}
 
 //--------------------- ここから廃止予定

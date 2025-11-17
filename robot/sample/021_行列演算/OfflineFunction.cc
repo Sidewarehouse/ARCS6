@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2025/01/17
+//! @date 2025/10/10
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -320,9 +320,9 @@ int main(void){
 	// ゼロの取り扱い関連の関数
 	printf("\n★★★★★★★ ゼロの取り扱い関連の関数\n");
 	const ArcsMat<3,3> Azero1 = {
-		 ArcsMat<3,3>::EPSILON, -ArcsMat<3,3>::EPSILON, ArcsMat<3,3>::EPSILON,
-		-ArcsMat<3,3>::EPSILON,  ArcsMat<3,3>::EPSILON, ArcsMat<3,3>::EPSILON,
-		 ArcsMat<3,3>::EPSILON, -ArcsMat<3,3>::EPSILON, ArcsMat<3,3>::EPSILON
+		 ArcsMatrix::EPSILON, -ArcsMatrix::EPSILON, ArcsMatrix::EPSILON,
+		-ArcsMatrix::EPSILON,  ArcsMatrix::EPSILON, ArcsMatrix::EPSILON,
+		 ArcsMatrix::EPSILON, -ArcsMatrix::EPSILON, ArcsMatrix::EPSILON
 	};
 	dispf(Azero1, "% 16.15e");
 	auto Azero2 = Azero1;
@@ -334,8 +334,8 @@ int main(void){
 	Azero2.ZeroingTriLo(1e-12);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (許容誤差指定版)
 	dispf(Azero2, "% 16.15e");
 	const ArcsMat<2,2,std::complex<double>> Azero3 = {
-		ArcsMat<3,3>::EPSILON + 1.0i, 1.0 + ArcsMat<3,3>::EPSILON*1.0i,
-		      ArcsMat<3,3>::EPSLCOMP,           ArcsMat<3,3>::EPSLCOMP
+		ArcsMatrix::EPSILON + 1.0i, 1.0 + ArcsMatrix::EPSILON*1.0i,
+		      ArcsMatrix::EPSLCOMP,           ArcsMatrix::EPSLCOMP
 	};							// 複素数でゼロに近い行列
 	dispf(Azero3, "% 16.15e");
 	auto Azero4 = Azero3;
@@ -639,7 +639,6 @@ int main(void){
 	sortrow<ArcsMatrix::SortType::AMT_DESCENT>(Asrt1, Ysrt1);		// 降順ソート
 	disp(Ysrt1);
 
-/*	
 	// 連結関連の関数
 	printf("\n★★★★★★★ 連結関連の関数\n");
 	constexpr ArcsMat<2,3> Hx1 = {
@@ -1535,6 +1534,8 @@ int main(void){
 
 	// 統計処理関数
 	printf("\n★★★★★★★ 統計処理関数\n");
+	printf("5C4 = %zd\n", ArcsMatrix::nChoosek(5, 4) );
+	printf("29C14 = %zd\n\n", ArcsMatrix::nChoosek(29, 14) );
 	constexpr ArcsMat<4,3> Ast1 = {
 		0, 1, 1,
 		2, 3, 2,
@@ -1613,6 +1614,17 @@ int main(void){
 	constexpr auto stdAst3x = stdev(Ast3);			// コンパイル時に行列全体の標準偏差を計算
 	printf("stdAst3x = % g\n", stdAst3x);
 
+	// その他の行列関連関数
+	printf("\n★★★★★★★ その他の行列関連関数\n");
+	constexpr ArcsMat<4,1> vhkl1 = { 1, 2, 3, 4 };
+	ArcsMat<4,4> Yhkl1;
+	hankel(vhkl1, Yhkl1);	// 対称ハンケル行列を作成 (引数渡し版)
+	Yhkl1 = hankel(vhkl1);	// 対称ハンケル行列を作成 (戻り値返し版)
+	disp(Yhkl1);
+	constexpr auto Yhkl1x = hankel(vhkl1);			// コンパイル時にハンケル行列を作成
+	disp(Yhkl1x);
+	ArcsMat<2,1,std::complex<double>> vpol1 = {2.0 + 1.0i, 3.0 + 2.0i};
+	
 	// MATファイルへの保存 (MATLAB Level 4対応)
 	printf("\n★★★★★★★ MATファイルへの保存 (MATLAB Level 4)\n");
 	MatExport MatFile1("save_test.mat");// MATファイルを新規作成
@@ -1622,7 +1634,7 @@ int main(void){
 	MatFile1.Save("Yexp2x", Yexp2x);	// MATファイルに行列データを書き出し
 	dispf(Acmpx2, "% 8.4f");
 	MatFile1.Save("Acmpx2", Acmpx2);	// MATファイルに行列データを書き出し
-*/
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 

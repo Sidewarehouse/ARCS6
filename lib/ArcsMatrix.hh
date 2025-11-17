@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2025/08/05
+//! @date 2025/10/11
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2025 Yokokura, Yuki
@@ -89,6 +89,48 @@ namespace ArcsMatrix {
 	
 	// 対応可能型チェック用メタ関数
 	template<typename TT> inline constexpr bool IsApplicable = IsIntFloatV<TT>::value | IsComplexV<TT>::value;
+}
+
+// ArcsMatrix静的定数と関数（行列処理に必要な定数と関数）
+namespace ArcsMatrix {
+	static constexpr double EPSILON = 1e-14;		//!< 零とみなす閾値(実数版)
+	static constexpr std::complex<double> EPSLCOMP = std::complex(1e-14, 1e-14);	//!< 零とみなす閾値(複素数版)
+
+	//! @brief 符号関数
+	//! @tparam	T	データ型
+	//! @param[in]	u	入力
+	//! @return	符号結果
+	template<typename T>
+	static constexpr T sgn(T u){
+		T ret = 1;
+		if constexpr(ArcsMatrix::IsComplex<T>){
+			// 複素数型の場合
+			if(std::abs(u) < EPSILON){
+				ret = std::complex(0.0, 0.0);	// ゼロ割回避
+			}else{
+				ret = u/std::abs(u);			// 複素数に拡張された符号関数
+			}
+		}else{
+			// 実数型の場合
+			ret = std::copysign(1, u);
+		}
+		return ret;
+	}
+
+	//! @brief 二項係数 nCk を計算する関数
+	//! @param[in]	n	n個から、
+	//! @param[in]	k	k個取り出す組み合わせ
+	//! @return	二項係数の結果
+	static constexpr size_t nChoosek(const size_t n, const size_t k){
+		// Knuth先生の方法
+		size_t ret = 0;
+		if( k == 0 || k == n){
+			ret = 1;
+		}else{
+			ret = nChoosek(n - 1, k - 1)*n/k;	// 再帰
+		}
+		return ret;
+	}
 }
 
 //! @brief ARCS-Matrix 行列演算クラス
@@ -649,7 +691,7 @@ class ArcsMat {
 		//! @brief 非ゼロ要素の数を返す関数
 		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
 		//! @return 結果
-		constexpr size_t GetNumOfNonZero(const T eps = ArcsMat<M,N,T>::EPSILON) const{
+		constexpr size_t GetNumOfNonZero(const T eps = ArcsMatrix::EPSILON) const{
 			size_t ret = 0;
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
@@ -886,7 +928,7 @@ class ArcsMat {
 		//! @brief ゼロに近い要素を完全にゼロにする関数
 		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
 		//! @return 結果
-		constexpr void Zeroing(const T eps = ArcsMat<M,N,T>::EPSILON){
+		constexpr void Zeroing(const T eps = ArcsMatrix::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
 					if(std::abs( (*this)(j,i) ) < std::real(eps)) (*this)(j,i) = 0;
@@ -897,7 +939,7 @@ class ArcsMat {
 		//! @brief 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする関数
 		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
 		//! @return 結果
-		constexpr void ZeroingTriLo(const T eps = ArcsMat<M,N,T>::EPSILON){
+		constexpr void ZeroingTriLo(const T eps = ArcsMatrix::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = i + 1; j <= M; ++j){
 					if constexpr(ArcsMatrix::IsComplex<T>){
@@ -2112,7 +2154,7 @@ class ArcsMat {
 			static_assert(M == P, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == Q, "ArcsMat: Size Error");	// 行列のサイズチェック
 			for(size_t i = 1; i <= N; ++i){
-				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( ArcsMat<M,N,T>::sgn( U(j,i) ) );
+				for(size_t j = 1; j <= M; ++j) Y(j,i) = static_cast<R>( ArcsMatrix::sgn( U(j,i) ) );
 			}
 		}
 		
@@ -2444,7 +2486,7 @@ class ArcsMat {
 				}
 
 				// LU分解のコア部分
-				if( std::abs( X(i,i) ) < EPSILON ){
+				if( std::abs( X(i,i) ) < ArcsMatrix::EPSILON ){
 					// 対角要素が零なら，i列目においてはLU分解は完了
 				}else{
 					for(size_t j = i + 1; j <= M; ++j){
@@ -2587,7 +2629,7 @@ class ArcsMat {
 					v = a + std::exp( std::complex( 0.0, std::arg(a[1])) )*std::sqrt( (~a*a)[1] )*e;
 				}else{
 					// 実数の場合
-					v = a + ArcsMat<M,N,T>::sgn(a[1])*std::sqrt( (~a*a)[1] )*e;
+					v = a + ArcsMatrix::sgn(a[1])*std::sqrt( (~a*a)[1] )*e;
 				}
 				
 				ArcsMat<M,1,T>::Householder(v, H, k - 1);	// ハウスホルダー行列を生成
@@ -2671,13 +2713,13 @@ class ArcsMat {
 				V = V*Qn;
 				E = ArcsMat<N,M,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::gettriup(Snm) );
 				F = ArcsMat<std::min(M,N),1,T>::template norm<ArcsMatrix::NormType::AMT_LINF>( ArcsMat<N,M,T>::getdiag(Snm)  );
-				if(std::abs(E - F) < EPSILON) break;		// 誤差がイプシロンを下回ったらループ打ち切り
+				if(std::abs(E - F) < ArcsMatrix::EPSILON) break;		// 誤差がイプシロンを下回ったらループ打ち切り
 				//printf("%zu: %f\n", i, std::abs(E - F));	// 誤差確認用コード
 			}
 			
 			// 符号修正
 			for(size_t k = 1; k <= std::min(M,N); ++k){
-				if( std::real(sgn( S(k,k) )) < 0){
+				if( std::real( ArcsMatrix::sgn( S(k,k) )) < 0){
 					S(k,k) = -S(k,k);
 					ArcsMat<M,M,T>::setcolumn(U, -ArcsMat<M,M,T>::getcolumn(U, k), k);
 				}
@@ -2709,7 +2751,7 @@ class ArcsMat {
 		//! @param[in]	A	入力行列
 		//! @param[in]	eps	ランク許容誤差(デフォルト値 = EPSILON)
 		//! @return	結果
-		static constexpr size_t rank(const ArcsMat<M,N,T>& A, const T eps = ArcsMat<M,N,T>::EPSILON){
+		static constexpr size_t rank(const ArcsMat<M,N,T>& A, const T eps = ArcsMatrix::EPSILON){
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			const auto [U, S, V] = ArcsMat<M,N,T>::SVD(A);	// まず、特異値分解して，
 			const auto s = ArcsMat<M,N,T>::getdiag(S);		// 次に、S行列の対角要素を抜き出して、
@@ -3105,10 +3147,10 @@ class ArcsMat {
 				if constexpr(ArcsMatrix::IsComplex<T>){
 					u[1] = -std::exp( std::complex( 0.0, std::arg(h[1])) )*std::sqrt( (~h*h)[1] );
 				}else{
-					if(std::abs(h[1]) < EPSILON){
+					if(std::abs(h[1]) < ArcsMatrix::EPSILON){
 						u[1] = -std::sqrt( (~h*h)[1] );
 					}else{
-						u[1] = -ArcsMat<M,N,T>::sgn(h[1])*std::sqrt( (~h*h)[1] );
+						u[1] = -ArcsMatrix::sgn(h[1])*std::sqrt( (~h*h)[1] );
 					}
 				}
 				v = h - u;
@@ -3756,11 +3798,67 @@ class ArcsMat {
 			return std::sqrt( ArcsMat<M,N,T>::var(U) );	// 全体の分散を計算して平方根を通して出力
 		}
 		
-	public:
-		// 公開版基本定数
-		static constexpr double EPSILON = 1e-14;		//!< 零とみなす閾値(実数版)
-		static constexpr std::complex<double> EPSLCOMP = std::complex(1e-14, 1e-14);	//!< 零とみなす閾値(複素数版)
-		
+		//! @brief 対称ハンケル行列を作成する関数 (引数渡し版)
+		//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
+		//! @param	u	入力ベクトル
+		//! @param	Y	出力行列
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void hankel(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& Y){
+			static_assert(N == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(MY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == M, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			size_t i_start = 1;
+			for(size_t m = 1; m <= M; ++m){
+				for(size_t i = i_start; i <= M; ++i){
+					Y(m, i - i_start + 1) = u[i];
+				}
+				i_start++;
+			}
+		}
+
+		//! @brief 対称ハンケル行列を作成する関数 (戻り値返し版)
+		//! @param	u	入力ベクトル
+		//! @return	出力行列
+		static constexpr ArcsMat<M,M,T> hankel(const ArcsMat<M,N,T>& u){
+			ArcsMat<M,M,T> Y;
+			ArcsMat<M,N,T>::hankel(u, Y);
+			return Y;
+		}
+
+		//! @brief 根(極)から多項式の係数を計算する関数 (引数渡し版)
+		//! 参考文献： Calif. Inst. of Technology, "Compute Polynomial Coeffcients from Roots," Jul. 2015.
+		//!  (z - z1)*(z - z2)*...*(z - zn)
+		//! 上記の根z1～znから、下記の係数c(1)～c(n+1) を求める。
+		//!  c(1)*z^n + ... + c(n)*z + c(n+1)
+		//! 使い方の例：
+		//!  z[1] = 2 + 1i;
+		//!  z[2] = 3 + 2i;
+		//!  polycoeff(z, c)
+		//!  計算結果： c = {1.0000 + 0.0000i, -5.0000 - 3.0000i, 4.0000 + 7.0000i}
+		//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
+		//!	@param	u	根(極)の値が羅列された入力縦ベクトル
+		//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+		template<size_t MY, size_t NY, typename TY = double>
+		static constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y){
+			static_assert(M == MY, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
+			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
+
+			y[1] = 1;
+			y[2] = -u[1];
+			for(size_t i = 2; i <= M; ++i){
+				y[i + 1] = -y[i]*u[i];
+				for(ssize_t j = i; 2 <= j; --j){
+					y[j] = y[j] - y[j-1]*u[i];
+				}
+			}
+		}
+
 	private:
 		// 非公開版基本定数
 		static constexpr size_t ITERATION_MAX = 10000;	//!< 反復計算の最大値
@@ -3774,26 +3872,6 @@ class ArcsMat {
 		// 行列データの実体
 		// ArcsMatは行列の縦方向にメモリアドレスが連続しているので、縦ベクトル優先。
 		std::array<std::array<T, M>, N> Data;//!< データ格納用変数 配列要素の順番は Data[N列(横方向)][M行(縦方向)]
-
-		//! @brief 符号関数
-		//! @param[in]	u	入力
-		//! @return	符号結果
-		static constexpr T sgn(T u){
-			T ret = 1;
-			if constexpr(ArcsMatrix::IsComplex<T>){
-				// 複素数型の場合
-				if(std::abs(u) < EPSILON){
-					ret = std::complex(0.0, 0.0);	// ゼロ割回避
-				}else{
-					ret = u/std::abs(u);			// 複素数に拡張された符号関数
-				}
-			}else{
-				// 実数型の場合
-				ret = std::copysign(1, u);
-			}
-			return ret;
-		}
-
 };
 
 namespace ArcsMatrix {
@@ -5064,7 +5142,7 @@ namespace ArcsMatrix {
 	//! @param[in]	A	入力行列
 	//! @return	結果
 	template<size_t M, size_t N, typename T = double>
-	constexpr size_t rank(const ArcsMat<M,N,T>& A, const T eps = ArcsMat<M,N,T>::EPSILON){
+	constexpr size_t rank(const ArcsMat<M,N,T>& A, const T eps = ArcsMatrix::EPSILON){
 		return ArcsMat<M,N,T>::rank(A, eps);
 	}
 
@@ -5532,6 +5610,44 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double>
 	constexpr T stdev(const ArcsMat<M,N,T>& U){
 		return ArcsMat<M,N,T>::stdev(U);
+	}
+
+	//! @brief 対称ハンケル行列を作成する関数 (引数渡し版)
+	//! @tparam	M, N, T	入力ベクトルの高さ, 幅, 要素の型
+	//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
+	//! @param	u	入力ベクトル
+	//! @param	Y	出力行列
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void hankel(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& Y){
+		ArcsMat<M,N,T>::hankel(u, Y);
+	}
+
+	//! @brief 対称ハンケル行列を作成する関数 (戻り値返し版)
+	//! @tparam	M, N, T	入力ベクトルの高さ, 幅, 要素の型
+	//! @param	u	入力ベクトル
+	//! @return	出力行列
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M,M,T> hankel(const ArcsMat<M,N,T>& u){
+		return ArcsMat<M,N,T>::hankel(u);
+	}
+
+	//! @brief 根(極)から多項式の係数を計算する関数 (引数渡し版)
+	//! 参考文献： Calif. Inst. of Technology, "Compute Polynomial Coeffcients from Roots," Jul. 2015.
+	//!  (z - z1)*(z - z2)*...*(z - zn)
+	//! 上記の根z1～znから、下記の係数c(1)～c(n+1) を求める。
+	//!  c(1)*z^n + ... + c(n)*z + c(n+1)
+	//! 使い方の例：
+	//!  z[1] = 2 + 1i;
+	//!  z[2] = 3 + 2i;
+	//!  polycoeff(z, c)
+	//!  計算結果： c = {1.0000 + 0.0000i, -5.0000 - 3.0000i, 4.0000 + 7.0000i}
+	//! @tparam	M, N, T	入力ベクトルの高さ, 幅, 要素の型
+	//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
+	//!	@param	u	根(極)の値が羅列された入力縦ベクトル
+	//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
+	constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y){
+		ArcsMat<M,N,T>::polycoeff(u, y);
 	}
 
 }
