@@ -22,17 +22,15 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/AmpIncSquareWave.o: ../../../lib/AmpIncSquareWave.cc \
  ../../../lib/AmpIncSquareWave.hh ../../../lib/SquareWave.hh \
  ../../../lib/Matrix.hh ../../../lib/StairsWave.hh
-../../../lib/ArcTangent.o: ../../../lib/ArcTangent.cc \
- ../../../lib/ArcTangent.hh
 ../../../lib/ArcsControl.o: ../../../lib/ArcsControl.cc \
  ../../../lib/ArcsControl.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Matrix.hh
 ../../../lib/ArcsMatrix.o: ../../../lib/ArcsMatrix.cc \
  ../../../lib/ArcsMatrix.hh
+../../../lib/ArcTangent.o: ../../../lib/ArcTangent.cc \
+ ../../../lib/ArcTangent.hh
 ../../../lib/BatchProcessor.o: ../../../lib/BatchProcessor.cc \
  ../../../lib/BatchProcessor.hh ../../../lib/Matrix.hh
-../../../lib/CPUSettings.o: ../../../lib/CPUSettings.cc \
- ../../../lib/CPUSettings.hh
 ../../../lib/ChirpGenerator.o: ../../../lib/ChirpGenerator.cc \
  ../../../lib/ChirpGenerator.hh
 ../../../lib/ClassBase.o: ../../../lib/ClassBase.cc \
@@ -42,6 +40,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/Controller-JXC.o: ../../../lib/Controller-JXC.cc \
  ../../../lib/Matrix.hh ../../../lib/Controller-JXC.hh \
  ../../../lib/PCI-2826CV.hh
+../../../lib/CPUSettings.o: ../../../lib/CPUSettings.cc \
+ ../../../lib/CPUSettings.hh
 ../../../lib/CsvManipulator.o: ../../../lib/CsvManipulator.cc \
  ../../../lib/CsvManipulator.hh ../../../lib/Matrix.hh
 ../../../lib/CuiPlot.o: ../../../lib/CuiPlot.cc ../../../lib/CuiPlot.hh \
@@ -58,18 +58,16 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/DataStorage.hh
 ../../../lib/DeadBand.o: ../../../lib/DeadBand.cc \
  ../../../sys/ARCSassert.hh ../../../lib/DeadBand.hh
-../../../lib/Differentiator.o: ../../../lib/Differentiator.cc \
- ../../../lib/Differentiator.hh
 ../../../lib/Differentiator2.o: ../../../lib/Differentiator2.cc \
  ../../../lib/Differentiator2.hh
+../../../lib/Differentiator.o: ../../../lib/Differentiator.cc \
+ ../../../lib/Differentiator.hh
 ../../../lib/Discret.o: ../../../lib/Discret.cc ../../../lib/Discret.hh \
  ../../../lib/Matrix.hh
 ../../../lib/DisturbanceObsrv.o: ../../../lib/DisturbanceObsrv.cc \
  ../../../lib/DisturbanceObsrv.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Discret.hh ../../../lib/Matrix.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/ArcsControl.hh
-../../../lib/FRAgenerator.o: ../../../lib/FRAgenerator.cc \
- ../../../lib/FRAgenerator.hh ../../../sys/ARCSeventlog.hh
 ../../../lib/FeedforwardNeuralNet3.o: \
  ../../../lib/FeedforwardNeuralNet3.cc \
  ../../../lib/FeedforwardNeuralNet3.hh ../../../lib/Matrix.hh \
@@ -81,30 +79,32 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh
 ../../../lib/FixedAverage.o: ../../../lib/FixedAverage.cc \
  ../../../lib/FixedAverage.hh
+../../../lib/FRAgenerator.o: ../../../lib/FRAgenerator.cc \
+ ../../../lib/FRAgenerator.hh ../../../sys/ARCSeventlog.hh
 ../../../lib/FrameFontSmall.o: ../../../lib/FrameFontSmall.cc \
  ../../../lib/FrameFontSmall.hh
 ../../../lib/FrameGraphics.o: ../../../lib/FrameGraphics.cc \
  ../../../lib/FrameGraphics.hh ../../../lib/FrameFontSmall.hh
 ../../../lib/FunctionBase.o: ../../../lib/FunctionBase.cc \
  ../../../lib/FunctionBase.hh
-../../../lib/HighPassFilter.o: ../../../lib/HighPassFilter.cc \
- ../../../lib/HighPassFilter.hh
 ../../../lib/HighPassFilter2.o: ../../../lib/HighPassFilter2.cc \
  ../../../lib/HighPassFilter2.hh
+../../../lib/HighPassFilter.o: ../../../lib/HighPassFilter.cc \
+ ../../../lib/HighPassFilter.hh
 ../../../lib/HighPassFilter_Tmp.o: ../../../lib/HighPassFilter_Tmp.cc \
  ../../../lib/HighPassFilter_Tmp.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh ../../../sys/ARCSeventlog.hh
 ../../../lib/HysteresisComparator.o: ../../../lib/HysteresisComparator.cc \
  ../../../lib/HysteresisComparator.hh
-../../../lib/I-P-I-Pcontroller.o: ../../../lib/I-P-I-Pcontroller.cc \
- ../../../lib/I-P-I-Pcontroller.hh ../../../lib/Integrator.hh
+../../../lib/Integrator2.o: ../../../lib/Integrator2.cc \
+ ../../../lib/Integrator2.hh
+../../../lib/Integrator.o: ../../../lib/Integrator.cc \
+ ../../../lib/Integrator.hh
 ../../../lib/I-PDcontroller.o: ../../../lib/I-PDcontroller.cc \
  ../../../lib/I-PDcontroller.hh ../../../lib/Matrix.hh \
  ../../../lib/Discret.hh
-../../../lib/Integrator.o: ../../../lib/Integrator.cc \
- ../../../lib/Integrator.hh
-../../../lib/Integrator2.o: ../../../lib/Integrator2.cc \
- ../../../lib/Integrator2.hh
+../../../lib/I-P-I-Pcontroller.o: ../../../lib/I-P-I-Pcontroller.cc \
+ ../../../lib/I-P-I-Pcontroller.hh ../../../lib/Integrator.hh
 ../../../lib/IrisClassDatasets.o: ../../../lib/IrisClassDatasets.cc \
  ../../../lib/IrisClassDatasets.hh ../../../lib/Matrix.hh \
  ../../../lib/Shuffle.hh ../../../lib/RandomGenerator.hh \
@@ -117,17 +117,17 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/ArcsMatrix.hh ../../../lib/Matrix.hh
 ../../../lib/LinuxCommander.o: ../../../lib/LinuxCommander.cc \
  ../../../lib/LinuxCommander.hh
+../../../lib/LoadsideDistObsrv.o: ../../../lib/LoadsideDistObsrv.cc \
+ ../../../lib/LoadsideDistObsrv.hh ../../../lib/Matrix.hh \
+ ../../../lib/Discret.hh ../../../sys/ARCSeventlog.hh
 ../../../lib/LoadVelocityObsrv.o: ../../../lib/LoadVelocityObsrv.cc \
  ../../../lib/LoadVelocityObsrv.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Discret.hh ../../../lib/Matrix.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/ArcsControl.hh
-../../../lib/LoadsideDistObsrv.o: ../../../lib/LoadsideDistObsrv.cc \
- ../../../lib/LoadsideDistObsrv.hh ../../../lib/Matrix.hh \
- ../../../lib/Discret.hh ../../../sys/ARCSeventlog.hh
-../../../lib/LowPassFilter.o: ../../../lib/LowPassFilter.cc \
- ../../../lib/LowPassFilter.hh
 ../../../lib/LowPassFilter2.o: ../../../lib/LowPassFilter2.cc \
  ../../../lib/LowPassFilter2.hh
+../../../lib/LowPassFilter.o: ../../../lib/LowPassFilter.cc \
+ ../../../lib/LowPassFilter.hh
 ../../../lib/Matrix.o: ../../../lib/Matrix.cc ../../../lib/Matrix.hh
 ../../../lib/MotorFrameTransform.o: ../../../lib/MotorFrameTransform.cc \
  ../../../lib/MotorFrameTransform.hh
@@ -153,14 +153,6 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/Observer.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/StateSpaceSystem.hh ../../../lib/ArcsControl.hh \
  ../../../lib/Matrix.hh
-../../../lib/P-Dcontroller.o: ../../../lib/P-Dcontroller.cc \
- ../../../lib/P-Dcontroller.hh ../../../lib/MovingDifferentiator.hh \
- ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
- ../../../lib/Matrix.hh
-../../../lib/P-Dcontrollers.o: ../../../lib/P-Dcontrollers.cc \
- ../../../lib/P-Dcontrollers.hh ../../../lib/Matrix.hh \
- ../../../lib/P-Dcontroller.hh ../../../lib/MovingDifferentiator.hh \
- ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh
 ../../../lib/PCI-2826CV.o: ../../../lib/PCI-2826CV.cc \
  ../../../lib/PCI-2826CV.hh ../../../sys/ARCSassert.hh \
  ../../../sys/ARCSeventlog.hh
@@ -188,20 +180,26 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSeventlog.hh
 ../../../lib/PCIe-AC01.o: ../../../lib/PCIe-AC01.cc \
  ../../../lib/PCIe-AC01.hh
+../../../lib/P-Dcontroller.o: ../../../lib/P-Dcontroller.cc \
+ ../../../lib/P-Dcontroller.hh ../../../lib/MovingDifferentiator.hh \
+ ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
+ ../../../lib/Matrix.hh
 ../../../lib/PDcontroller.o: ../../../lib/PDcontroller.cc \
  ../../../lib/PDcontroller.hh
-../../../lib/PIDcontroller.o: ../../../lib/PIDcontroller.cc \
- ../../../lib/PIDcontroller.hh
+../../../lib/P-Dcontrollers.o: ../../../lib/P-Dcontrollers.cc \
+ ../../../lib/P-Dcontrollers.hh ../../../lib/Matrix.hh \
+ ../../../lib/P-Dcontroller.hh ../../../lib/MovingDifferentiator.hh \
+ ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh
+../../../lib/PhaseLeadLag.o: ../../../lib/PhaseLeadLag.cc \
+ ../../../lib/PhaseLeadLag.hh
 ../../../lib/PIcontroller.o: ../../../lib/PIcontroller.cc \
  ../../../lib/PIcontroller.hh ../../../lib/Integrator.hh \
  ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Matrix.hh
-../../../lib/PhaseLeadLag.o: ../../../lib/PhaseLeadLag.cc \
- ../../../lib/PhaseLeadLag.hh
+../../../lib/PIDcontroller.o: ../../../lib/PIDcontroller.cc \
+ ../../../lib/PIDcontroller.hh
 ../../../lib/PulseWave.o: ../../../lib/PulseWave.cc \
  ../../../lib/PulseWave.hh ../../../lib/Matrix.hh
-../../../lib/RPi2GPIO.o: ../../../lib/RPi2GPIO.cc \
- ../../../lib/RPi2GPIO.hh
 ../../../lib/RandomGenerator.o: ../../../lib/RandomGenerator.cc \
  ../../../lib/RandomGenerator.hh ../../../lib/ArcsMatrix.hh \
  ../../../lib/Matrix.hh
@@ -233,6 +231,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
 ../../../lib/RingBuffer.o: ../../../lib/RingBuffer.cc \
  ../../../lib/RingBuffer.hh ../../../sys/ARCSassert.hh \
  ../../../lib/Matrix.hh
+../../../lib/RPi2GPIO.o: ../../../lib/RPi2GPIO.cc \
+ ../../../lib/RPi2GPIO.hh
 ../../../lib/SA2-RasPi2.o: ../../../lib/SA2-RasPi2.cc \
  ../../../lib/SA2-RasPi2.hh ../../../lib/RPi2GPIO.hh \
  ../../../lib/Limiter.hh ../../../lib/ArcsMatrix.hh \
@@ -343,6 +343,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/PCI-46610x.hh ../../../lib/ArcsMatrix.hh \
  ../../../sys/ARCSprint.hh ../../../sys/ARCScommon.hh \
  ../../../lib/Matrix.hh
+../../../sys/ARCSassert.o: ../../../sys/ARCSassert.cc \
+ ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh
 ../../../sys/ARCS.o: ../../../sys/ARCS.cc ../../../sys/ARCScommon.hh \
  ../../../sys/ARCSscreen.hh ConstParams.hh ../../../sys/ARCSparams.hh \
  ../../../lib/SFthread.hh ../../../lib/CPUSettings.hh \
@@ -360,8 +362,6 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSassert.hh ../../../sys/ARCSprint.hh \
  ../../../sys/ARCSparams.hh ../../../sys/ARCSscrparams.hh \
  ../../../sys/ARCSgraphics.hh
-../../../sys/ARCSassert.o: ../../../sys/ARCSassert.cc \
- ../../../sys/ARCSassert.hh ../../../sys/ARCSeventlog.hh
 ../../../sys/ARCScommon.o: ../../../sys/ARCScommon.cc \
  ../../../sys/ARCScommon.hh ../../../sys/ARCSeventlog.hh \
  ../../../sys/ARCSassert.hh

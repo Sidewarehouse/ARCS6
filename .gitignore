@@ -1,5 +1,5 @@
 # gitでの共有を無視するファイル・ディレクトリ
-# Yokokura, Yuki 2024/10/15
+# Yokokura, Yuki 2025/11/23
 
 # C++上での基本的に不必要なファイル
 # Prerequisites
@@ -43,6 +43,11 @@ EventLog.txt
 !/robot/ServoEducator/
 !/robot/ZFA01/
 
-# CMkae関連のディレクトリ
+# CMake関連のディレクトリ
 .idea/
 **/cmake-build-*/
+
+# ARCS6 on Mixed Reality用のファイルとディレクトリ
+/robot/sample/002_WebVR/emsdk
+/robot/sample/002_WebVR/out.js
+/robot/sample/002_WebVR/out.wasm
