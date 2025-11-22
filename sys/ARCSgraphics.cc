@@ -9,6 +9,8 @@
 // Copyright (C) 2011-2024 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
+#ifndef ARCS_MR
+
 #include <memory>
 #include <cmath>
 #include "ARCSgraphics.hh"
@@ -238,3 +240,12 @@ void ARCSgraphics::DrawWorkSpacePlot(void){
 	PlotXZ.Disp();
 }
 
+#else // ARCS_MR
+
+#include "ARCSgraphics.hh"
+
+using namespace ARCS;
+
+ARCSgraphics::ARCSgraphics() : PlotNumBuf(0), VarsCount(0) {}
+
+#endif // ARCS_MR
