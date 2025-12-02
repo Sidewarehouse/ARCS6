@@ -3,7 +3,7 @@
 //!
 //! 深層学習クラス（試作実装中）
 //!
-//! @date 2025/12/01
+//! @date 2025/12/03
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2025 Yokokura, Yuki
@@ -33,13 +33,22 @@ namespace ARCS {	// ARCS名前空間
 
 template <typename T> class ArcsNeu;	// 前方宣言
 
+// ArcsNeuronメタ関数定義
+namespace ArcsNeuron {
+	// 整数・実数型チェック用メタ関数
+	template<typename T> struct IsIntFloatV {
+		static constexpr bool value = std::is_integral<T>::value | std::is_floating_point<T>::value;
+	};
+	template<typename T> inline constexpr bool IsIntFloat = IsIntFloatV<T>::value;
+}
+
 // ArcsNeuron名前空間
 namespace ArcsNeuron {
 	//! @brief 自動微分スタックデータ定義
 	//! @tparam	T	深層学習データ型
 	template <typename T = double>
 	struct AutoDiffData {
-		std::function<T(T,T)> OperatorBwd;	//!< 逆方向用演算子への関数オブジェクト
+		std::function<void(T,T,T)> OperatorBwd;	//!< 逆方向用演算子への関数オブジェクト
 		ArcsNeu<T>* u1;	//!< 入力変数1への生ポインタ
 		ArcsNeu<T>* u2;	//!< 入力変数2への生ポインタ
 	};
@@ -54,7 +63,12 @@ class ArcsNeuStack {
 		ArcsNeuStack() noexcept
 			: Stack({}), StackCounter(0)
 		{
-			
+			// 自動微分スタックの初期化
+			for(size_t i = 0; i < MAX_OPERATION; ++i){
+				Stack.at(i).OperatorBwd = nullptr;
+				Stack.at(i).u1 = nullptr;
+				Stack.at(i).u2 = nullptr;
+			}
 		}
 
 		//! @brief ムーブコンストラクタ
@@ -90,24 +104,54 @@ template <typename T = double>
 class ArcsNeu {
 	public:
 		//! @brief コンストラクタ
-		ArcsNeu(ArcsNeuStack<T>& AutoDiff) noexcept
-			: AutoDiffStack(AutoDiff)
+		constexpr ArcsNeu(ArcsNeuStack<T>& AutoDiff) noexcept
+			: AutoDiffStack(AutoDiff), value(0), grad(0)
 		{
 			
+		}
+		
+		//! @brief コピーコンストラクタ
+		//! @param[in]	right	演算子の右側
+		constexpr ArcsNeu<T>(const ArcsNeu<T>& right) noexcept
+			: AutoDiffStack(right.AutoDiffStack), value(right.value), grad(right.grad)
+		{
+			// メンバを取り込む以外の処理は無し
+		}
+		
+		//! @brief コピー代入演算子(型が同じ同士の場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T>& operator=(const ArcsNeu<T>& right) noexcept {	
+			// メンバを取り込む
+			value = right.value;
+			grad  = right.grad;
+			return (*this);
+		}
+		
+		//! @brief コピー代入演算子(定数値の場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T>& operator=(const T& right) noexcept {	
+			// メンバに定数値を取り込む
+			value = right;
+			return (*this);
 		}
 
 		//! @brief ムーブコンストラクタ
-		//! @param[in]	r	演算子右側
-		ArcsNeu(ArcsNeu&& r) noexcept
-			// :
+		//! @param[in]	right	演算子の右側
+		constexpr ArcsNeu(ArcsNeu<T>&& right) noexcept
+			: AutoDiffStack(right.AutoDiffStack), value(right.value), grad(right.grad)
 		{
-			
+			// メンバを取り込む以外の処理は無し
 		}
 
 		//! @brief ムーブ代入演算子
-		//! @param[in]	r	演算子右側
-		ArcsNeu& operator=(ArcsNeu&& r) noexcept {
-			return *this;
+		//! @param[in]	right	演算子の右側
+		constexpr ArcsNeu& operator=(ArcsNeu<T>&& right) noexcept {
+			// メンバを取り込む
+			value = right.value;
+			grad  = right.grad;
+			return (*this);
 		}
 		
 		//! @brief デストラクタ
@@ -115,10 +159,27 @@ class ArcsNeu {
 			
 		}
 		
+		//! @brief 加算演算子(型が同じ同士の場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T> operator+(const ArcsNeu<T>& right) const{
+			ArcsNeu<T> ret(AutoDiffStack);
+			ret.value = value + right.value;
+			return ret;
+		}
+		
+		//! @brief ノード値を表示する関数
+		constexpr void Disp(void){
+			// データ型によって表示方法を変える
+			if constexpr(ArcsNeuron::IsIntFloat<T>){
+				printf("val = %g, grd = %g\n", value, grad);		
+			}
+		}
+		
 	private:
-		ArcsNeu(const ArcsNeu&) = delete;					//!< コピーコンストラクタ使用禁止
-		const ArcsNeu& operator=(const ArcsNeu&) = delete;	//!< コピー代入演算子使用禁止
 		ArcsNeuStack<T>& AutoDiffStack;	//! 自動微分スタックへの参照
+		T value;	//!< ノードの値
+		T grad;		//!< ノードの勾配値
 };
 
 
