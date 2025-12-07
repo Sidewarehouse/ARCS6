@@ -3829,6 +3829,7 @@ class ArcsMat {
 		}
 
 		//! @brief 根(極)から多項式の係数を計算する関数 (引数渡し版)
+		//! MATLABでいうところのpoly関数
 		//! 参考文献： Calif. Inst. of Technology, "Compute Polynomial Coeffcients from Roots," Jul. 2015.
 		//!  (z - z1)*(z - z2)*...*(z - zn)
 		//! 上記の根z1～znから、下記の係数c(1)～c(n+1) を求める。
@@ -3843,7 +3844,7 @@ class ArcsMat {
 		//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
 		template<size_t MY, size_t NY, typename TY = double>
 		static constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y){
-			static_assert(M == MY, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(M == MY - 1, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
@@ -3852,13 +3853,23 @@ class ArcsMat {
 			y[1] = 1;
 			y[2] = -u[1];
 			for(size_t i = 2; i <= M; ++i){
-				y[i + 1] = -y[i]*u[i];
+				y[i+1] = -y[i]*u[i];
 				for(ssize_t j = i; 2 <= j; --j){
 					y[j] = y[j] - y[j-1]*u[i];
 				}
 			}
 		}
-
+		
+		//! @brief 根(極)から多項式の係数を計算する関数 (戻り値返し版)
+		//! MATLABでいうところのpoly関数
+		//!	@param	u	根(極)の値が羅列された入力縦ベクトル
+		//! @return	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+		static constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u){
+			ArcsMat<M+1,1,T> y;
+			ArcsMat<M,N,T>::polycoeff(u, y);
+			return y;
+		}
+		
 	private:
 		// 非公開版基本定数
 		static constexpr size_t ITERATION_MAX = 10000;	//!< 反復計算の最大値
@@ -5632,6 +5643,7 @@ namespace ArcsMatrix {
 	}
 
 	//! @brief 根(極)から多項式の係数を計算する関数 (引数渡し版)
+	//! MATLABでいうところのpoly関数
 	//! 参考文献： Calif. Inst. of Technology, "Compute Polynomial Coeffcients from Roots," Jul. 2015.
 	//!  (z - z1)*(z - z2)*...*(z - zn)
 	//! 上記の根z1～znから、下記の係数c(1)～c(n+1) を求める。
@@ -5648,6 +5660,16 @@ namespace ArcsMatrix {
 	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
 	constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y){
 		ArcsMat<M,N,T>::polycoeff(u, y);
+	}
+
+	//! @brief 根(極)から多項式の係数を計算する関数 (戻り値返し版)
+	//! MATLABでいうところのpoly関数
+	//! @tparam	M, N, T	入力ベクトルの高さ, 幅, 要素の型
+	//!	@param	u	根(極)の値が羅列された入力縦ベクトル
+	//! @return	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+	template<size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u){
+		return ArcsMat<M,N,T>::polycoeff(u);
 	}
 
 }

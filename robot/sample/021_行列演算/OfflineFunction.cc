@@ -1618,13 +1618,26 @@ int main(void){
 	printf("\n★★★★★★★ その他の行列関連関数\n");
 	constexpr ArcsMat<4,1> vhkl1 = { 1, 2, 3, 4 };
 	ArcsMat<4,4> Yhkl1;
-	hankel(vhkl1, Yhkl1);	// 対称ハンケル行列を作成 (引数渡し版)
-	Yhkl1 = hankel(vhkl1);	// 対称ハンケル行列を作成 (戻り値返し版)
+	hankel(vhkl1, Yhkl1);		// 対称ハンケル行列を作成 (引数渡し版)
+	Yhkl1 = hankel(vhkl1);		// 対称ハンケル行列を作成 (戻り値返し版)
 	disp(Yhkl1);
 	constexpr auto Yhkl1x = hankel(vhkl1);			// コンパイル時にハンケル行列を作成
 	disp(Yhkl1x);
-	ArcsMat<2,1,std::complex<double>> vpol1 = {2.0 + 1.0i, 3.0 + 2.0i};
-	
+	constexpr ArcsMat<3,1> vpol1 = {1, 2, 3};	// 適当に決めた実数極
+	disp(vpol1);
+	ArcsMat<4,1> vcoef1;
+	polycoeff(vpol1, vcoef1);		// 実数極から多項式の係数を計算 (引数渡し版)
+	vcoef1 = polycoeff(vpol1);		// 実数極から多項式の係数を計算 (戻り値返し版)
+	disp(vcoef1);
+	constexpr auto vcoef1x = polycoeff(vpol1);		// コンパイル時に多項式の係数を計算
+	disp(vcoef1x);
+	const ArcsMat<2,1,std::complex<double>> vpol2 = {2.0 + 1.0i, 3.0 + 2.0i};	// 適当に決めた複素極
+	auto vcoef2 = polycoeff(vpol2);	// 複素極から多項式の係数を計算
+	disp(vcoef2);
+	const ArcsMat<3,1,std::complex<double>> vpol3 = {11.6219 + 0.0i, -0.3110 + 2.6704i, -0.3110 - 2.6704i};
+	auto vcoef3 = polycoeff(vpol3);	// 実数極1個と複素極2個から多項式の係数を計算
+	dispf(vcoef3, "%3.0f");
+
 	// MATファイルへの保存 (MATLAB Level 4対応)
 	printf("\n★★★★★★★ MATファイルへの保存 (MATLAB Level 4)\n");
 	MatExport MatFile1("save_test.mat");// MATファイルを新規作成

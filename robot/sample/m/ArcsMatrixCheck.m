@@ -686,3 +686,8 @@ varyst5 = std(yst5, 0, 'All')
 varyst6 = std(yst6, 0, 'All')
 varAst3 = std(Ast3, 0, 'All')
 
+fprintf('\n');
+disp 'š ‚»‚Ì‘¼‚Ìs—ñŠÖ˜AŠÖ”'
+vpol1 = rot90([2.0 + 1.0i; 3.0 + 2.0i; 5.0 + 3.0i], 2)
+vcoef1 = poly(vpol1)
+
