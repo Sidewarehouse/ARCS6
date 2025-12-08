@@ -90,6 +90,20 @@ class ArcsNeuStack {
 			
 		}
 		
+		//! @brief 自動微分スタックに演算履歴データを積む関数
+		//!	@param[in]	ad	自動微分データ
+		void Push(const ArcsNeuron::AutoDiffData<T>& ad){
+			Stack.at(StackCounter) = ad;
+			StackCounter++;
+		}
+
+		//! @brief 自動微分スタックの演算履歴を表示する関数
+		void Disp(void){
+			for(size_t i = 0; i < StackCounter; ++i){
+				printf("%5zu: %p %p\n", i, Stack.at(i).u1, Stack.at(i).u2);
+			}
+		}
+
 	private:
 		ArcsNeuStack(const ArcsNeuStack&) = delete;						//!< コピーコンストラクタ使用禁止
 		const ArcsNeuStack& operator=(const ArcsNeuStack&) = delete;	//!< コピー代入演算子使用禁止
@@ -112,29 +126,10 @@ class ArcsNeu {
 		
 		//! @brief コピーコンストラクタ
 		//! @param[in]	right	演算子の右側
-		constexpr ArcsNeu<T>(const ArcsNeu<T>& right) noexcept
+		constexpr ArcsNeu(const ArcsNeu<T>& right) noexcept
 			: AutoDiffStack(right.AutoDiffStack), value(right.value), grad(right.grad)
 		{
 			// メンバを取り込む以外の処理は無し
-		}
-		
-		//! @brief コピー代入演算子(型が同じ同士の場合)
-		//! @param[in]	right	演算子の右側
-		//! @return 結果
-		constexpr ArcsNeu<T>& operator=(const ArcsNeu<T>& right) noexcept {	
-			// メンバを取り込む
-			value = right.value;
-			grad  = right.grad;
-			return (*this);
-		}
-		
-		//! @brief コピー代入演算子(定数値の場合)
-		//! @param[in]	right	演算子の右側
-		//! @return 結果
-		constexpr ArcsNeu<T>& operator=(const T& right) noexcept {	
-			// メンバに定数値を取り込む
-			value = right;
-			return (*this);
 		}
 
 		//! @brief ムーブコンストラクタ
@@ -151,6 +146,7 @@ class ArcsNeu {
 			// メンバを取り込む
 			value = right.value;
 			grad  = right.grad;
+			printf("KITA--!!\n");
 			return (*this);
 		}
 		
@@ -159,21 +155,85 @@ class ArcsNeu {
 			
 		}
 		
+		//! @brief 代入演算子(型が同じ同士の場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T>& operator=(const ArcsNeu<T>& right) noexcept {	
+			// メンバを取り込む
+			value = right.value;
+			grad  = right.grad;
+
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = this,				// 演算子の左側ノードへのアドレスを格納
+				.u2 = &right			// 演算子の右側ノードへのアドレスを格納
+			};
+			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+			
+			printf("KITA--!!\n");
+
+			return (*this);
+		}
+		
+		//! @brief 代入演算子(定数値の場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T>& operator=(const T& right) noexcept {	
+			// メンバに定数値を取り込む
+			value = right;
+			return (*this);
+		}
+		
 		//! @brief 加算演算子(型が同じ同士の場合)
 		//! @param[in]	right	演算子の右側
 		//! @return 結果
-		constexpr ArcsNeu<T> operator+(const ArcsNeu<T>& right) const{
+		constexpr ArcsNeu<T> operator+(ArcsNeu<T>& right){
 			ArcsNeu<T> ret(AutoDiffStack);
 			ret.value = value + right.value;
+			
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = this,				// 演算子の左側ノードへのアドレスを格納
+				.u2 = &right			// 演算子の右側ノードへのアドレスを格納
+			};
+			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+
+			return ret;
+		}
+
+		//! @brief 乗算演算子(型が同じ同士の場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T> operator*(ArcsNeu<T>& right){
+			ArcsNeu<T> ret(AutoDiffStack);
+			ret.value = value*right.value;
+			
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = this,				// 演算子の左側ノードへのアドレスを格納
+				.u2 = &right			// 演算子の右側ノードへのアドレスを格納
+			};
+			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+
 			return ret;
 		}
 		
 		//! @brief ノード値を表示する関数
-		constexpr void Disp(void){
+		//! @param[in]	VarName	変数名(省略可)
+		constexpr void Disp(std::string VarName = ""){
 			// データ型によって表示方法を変える
 			if constexpr(ArcsNeuron::IsIntFloat<T>){
-				printf("val = %g, grd = %g\n", value, grad);		
+				printf("%s: val = %g, grd = %g\n", VarName.c_str(), value, grad);		
 			}
+		}
+
+		//! @brief ノードのメモリアドレスを表示する関数
+		//! @param[in]	VarName	変数名(省略可)
+		constexpr void DispAddress(std::string VarName = ""){
+			printf("%s: %p\n", VarName.c_str(), this);		
 		}
 		
 	private:

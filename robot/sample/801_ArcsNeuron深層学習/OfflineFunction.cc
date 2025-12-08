@@ -33,21 +33,30 @@ int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
 	ArcsNeuStack<double> gt;
-	ArcsNeu<double> a(gt), b(gt), c(gt);
+	ArcsNeu<double> x(gt), W(gt), b(gt), y(gt);
 	
-	a = 2;
-	b = 3;
+	x = 2;
+	W = 3;
+	b = 5;
 	
-	a.Disp();
-	b.Disp();
-	c.Disp();
+	x.Disp("x");
+	W.Disp("W");
+	b.Disp("b");
+	y.Disp("y");
 	
-	c = a + b;
+	y = x + b;
 	
-	a.Disp();
-	b.Disp();
-	c.Disp();
+	x.Disp("x");
+	W.Disp("W");
+	b.Disp("b");
+	y.Disp("y");
 	
+	x.DispAddress("x");
+	W.DispAddress("W");
+	b.DispAddress("b");
+	y.DispAddress("y");
+	gt.Disp();
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
