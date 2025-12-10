@@ -34,7 +34,8 @@ int main(void){
 	
 	ArcsNeuStack<double> gt;
 	ArcsNeu<double> x(gt), W(gt), b(gt), y(gt);
-	
+	//std::array<ArcsNeu<double>, 16> z{gt};
+
 	x = 2;
 	W = 3;
 	b = 5;
@@ -44,8 +45,11 @@ int main(void){
 	b.Disp("b");
 	y.Disp("y");
 	
-	y = x + b;
-	
+	//y = x + b;
+	y = x + W*b;
+	//y = W*x + b;
+	//y = W*x + W*b;
+
 	x.Disp("x");
 	W.Disp("W");
 	b.Disp("b");
