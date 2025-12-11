@@ -62,7 +62,7 @@ class ArcsNeuStack {
 	public:
 		//! @brief コンストラクタ
 		constexpr ArcsNeuStack() noexcept
-			: Stack({}), StackCounter(0)//, TempObjStack({(this)}), TempObjStackCounter(0)
+			: Stack({}), StackCounter(0), TempObjStack({}), TempObjStackCounter(0)
 		{
 			// 自動微分スタックの初期化
 			for(size_t i = 0; i < MAX_OPERATION; ++i){
@@ -71,12 +71,17 @@ class ArcsNeuStack {
 				Stack.at(i).u2 = nullptr;
 				Stack.at(i).y  = nullptr;
 			}
+
+			// 一時オブジェクトスタックの初期化
+			for(size_t i = 0; i < MAX_TEMPOBJ; ++i){
+				TempObjStack.at(i).SetAutoDiffStack(this);
+			}
 		}
 
 		//! @brief ムーブコンストラクタ
 		//! @param[in]	r	演算子右側
 		constexpr ArcsNeuStack(ArcsNeuStack&& r) noexcept
-			: Stack({}), StackCounter(0)//, TempObjStack(), TempObjStackCounter(0)
+			: Stack({}), StackCounter(0), TempObjStack({}), TempObjStackCounter(0)
 		{
 			
 		}
@@ -101,10 +106,29 @@ class ArcsNeuStack {
 			return &(Stack.at(StackCounter - 1).y);
 		}
 
-		//! @brief 自動微分スタックの演算履歴を表示する関数
-		void Disp(void){
+		//! @brief 一時オブジェクトスタックに永続化オブジェクトを積む関数
+		//!	@param[in]	tempobj	一時オブジェクト
+		//! @return	一時オブジェクトスタック内のノードへの生ポインタのアドレス
+		constexpr ArcsNeu<T>* Push(ArcsNeu<T> tempobj){
+			TempObjStack.at(TempObjStackCounter) = tempobj;	// コピーして一時オブジェクトを永続化
+			TempObjStackCounter++;
+			return &(TempObjStack.at(TempObjStackCounter - 1));
+		}
+
+		//! @brief 自動微分スタックに積まれた演算履歴を表示する関数
+		void DispStack(void){
+			printf("<ADSM - Auto Differential Stack Memory>\n");
 			for(size_t i = 0; i < StackCounter; ++i){
-				printf("%5zu: u1 = %p, u2 = %p, y = %p[%p]\n", i, Stack.at(i).u1, Stack.at(i).u2, Stack.at(i).y, &(Stack.at(i).y));
+				printf("%5zu: u1 = %p, u2 = %p, y = [%p]%p\n", i, Stack.at(i).u1, Stack.at(i).u2, &(Stack.at(i).y), Stack.at(i).y);
+			}
+		}
+
+		//! @brief 一時オブジェクトスタックに積まれた永続化オブジェクトを表示する関数
+		void DispTempObjStack(void){
+			printf("<TOSM - Temporary Object Stack Memory>\n");
+			for(size_t i = 0; i < TempObjStackCounter; ++i){
+				printf("%5zu: [%p]", i, &(TempObjStack.at(i)));
+				TempObjStack.at(i).Disp();
 			}
 		}
 
@@ -115,8 +139,8 @@ class ArcsNeuStack {
 		static constexpr size_t MAX_TEMPOBJ = 1024;						//!< 生成される出力ノード用一時オブジェクトの最大数
 		std::array<ArcsNeuron::AutoDiffData<T>, MAX_OPERATION> Stack;	//!< 自動微分スタックメモリ(ADSM)
 		size_t StackCounter;		//!< 自動微分スタックカウンタ
-		//std::array<ArcsNeu<T>, MAX_TEMPOBJ> TempObjStack;				//!< 一時オブジェクトスタックメモリ(TOSM)
-		//size_t TempObjStackCounter;	//!< 一時オブジェクトスタックカウンタ
+		std::array<ArcsNeu<T>, MAX_TEMPOBJ> TempObjStack;				//!< 一時オブジェクトスタックメモリ(TOSM)
+		size_t TempObjStackCounter;	//!< 一時オブジェクトスタックカウンタ
 };
 
 //! @brief ARCS-Neuron 深層学習クラス
@@ -124,13 +148,21 @@ class ArcsNeuStack {
 template <typename T = double>
 class ArcsNeu {
 	public:
+	
+		//! @brief 空コンストラクタ
+		constexpr ArcsNeu(void) noexcept
+			: AutoDiffStack(nullptr), YaddrInStack(nullptr), value(0), grad(0)
+		{
+			//printf("空コンストラクタ\n");
+		}
+
 		//! @brief コンストラクタ
-		constexpr ArcsNeu(ArcsNeuStack<T>& AutoDiff) noexcept
+		constexpr ArcsNeu(ArcsNeuStack<T>* AutoDiff) noexcept
 			: AutoDiffStack(AutoDiff), YaddrInStack(nullptr), value(0), grad(0)
 		{
-			
+			//printf("コンストラクタ\n");
 		}
-		
+
 		//! @brief コピーコンストラクタ
 		//! @param[in]	right	演算子の右側
 		constexpr ArcsNeu(const ArcsNeu<T>& right) noexcept
@@ -147,38 +179,36 @@ class ArcsNeu {
 			// メンバを取り込む以外の処理は無し
 		}
 
-		//! @brief ムーブ代入演算子
-		//! @param[in]	right	演算子の右側
-		constexpr ArcsNeu& operator=(ArcsNeu<T>&& right) noexcept {
-			// メンバを取り込む
-			value = right.value;
-			grad  = right.grad;
-			//printf("KITA--!!\n");
-			return (*this);
-		}
-		
 		//! @brief デストラクタ
 		~ArcsNeu() noexcept {
 			
 		}
 		
-		//! @brief 代入演算子(型が同じ同士の場合)
-		//! @param[in]	right	演算子の右側
-		//! @return 結果
-		constexpr ArcsNeu<T>& operator=(const ArcsNeu<T>& right) noexcept {	
+		//! @brief ムーブ代入演算子(左辺値＝右辺値が入力された場合)
+		//! @param[in]	right	演算子の右側の一時オブジェクト
+		constexpr ArcsNeu& operator=(ArcsNeu<T>&& right) noexcept {
 			// メンバを取り込む
 			value = right.value;
 			grad  = right.grad;
-
-			// 自動微分スタック
-			ArcsNeuron::AutoDiffData<T> ADret = {
-				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
-				.u1 = this,				// 演算子の左側ノードのアドレスを格納
-				.u2 = &right			// 演算子の右側ノードのアドレスを格納
-			};
-			AutoDiffStack.Push(ADret);	// 演算履歴を格納
 			
-			printf("KITA--!!\n");
+			// 出力ノードは左辺値なので一時オブジェクトの永続化は不要
+			*(right.YaddrInStack) = this;	// 出力ノードのアドレスが確定したので、自動微分スタックに格納
+			printf("YaddrInStack = [%p]\n", right.YaddrInStack);
+
+			printf("左辺値 = 右辺値\n");
+
+			return (*this);
+		}
+		
+		//! @brief 代入演算子(左/右辺値＝左/右辺値が入力された場合)
+		//! @param[in]	right	演算子の右側
+		//! @return 結果
+		constexpr ArcsNeu<T>& operator=(ArcsNeu<T>& right) noexcept {	
+			// メンバを取り込む
+			value = right.value;
+			grad  = right.grad;
+			
+			printf("左辺値 = 左辺値 or 右辺値 = 右辺値\n");
 
 			return (*this);
 		}
@@ -205,7 +235,10 @@ class ArcsNeu {
 				.u1 = this,				// 演算子の左側ノードのアドレスを格納
 				.u2 = &right			// 演算子の右側ノードのアドレスを格納
 			};
-			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
+			// ↑ 演算出力が一時オブジェクトとなり、出力ノードへの生ポインタが未確定なので、
+			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
+			//printf("Yaddr = %p\n", ret.YaddrInStack);
 
 			printf("左辺値 + 左辺値\n");
 
@@ -219,16 +252,20 @@ class ArcsNeu {
 			ArcsNeu<T> ret(AutoDiffStack);
 			ret.value = value + right.value;
 			
-			printf("Yaddr+ = %p\n", right.YaddrInStack);
-			*(right.YaddrInStack) = this;	// 出力ノードのアドレスが確定したので、自動微分スタックに格納
+			// 一時オブジェクトの永続化
+			*(right.YaddrInStack) = AutoDiffStack->Push(right);	// 出力ノードのアドレスが確定したので、自動微分スタックに格納
+			printf("YaddrInStack = [%p]\n", right.YaddrInStack);
 
 			// 自動微分スタック
 			ArcsNeuron::AutoDiffData<T> ADret = {
-				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
-				.u1 = this,				// 演算子の左側ノードのアドレスを格納
-				.u2 = &right			// 演算子の右側ノードのアドレスを格納
+				.OperatorBwd = nullptr,		// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = this,					// 演算子の左側ノードのアドレスを格納
+				.u2 = *(right.YaddrInStack)	// 演算子の右側ノードのアドレスを格納
 			};
-			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
+			// ↑ 演算出力が一時オブジェクトとなり、出力ノードへの生ポインタが未確定なので、
+			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
+			printf("Yaddr = %p\n", ret.YaddrInStack);
 
 			printf("左辺値 + 右辺値\n");
 
@@ -240,16 +277,7 @@ class ArcsNeu {
 		//! @return 結果
 		constexpr ArcsNeu<T> operator+(ArcsNeu<T>& right) && {
 			ArcsNeu<T> ret(AutoDiffStack);
-			ret.value = value + right.value;
 			
-			// 自動微分スタック
-			ArcsNeuron::AutoDiffData<T> ADret = {
-				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
-				.u1 = this,				// 演算子の左側ノードのアドレスを格納
-				.u2 = &right			// 演算子の右側ノードのアドレスを格納
-			};
-			AutoDiffStack.Push(ADret);	// 演算履歴を格納
-
 			printf("右辺値 + 左辺値\n");
 
 			return ret;
@@ -260,15 +288,6 @@ class ArcsNeu {
 		//! @return 結果
 		constexpr ArcsNeu<T> operator+(ArcsNeu<T>&& right) && {
 			ArcsNeu<T> ret(AutoDiffStack);
-			ret.value = value + right.value;
-			
-			// 自動微分スタック
-			ArcsNeuron::AutoDiffData<T> ADret = {
-				.OperatorBwd = nullptr,	// 逆方向用演算子への関数オブジェクトを指定
-				.u1 = this,				// 演算子の左側ノードのアドレスを格納
-				.u2 = &right			// 演算子の右側ノードのアドレスを格納
-			};
-			AutoDiffStack.Push(ADret);	// 演算履歴を格納
 
 			printf("右辺値 + 右辺値\n");
 
@@ -288,31 +307,38 @@ class ArcsNeu {
 				.u1 = this,				// 演算子の左側ノードのアドレスを格納
 				.u2 = &right			// 演算子の右側ノードのアドレスを格納
 			};
-			ret.YaddrInStack = AutoDiffStack.Push(ADret);	// 演算履歴を格納
+			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
 			// ↑ 演算出力が一時オブジェクトとなり、出力ノードへの生ポインタが未確定なので、
 			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
 			//printf("Yaddr = %p\n", ret.YaddrInStack);
 
+			printf("左辺値*左辺値\n");
+
 			return ret;
 		}
 		
+		//! @brief 自動微分スタックへの生ポインタ
+		constexpr void SetAutoDiffStack(ArcsNeuStack<T>* ADStack){
+			AutoDiffStack = ADStack;
+		}
+
 		//! @brief ノード値を表示する関数
 		//! @param[in]	VarName	変数名(省略可)
 		constexpr void Disp(std::string VarName = ""){
 			// データ型によって表示方法を変える
 			if constexpr(ArcsNeuron::IsIntFloat<T>){
-				printf("%s: val = %g, grd = %g\n", VarName.c_str(), value, grad);		
+				printf("%s: val = %g, grad = %g\n", VarName.c_str(), value, grad);		
 			}
 		}
 
 		//! @brief ノードのメモリアドレスを表示する関数
 		//! @param[in]	VarName	変数名(省略可)
 		constexpr void DispAddress(std::string VarName = ""){
-			printf("%s: %p\n", VarName.c_str(), this);		
+			printf("[%p]%s\n", this, VarName.c_str());		
 		}
 		
 	private:
-		ArcsNeuStack<T>& AutoDiffStack;	//! 自動微分スタックへの参照
+		ArcsNeuStack<T>* AutoDiffStack;	//! 自動微分スタックへの生ポインタ
 		ArcsNeu<T>** YaddrInStack;		//! 自動微分スタック内の出力変数への生ポインタのアドレス
 		T value;	//!< ノードの値
 		T grad;		//!< ノードの勾配値

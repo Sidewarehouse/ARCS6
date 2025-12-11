@@ -33,9 +33,8 @@ int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
 	ArcsNeuStack<double> gt;
-	ArcsNeu<double> x(gt), W(gt), b(gt), y(gt);
-	//std::array<ArcsNeu<double>, 16> z{gt};
-
+	ArcsNeu<double> x(&gt), W(&gt), b(&gt), y(&gt);
+	
 	x = 2;
 	W = 3;
 	b = 5;
@@ -46,6 +45,7 @@ int main(void){
 	y.Disp("y");
 	
 	//y = x + b;
+	//y = x*b;
 	y = x + W*b;
 	//y = W*x + b;
 	//y = W*x + W*b;
@@ -59,8 +59,9 @@ int main(void){
 	W.DispAddress("W");
 	b.DispAddress("b");
 	y.DispAddress("y");
-	gt.Disp();
-
+	gt.DispStack();
+	gt.DispTempObjStack();
+	
 	return EXIT_SUCCESS;	// 正常終了
 }
 
