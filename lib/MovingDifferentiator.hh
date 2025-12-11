@@ -3,10 +3,10 @@
 //!
 //! 移動窓内の先頭の値と最後尾の値，および時刻計測値から微分値を計算する
 //!
-//! @date 2022/03/25
+//! @date 2025/12/11
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2022 Yokokura, Yuki
+// Copyright (C) 2011-2025 Yokokura, Yuki
 // This program is free software;
 // you can redistribute it and/or modify it under the terms of the FreeBSD License.
 // For details, see the License.txt file.
@@ -16,6 +16,7 @@
 
 #include <cmath>
 #include "RingBuffer.hh"
+#include "ArcsMatrix.hh"
 
 // ARCS組込み用マクロ
 #ifdef ARCS_IN
@@ -95,6 +96,29 @@ class MovingDifferentiator {
 				TimeWindow.FillBuffer(Time);	// 初期時刻でバッファを埋めておく
 				FirstTime = false;				// フラグリセット
 				return Matrix<NN,MM>::zeros();	// 最初の1回目は速度を計算できないのでゼロ
+			}else{
+				// 2回目以降は，
+				const T dx = Var - VarWindow.GetFinalValue();		// 現在位置と位置リングバッファの最後尾との偏差の計算
+				const double dt = Time - TimeWindow.GetFinalValue();// 現在時刻と時刻リングバッファの最後尾との偏差の計算
+				const T v = dx/dt;				// 微分の計算
+				VarWindow.SetFirstValue(Var);	// 位置リングバッファの先頭に現在位置を詰める
+				TimeWindow.SetFirstValue(Time);	// 時刻リングバッファの先頭に現在時刻を詰める
+				return v;						// 計算結果を返す
+			}
+		}
+
+			//! @brief 微分値を計算する関数(ArcsMat行列版)
+		//! @param[in]	Var		[*] 現在値入力行列
+		//! @param[in]	Time	[s] 現在時刻
+		//! @return	微分値 [*/s]
+		template<size_t NN, size_t MM>
+		ArcsMat<NN,MM> GetSignal(const ArcsMat<NN,MM>& Var, const double Time){
+			if(FirstTime){
+				// 初めて呼ばれた場合は，
+				VarWindow.FillBuffer(Var);		// 初期位置でバッファを埋めておく
+				TimeWindow.FillBuffer(Time);	// 初期時刻でバッファを埋めておく
+				FirstTime = false;				// フラグリセット
+				return ArcsMat<NN,MM>::zeros();	// 最初の1回目は速度を計算できないのでゼロ
 			}else{
 				// 2回目以降は，
 				const T dx = Var - VarWindow.GetFinalValue();		// 現在位置と位置リングバッファの最後尾との偏差の計算
