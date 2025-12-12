@@ -35,9 +35,9 @@ int main(void){
 	ArcsNeuStack<double> gt;
 	ArcsNeu<double> x(&gt), W(&gt), b(&gt), y(&gt);
 	
-	x = 2;
-	W = 3;
-	b = 5;
+	x = 3;
+	W = 10;
+	b = 1.1;
 	
 	x.Disp("x");
 	W.Disp("W");
