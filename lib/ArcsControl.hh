@@ -537,10 +537,47 @@ namespace ArcsControl {	// ArcsControl名前空間
 	//! @return	可制御性： true = 可制御、false = 不可制御
 	template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double>
 	static constexpr bool IsCtrb(const ArcsMat<M,N,T>& Ac, const ArcsMat<MB,NB,TB>& Bc){
-		static_assert(M == N,   "ArcsCtrl: Size Error");	// A行列は正方行列
-		static_assert(MB == M , "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(M == N,  "ArcsCtrl: Size Error");	// A行列は正方行列
+		static_assert(MB == M, "ArcsCtrl: Size Error");	// サイズチェック
 
 		return M == rank(CtrbMat(Ac, Bc));	// 可制御性行列のランクを計算して状態数と同一なら可観測
+	}
+
+	//! @brief 極配置法により状態オブザーバゲインを求める関数 (引数渡し版)
+	//! @param[in]	Ap	プラントA行列
+	//! @param[in]	Cp	プラントC行列
+	//! @param[in]	p	指定極ベクトル (縦ベクトル)
+	//! @param[in]	k	オブザーバゲインベクトル (縦ベクトル)
+	//! @tparam	M	プラントAp行列の高さ
+	//! @tparam	N	プラントAp行列の幅
+	//! @tparam	T	プラントAp行列のデータ型
+	//! @tparam	MC	プラントCp行列の高さ
+	//! @tparam	NC	プラントCp行列の幅
+	//! @tparam	TC	プラントCp行列のデータ型
+	//! @tparam MP	指定極のベクトルの高さ
+	//! @tparam NP	指定極のベクトルの幅
+	//! @tparam TP	指定極のベクトルのデータ型
+	//! @tparam	MK	オブザーバゲインベクトルkの高さ
+	//! @tparam	NK	オブザーバゲインベクトルkの幅
+	//! @tparam	TK	オブザーバゲインベクトルkのデータ型
+	template<
+		size_t M, size_t N, typename T = double, size_t MC, size_t NC, typename TC = double,
+		size_t MP, size_t NP, typename TP = double, size_t MK, size_t NK, typename TK = double
+	>
+	static constexpr void ObserverPlace(
+		const ArcsMat<M,N,T>& Ap, const ArcsMat<MC,NC,TC>& Cp, const ArcsMat<MP,NP,TP>& p,
+		ArcsMat<MK,NK,TK> k
+	){
+		static_assert(M == N,  "ArcsCtrl: Size Error");	// A行列は正方行列
+		static_assert(NC == M, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(MP == M, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(NP == 1, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(MK == M, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(NK == 1, "ArcsCtrl: Size Error");	// サイズチェック
+
+		// プラントの特性方程式の多項式係数を求める
+		const ArcsMat<M,1,std::complex<double>> a = eig(Ap);
+		//disp(a);
 	}
 
 //--------------------- ここから廃止予定

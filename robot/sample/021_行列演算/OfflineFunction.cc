@@ -1,6 +1,6 @@
 //! @file OfflineFunction.cc
 //! @brief ARCS6 オフライン計算用メインコード
-//! @date 2025/10/10
+//! @date 2025/12/14
 //! @author Yokokura, Yuki
 //!
 //! @par オフライン計算用のメインコード
@@ -1363,16 +1363,27 @@ int main(void){
 	};
 	disp(Asch3);
 	std::tie(Usch2, Tsch2) = Schur(Asch3);	// 複素数固有値の場合
-	dispf(Usch2, "% 10.4f");
-	dispf(Tsch2, "% 10.4f");
-	dispf(Usch2*Tsch2*~Usch2, "% 4g");		// 元に戻るかチェック
-	dispf(~Usch2*Usch2, "% 12g");			// ユニタリ行列かチェック
+	dispf(Usch2, "% 8.4f");
+	dispf(Tsch2, "% 8.4f");
+	dispf(Usch2*Tsch2*~Usch2, "% 8.4f");	// 元に戻るかチェック
+	dispf(~Usch2*Usch2, "% 8.4f");			// ユニタリ行列かチェック
+	ArcsMat<3,3, std::complex<double>> Asch4 = {
+		-1,  2,  3,
+		 0, -1,  7,
+		-2,  2, -5
+	};
+	dispf(Asch4, "% 10.4f");
+	auto [Usch4, Tsch4] = Schur(Asch4);		// 複素数固有値の場合II
+	dispf(Usch4, "% 10.4f");
+	dispf(Tsch4, "% 10.4f");
+	dispf(Usch4*Tsch4*~Usch4, "% 10.4f");	// 元に戻るかチェック
+	dispf(~Usch4*Usch4, "% 10.4f");			// ユニタリ行列かチェック
 	constexpr auto UTsch1x = Schur(Asch1);			// コンパイル時にSchur分解を計算 (実行時とは符号が入れ替わる場合がある)
 	constexpr auto Usch1x = std::get<0>(UTsch1x);	// Uを取り出す
 	constexpr auto Tsch1x = std::get<1>(UTsch1x);	// Tを取り出す
 	dispf(Usch1x, "% 8.4f");
 	dispf(Tsch1x, "% 8.4f");
-	dispf(Usch1x*Tsch1x*~Usch1x, "% 4g");			// 元に戻るかチェック
+	dispf(Usch1x*Tsch1x*~Usch1x, "% 4g");	// 元に戻るかチェック
 	dispf(~Usch1x*Usch1x, "% 12g");			// ユニタリ行列かチェック
 
 	// 固有値関連の関数

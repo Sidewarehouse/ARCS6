@@ -370,6 +370,22 @@ int main(void){
 	}
 	MatFile1.Save("t4", t4);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y4", y4);	// 出力応答ベクトルをMATファイルとして保存
+
+	printf("◆ 極配置法によるオブザーバゲイン設計\n");
+	// プラント状態空間モデル(適当)
+	constexpr ArcsMat<3,3> Ap1 = {
+		-1,  2,  3,
+		 0, -1,  7,
+		-2,  2, -5
+	};
+	constexpr ArcsMat<3,1> bp1 = { 1, 0, 0 };
+	constexpr ArcsMat<1,3> cp1 = { 1, 0, 0 };
+	disp(Ap1);
+	disp(bp1);
+	disp(cp1);
+	const ArcsMat<3,1,std::complex<double>> p1 = { -100.0 + 0.0i, -100.0 + 0.0i, -100.0 + 0.0i };	// [rad/s] オブザーバ推定帯域
+	ArcsMat<3,1> kov1;
+	ArcsControl::ObserverPlace(Ap1, cp1, p1, kov1);
 	
 	return EXIT_SUCCESS;	// 正常終了
 }

@@ -3,7 +3,7 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2025/10/11
+//! @date 2025/12/14
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2025 Yokokura, Yuki
@@ -3186,21 +3186,34 @@ class ArcsMat {
 			static_assert(ArcsMatrix::IsApplicable<T>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TU>, "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TS>, "ArcsMat: Type Error");	// 対応可能型チェック
-			
+
 			// ヘッセンベルグ分解を用いた複素シュール分解
 			const auto I = ArcsMat<M,N,T>::eye();		// [C++20移行時にconstexprに改修]
 			auto [P, H] = ArcsMat<M,N,T>::Hessenberg(A);
 			size_t k = M;
 			U = P;
 			S = H;
-			T a = 0;
+			T a = 0, b = 0, c = 0, d= 0, alpha_p = 0, alpha_m = 0, alpha = 0;
 			ArcsMat<M,N,T> W, Q, R, V;
 			while(1 < k){
 				k = (ArcsMat<M,N,T>::getdiag(S, -1)).GetNumOfNonZero() + 1;
 				if(1 < k){
-					a = ( S(k-1,k-1) + S(k,k) + std::sqrt( std::pow(S(k-1,k-1) + S(k,k), 2) - 4.0*(S(k-1,k-1)*S(k,k) - (S(k-1,k)*S(k,k-1))) ) )/2.0;
+					// Wilkinsonシフト量αの計算
+					a = S(k,k);
+					b = S(k-1,k-1);
+					c = S(k-1,k);
+					d = S(k,k-1);
+					alpha_p = ( a + b + std::sqrt( std::pow(a - b, 2) + 4.0*c*d ) )/2.0;
+					alpha_m = ( a + b - std::sqrt( std::pow(a - b, 2) + 4.0*c*d ) )/2.0;
+					if( std::abs(alpha_p - a) < std::abs(alpha_m - a) ){
+						alpha = alpha_p;
+					}else{
+						alpha = alpha_m;
+					}
+
+					// 原点シフトを用いたQR分解法によりシュール分解
 					W.FillAllZero();
-					ArcsMat<M,N,T>::copymatrix(S - a*I,1,k,1,k, W,1,1);
+					ArcsMat<M,N,T>::copymatrix(S - alpha*I,1,k,1,k, W,1,1);
 					ArcsMat<M,N,T>::QR(W, Q, R);
 					V = I;
 					ArcsMat<M,N,T>::copymatrix(Q,1,k,1,k, V,1,1);

@@ -559,13 +559,19 @@ Asch2 = [
 	 1, -5,  1;
 	-9,  8, -6
 ]
-[Usch2, Tsch2] = schur(Asch2)
+[Usch2, Tsch2] = schur(Asch2, 'complex')
 Asch3 = [
 	 1,  2,  3 ;
 	-5,  9, -1 ;
 	 2,  6,  8
 ]
-[Usch2, Tsch2] = schur(Asch3)
+[Usch2, Tsch2] = schur(Asch3, 'complex')
+Asch4 = [
+	-1,  2,  3 ;
+	 0, -1,  7 ;
+	-2,  2, -5
+]
+[Usch4, Tsch4] = schur(Asch4, 'complex')
 % ↓実装確認用の残骸↓
 %{
 A = Asch3
@@ -578,7 +584,7 @@ tol = 1e-14;
 while k > 1
 	k = nnz(diag(S,-1)) + 1
 	if k > 1
-		a = ( S(k-1,k-1)+S(k,k) + sqrt( (S(k-1,k-1) + S(k,k))^2 - 4*(S(k-1,k-1)*S(k,k) - S(k-1,k)*S(k,k-1)) ) )/2
+		a = ( S(k-1,k-1)+S(k,k) + sqrt( (S(k-1,k-1) + S(k,k))^2 - 4*(S(k-1,k-1)*S(k,k) - S(k-1,k) コレ→* S(k,k-1)) ) )/2
 		disp 'a*I = '
 		a*eye(k)
 		W = S(1:k,1:k) - a*eye(k)
