@@ -1,15 +1,14 @@
 //! @file UDPReceiver.hh
 //! @brief UDP受信器クラス
 //!
-//! 指定したIPアドレスおよびPort番号へUDPで配列変数値を飛ばすクラス
+//! 指定したIPアドレスおよびPort番号からUDPで配列変数値を受け取るクラス
+//! 後々、テンプレートに書き換え予定
 //!
-//! @date 2019/07/19
+//! @date 2025/12/22
 //! @author Yuki YOKOKURA
 //
-// Copyright (C) 2011-2019 Yuki YOKOKURA
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the FreeBSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2025 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #ifndef UDPRECV
 #define UDPRECV
