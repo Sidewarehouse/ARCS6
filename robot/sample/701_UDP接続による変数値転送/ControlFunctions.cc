@@ -74,7 +74,7 @@ bool ControlFunctions::ControlFunction1(const double t, const double Tact, const
 		Graph.SetVars(2, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(3, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット3 (グラフ番号, 変数0, ..., 変数7)
 		UsrGraph.SetVars(0, 0);						// ユーザカスタムプロット（例）
-		Memory.SetData(Tact, t, 0, 0, 0, 0, 0, 0, 0, 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
+		Memory.SetData(Tact, t, txdata[0], txdata[1], txdata[2], txdata[3], rxdata[0], rxdata[1], rxdata[2], rxdata[3], 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		// リアルタイム制御ここまで
 	}
 	if(CmdFlag == CTRL_EXIT){
