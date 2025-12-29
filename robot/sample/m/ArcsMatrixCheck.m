@@ -694,6 +694,10 @@ varAst3 = std(Ast3, 0, 'All')
 
 fprintf('\n');
 disp 'Åö ÇªÇÃëºÇÃçsóÒä÷òAä÷êî'
-vpol1 = rot90([2.0 + 1.0i; 3.0 + 2.0i; 5.0 + 3.0i], 2)
+vpol1 = rot90([1, 2, 3], 2)
 vcoef1 = poly(vpol1)
+vpol2 = rot90([2.0 + 1.0i, 3.0 + 2.0i], 2)
+vcoef2 = poly(vpol2)
+vpol3 = rot90([11.6219 + 0.0i, -0.3110 + 2.6704i, -0.3110 - 2.6704i], 2)
+vcoef3 = poly(vpol3)
 

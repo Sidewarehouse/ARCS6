@@ -317,6 +317,27 @@ int main(void){
 	disp(v2x);
 	disp(w2x);
 
+	// ベクトルの埋め込み
+	printf("\n★★★★★★★ ベクトルの埋め込み\n");
+	v2.Set(
+		39,
+		93
+	);
+	C.SetVerticalVec(v2,2,3);		// 2行3列目を先頭として縦ベクトルを埋め込む
+	disp(C);
+	w2.Set(39, 93);
+	C.SetHorizontalVec(w2,2,1);		// 2行1列目を先頭として横ベクトルを埋め込む
+	disp(C);
+	//C.SetVerticalVec(v2,3,1);		// ←はみ出るエラー！(アンコメントするとAssertion Failed)
+	//C.SetHorizontalVec(w2,1,3);	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
+
+	// 要素を逆順に入れ替える関連の関数
+	printf("\n★★★★★★★ 要素を逆順に入れ替える関連の関数\n");
+	C.FlipVertical();			// 縦方向の要素を逆順にする
+	disp(C);
+	C.FlipHorizontal();			// 横方向の要素を逆順にする
+	disp(C);
+	
 	// ゼロの取り扱い関連の関数
 	printf("\n★★★★★★★ ゼロの取り扱い関連の関数\n");
 	const ArcsMat<3,3> Azero1 = {
@@ -345,20 +366,6 @@ int main(void){
 	Azero4.ZeroingTriLo(1e-12);	// 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする (複素数の場合)
 	dispf(Azero4, "% 16.15e");
 	printf("Non-Zero = %zu\n", Azero4.GetNumOfNonZero());	// 行列Aの非ゼロ要素の数を表示
-
-	// ベクトルの埋め込み
-	printf("\n★★★★★★★ ベクトルの埋め込み\n");
-	v2.Set(
-		39,
-		93
-	);
-	C.SetVerticalVec(v2,2,3);		// 2行3列目を先頭として縦ベクトルを埋め込む
-	disp(C);
-	w2.Set(39, 93);
-	C.SetHorizontalVec(w2,2,1);		// 2行1列目を先頭として横ベクトルを埋め込む
-	disp(C);
-	//C.SetVerticalVec(v2,3,1);		// ←はみ出るエラー！(アンコメントするとAssertion Failed)
-	//C.SetHorizontalVec(w2,1,3);	// ←はみ出るエラー！(アンコメントするとAssertion Failed)
 
 	// 零行列と1行列と単位行列
 	printf("\n★★★★★★★ 零行列と1行列と単位行列\n");
@@ -1625,8 +1632,8 @@ int main(void){
 	constexpr auto stdAst3x = stdev(Ast3);			// コンパイル時に行列全体の標準偏差を計算
 	printf("stdAst3x = % g\n", stdAst3x);
 
-	// その他の行列関連関数
-	printf("\n★★★★★★★ その他の行列関連関数\n");
+	// 多項式関連の関数
+	printf("\n★★★★★★★ 多項式関連の関数\n");
 	constexpr ArcsMat<4,1> vhkl1 = { 1, 2, 3, 4 };
 	ArcsMat<4,4> Yhkl1;
 	hankel(vhkl1, Yhkl1);		// 対称ハンケル行列を作成 (引数渡し版)
@@ -1643,12 +1650,15 @@ int main(void){
 	constexpr auto vcoef1x = polycoeff(vpol1);		// コンパイル時に多項式の係数を計算
 	disp(vcoef1x);
 	const ArcsMat<2,1,std::complex<double>> vpol2 = {2.0 + 1.0i, 3.0 + 2.0i};	// 適当に決めた複素極
+	disp(vpol2);
 	auto vcoef2 = polycoeff(vpol2);	// 複素極から多項式の係数を計算
 	disp(vcoef2);
 	const ArcsMat<3,1,std::complex<double>> vpol3 = {11.6219 + 0.0i, -0.3110 + 2.6704i, -0.3110 - 2.6704i};
-	auto vcoef3 = polycoeff(vpol3);	// 実数極1個と複素極2個から多項式の係数を計算
-	dispf(vcoef3, "%3.0f");
-
+	disp(vpol3);
+	ArcsMat<4,1> vcoef3;
+	polycoeff(vpol3, vcoef3);		// 実数極1個と複素極2個から多項式の係数を計算
+	dispf(vcoef3, "%3.0f");			// 実数係数の保証があれば、実数として受け取れる
+	
 	// MATファイルへの保存 (MATLAB Level 4対応)
 	printf("\n★★★★★★★ MATファイルへの保存 (MATLAB Level 4)\n");
 	MatExport MatFile1("save_test.mat");// MATファイルを新規作成

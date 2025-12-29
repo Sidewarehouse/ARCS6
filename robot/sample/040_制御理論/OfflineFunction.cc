@@ -371,8 +371,24 @@ int main(void){
 	MatFile1.Save("t4", t4);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y4", y4);	// 出力応答ベクトルをMATファイルとして保存
 
+	printf("◆ 正準形式への変換\n");
+	// 状態空間モデル(適当)
+	constexpr ArcsMat<3,3> Acn1 = {
+		-1,  2,  3,
+		 0, -1,  7,
+		-2,  2, -5
+	};
+	constexpr ArcsMat<3,1> bcn1 = { 1, 0, 0 };
+	constexpr ArcsMat<1,3> ccn1 = { 1, 0, 0 };
+	disp(Acn1);
+	disp(bcn1);
+	disp(ccn1);
+	ArcsMat<3,3> Acn2, Pcn1;
+	ArcsMat<3,1> bcn2;
+	ArcsMat<1,3> ccn2;
+	ArcsControl::Canonical<ArcsControl::CanonicalForm::ACL_CTRB>(Acn1, bcn1, ccn1, Acn2, bcn2, ccn2, Pcn1);
+
 	printf("◆ 極配置法によるオブザーバゲイン設計\n");
-	// プラント状態空間モデル(適当)
 	constexpr ArcsMat<3,3> Ap1 = {
 		-1,  2,  3,
 		 0, -1,  7,

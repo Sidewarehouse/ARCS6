@@ -701,6 +701,20 @@ class ArcsMat {
 			return ret;
 		}
 		
+		//! @brief 非ゼロの虚数部の要素の数を返す関数
+		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
+		//! @return 結果
+		constexpr size_t GetNumOfNonZeroImag(const T eps = ArcsMatrix::EPSILON) const{
+			static_assert(ArcsMatrix::IsComplex<T>, "ArcsMat: Type Error (Need Complex)");
+			size_t ret = 0;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j){
+					if( std::abs(eps) < std::abs( ((*this)(j,i)).imag() )) ++ret;
+				}
+			}
+			return ret;
+		}
+		
 		//! @brief 行列要素に値を設定する関数
 		//! @tparam	T1, T2	要素の型
 		//! @param[in]	u1	要素1の値
@@ -924,10 +938,31 @@ class ArcsMat {
 			arcs_assert(0 < n && Q + n - 1 <= N);	// はみ出しチェック
 			for(size_t i = 1; i <= Q; ++i) (*this)(m, n + i - 1) = w(1,i);
 		}
+
+		//! @brief 縦方向の要素を逆順に入れ替える関数
+		constexpr void FlipVertical(void){
+			ArcsMat<M,N,T> buff;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j){
+					buff(j, i) = (*this)(M - j + 1, i);
+				}
+			}
+			(*this) = buff;
+		}
+
+		//! @brief 横方向の要素を逆順に入れ替える関数
+		constexpr void FlipHorizontal(void){
+			ArcsMat<M,N,T> buff;
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j){
+					buff(j, i) = (*this)(j, N - i + 1);
+				}
+			}
+			(*this) = buff;
+		}
 		
 		//! @brief ゼロに近い要素を完全にゼロにする関数
 		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
-		//! @return 結果
 		constexpr void Zeroing(const T eps = ArcsMatrix::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = 1; j <= M; ++j){
@@ -935,10 +970,21 @@ class ArcsMat {
 				}
 			}
 		}
+
+		//! @brief ゼロに近い虚数部の要素を完全にゼロにする関数
+		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
+		constexpr void ZeroingImag(const T eps = ArcsMatrix::EPSILON){
+			for(size_t i = 1; i <= N; ++i){
+				for(size_t j = 1; j <= M; ++j){
+					if(std::abs( ((*this)(j,i)).imag() ) < std::real(eps)){
+						((*this)(j,i)).imag(0);
+					}
+				}
+			}
+		}
 		
 		//! @brief 下三角(主対角除く)に限定して、ゼロに近い要素を完全にゼロにする関数
 		//! @param[in]	eps	許容誤差 (デフォルト値 = EPSILON)
-		//! @return 結果
 		constexpr void ZeroingTriLo(const T eps = ArcsMatrix::EPSILON){
 			for(size_t i = 1; i <= N; ++i){
 				for(size_t j = i + 1; j <= M; ++j){
@@ -3855,31 +3901,59 @@ class ArcsMat {
 		//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
 		//!	@param	u	根(極)の値が羅列された入力縦ベクトル
 		//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+		//! @param	Tol	許容誤差(デフォルト値 1e-10)
 		template<size_t MY, size_t NY, typename TY = double>
-		static constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y){
+		static constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y, T Tol = 1e-10){
 			static_assert(M == MY - 1, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(N == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
-			static_assert(NY == 1, "ArcsMat: Size Error");	// 行列のサイズチェック
+			static_assert(N == 1, "ArcsMat: Size Error");		// 行列のサイズチェック
+			static_assert(NY == 1, "ArcsMat: Size Error");		// 行列のサイズチェック
 			static_assert(ArcsMatrix::IsApplicable<T>,  "ArcsMat: Type Error");	// 対応可能型チェック
 			static_assert(ArcsMatrix::IsApplicable<TY>, "ArcsMat: Type Error");	// 対応可能型チェック
-
-			y[1] = 1;
-			y[2] = -u[1];
-			for(size_t i = 2; i <= M; ++i){
-				y[i+1] = -y[i]*u[i];
-				for(ssize_t j = i; 2 <= j; --j){
-					y[j] = y[j] - y[j-1]*u[i];
+			
+			// 多項式の係数を求めるラムダ式(関数オブジェクト)
+			auto getcoeff = [](const auto& in, auto& out){
+				out[1] = 1;
+				out[2] = -in[1];
+				for(size_t i = 2; i <= M; ++i){
+					out[i+1] = -out[i]*in[i];
+					for(ssize_t j = i; 2 <= j; --j){
+						out[j] = out[j] - out[j-1]*in[i];
+					}
 				}
+				return;
+			};
+
+			// 入力引数と出力引数の型によって宣言を変える
+			if constexpr (ArcsMatrix::IsComplex<T> && ArcsMatrix::IsComplex<TY>){
+				// 入力引数も出力引数も複素数なら、そのまま多項式の係数を求める
+				getcoeff(u, y);		// ラムダ式を呼び出す
+			}else if constexpr (ArcsMatrix::IsComplex<T> && ArcsMatrix::IsIntFloat<TY>){
+				// 入力引数が複素数で、出力引数が実数なら、
+				ArcsMat<MY,1,std::complex<TY>> yx;	// 複素数に拡張した係数ベクトルを一旦定義
+				getcoeff(u, yx);	// ラムダ式を呼び出す
+
+				// 実数係数に限定する
+				yx.ZeroingImag(Tol);						// 浮動小数点演算で出たゼロに近い虚数部を、ゼロに置き換え
+				arcs_assert(yx.GetNumOfNonZeroImag() == 0);	// 複素係数になっていないかチェック
+				ArcsMat<MY,1,std::complex<TY>>::real(yx, y);// この時点で虚数部がほぼゼロとみなせるので、実数係数として出力
+				
+			}else if constexpr (ArcsMatrix::IsIntFloat<T> && ArcsMatrix::IsIntFloat<TY>){
+				// 入力引数も出力引数も実数なら、そのまま多項式の係数を求める
+				getcoeff(u, y);		// ラムダ式を呼び出す
+			}else{
+				// 入力が実数で出力が複素数はあり得ないので、
+				arcs_assert(false);	// ここには来ない
 			}
 		}
 		
 		//! @brief 根(極)から多項式の係数を計算する関数 (戻り値返し版)
 		//! MATLABでいうところのpoly関数
 		//!	@param	u	根(極)の値が羅列された入力縦ベクトル
+		//! @param	Tol	許容誤差(デフォルト値 1e-10)
 		//! @return	多項式(M次方程式)の係数が羅列された出力縦ベクトル
-		static constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u){
+		static constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u, T Tol = 1e-10){
 			ArcsMat<M+1,1,T> y;
-			ArcsMat<M,N,T>::polycoeff(u, y);
+			ArcsMat<M,N,T>::polycoeff(u, y, Tol);
 			return y;
 		}
 		
@@ -5670,19 +5744,21 @@ namespace ArcsMatrix {
 	//! @tparam	MY, NY, TY 出力ベクトルの高さ, 幅, 要素の型
 	//!	@param	u	根(極)の値が羅列された入力縦ベクトル
 	//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+	//! @param	Tol	許容誤差(デフォルト値 1e-10)
 	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
-	constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y){
-		ArcsMat<M,N,T>::polycoeff(u, y);
+	constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y, T Tol = 1e-10){
+		ArcsMat<M,N,T>::template polycoeff<MY,NY,TY>(u, y, Tol);
 	}
 
 	//! @brief 根(極)から多項式の係数を計算する関数 (戻り値返し版)
 	//! MATLABでいうところのpoly関数
 	//! @tparam	M, N, T	入力ベクトルの高さ, 幅, 要素の型
 	//!	@param	u	根(極)の値が羅列された入力縦ベクトル
+	//! @param	Tol	許容誤差(デフォルト値 1e-10)
 	//! @return	多項式(M次方程式)の係数が羅列された出力縦ベクトル
 	template<size_t M, size_t N, typename T = double>
-	constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u){
-		return ArcsMat<M,N,T>::polycoeff(u);
+	constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u, T Tol = 1e-10){
+		return ArcsMat<M,N,T>::polycoeff(u, Tol);
 	}
 
 }

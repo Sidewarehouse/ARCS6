@@ -32,8 +32,41 @@
 
 using namespace ARCS::ArcsMatrix;
 
-namespace ARCS {		// ARCS名前空間
-namespace ArcsControl {	// ArcsControl名前空間
+// ARCS名前空間
+namespace ARCS {
+
+// ArcsControl名前空間
+namespace ArcsControl {
+
+	//! @brief 正準形式の定義
+	enum class CanonicalForm {
+		ACL_CTRB	//!< 可制御正準形式 
+	};
+
+	//! @brief システムの表現タイプの定義
+	enum class SystemType {
+		ACL_NONE,	//!< 未設定
+		ACL_CONT,	//!< 連続系
+		ACL_DISC 	//!< 離散系
+	};
+
+	//! @brief 状態空間モデル構造体
+	template<
+		size_t M,  size_t N,  typename T,
+		size_t MB, size_t NB, typename TB,
+		size_t MC, size_t NC, typename TC,
+		size_t MD, size_t ND, typename TD
+	>
+	struct StateSpaceModel {
+		SystemType SysType = SystemType::ACL_NONE;	// システムの表現タイプ
+		ArcsMat<M,N,T>		A;	// A行列
+		ArcsMat<MB,NB,TB>	B;	// B行列
+		ArcsMat<MC,NC,TC>	C;	// C行列
+		ArcsMat<MD,ND,TD>	D;	// D行列
+		T Ts = 0;	// [s] 制御周期
+	};
+	
+
 	//! @brief 連続リアプノフ方程式 AX + XA' + Q = 0 の解Xを求める関数 (引数渡し版)
 	//! @tparam		M,MQ,MX	行列の高さ
 	//! @tparam		N,NQ,NX	行列の幅
@@ -543,6 +576,75 @@ namespace ArcsControl {	// ArcsControl名前空間
 		return M == rank(CtrbMat(Ac, Bc));	// 可制御性行列のランクを計算して状態数と同一なら可観測
 	}
 
+	//! @brief 指定した正準形式に変換する関数 (引数渡し版)
+	//! @param[in]	A	A行列
+	//! @param[in]	B	B行列
+	//! @param[in]	C	C行列
+	//! @param[in]	At	変換後のA行列
+	//! @param[in]	Bt	変換後のB行列
+	//! @param[in]	Ct	変換後のC行列
+	//! @param[in]	P	変換行列
+	//! @tparam	CF	正準形式のタイプ
+	//! @tparam	M	A行列の高さ
+	//! @tparam	N	A行列の幅
+	//! @tparam	T	A行列のデータ型
+	//! @tparam	MB	B行列の高さ
+	//! @tparam	NB	B行列の幅
+	//! @tparam	TB	B行列のデータ型
+	//! @tparam	MC	C行列の高さ
+	//! @tparam	NC	C行列の幅
+	//! @tparam	TC	C行列のデータ型
+	//! @tparam	MP	変換行列の高さ
+	//! @tparam	NP	変換行列の幅
+	//! @tparam	TP	変換行列のデータ型
+	template<
+		ArcsControl::CanonicalForm CF,
+		size_t M,  size_t N,  typename T  = double,
+		size_t MB, size_t NB, typename TB = double,
+		size_t MC, size_t NC, typename TC = double,
+		size_t MT, size_t NT, typename TT  = double,
+		size_t MBT, size_t NBT, typename TBT = double,
+		size_t MCT, size_t NCT, typename TCT = double,
+		size_t MP, size_t NP, typename TP = double
+	>
+	static constexpr void Canonical(
+		const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, const ArcsMat<MC,NC,TC>& C,
+		const ArcsMat<MT,NT,TT>& At, const ArcsMat<MBT,NBT,TBT>& Bt, const ArcsMat<MCT,NCT,TCT>& Ct,
+		ArcsMat<MP,NP,TP>& P
+	){
+		static_assert(M == N,  "ArcsCtrl: Size Error");		// A行列は正方行列
+		static_assert(MB == M, "ArcsCtrl: Size Error");		// サイズチェック
+		static_assert(NC == M, "ArcsCtrl: Size Error");		// サイズチェック
+		static_assert(MT == M, "ArcsCtrl: Size Error");		// 変換前後でA行列のサイズは同じ
+		static_assert(MT == NT, "ArcsCtrl: Size Error");	// 変換後のA行列も正方行列
+		static_assert(MBT == MT, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(NCT == MT, "ArcsCtrl: Size Error");	// サイズチェック
+		static_assert(MP == M, "ArcsCtrl: Size Error");		// サイズチェック
+		static_assert(NP == N, "ArcsCtrl: Size Error");		// サイズチェック
+		constexpr T Tol = 1e-10;	// 許容誤差 
+
+		// 正準形式の設定に従って計算を変える
+		/*
+		if constexpr(CF == CanonicalForm::ACL_CTRB){
+			// 可制御正準形式の場合
+			// 特性方程式の多項式係数を求める
+			const ArcsMat<M,1,std::complex<T>> q = eig(A);		// 極を計算
+			ArcsMat<M+1,1,std::complex<T>> ax = polycoeff(q);	// 特性方程式の係数を計算
+			disp(q);
+			disp(a);
+
+			// 可制御正準形式に変換
+			ArcsMat<M,1,T> aa;// = a.template GetVerticalVec<M>(2, M+1);
+			a.GetVerticalVec(aa, 2, 1);
+			disp(aa);
+			hankel(aa, P);
+			disp(P);
+		}else{
+			// 他の形式は未実装
+		}
+		*/
+	}
+
 	//! @brief 極配置法により状態オブザーバゲインを求める関数 (引数渡し版)
 	//! @param[in]	Ap	プラントA行列
 	//! @param[in]	Cp	プラントC行列
@@ -575,9 +677,6 @@ namespace ArcsControl {	// ArcsControl名前空間
 		static_assert(MK == M, "ArcsCtrl: Size Error");	// サイズチェック
 		static_assert(NK == 1, "ArcsCtrl: Size Error");	// サイズチェック
 
-		// プラントの特性方程式の多項式係数を求める
-		const ArcsMat<M,1,std::complex<double>> a = eig(Ap);
-		//disp(a);
 	}
 
 //--------------------- ここから廃止予定
