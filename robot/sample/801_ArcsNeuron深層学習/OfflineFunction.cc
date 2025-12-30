@@ -32,29 +32,40 @@ using namespace ARCS;
 int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
-	ArcsNeuStack<double> gt;
-	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);
+	// 定義
+	ArcsNeuStack<double> gt;	// 自動微分スタック(勾配テープ)
+	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);	// エッジ変数
 	
+	// 変数のメモリアドレス
 	x.DispAddress("x");
 	W.DispAddress("W");
 	V.DispAddress("V");
 	b.DispAddress("b");
 	y.DispAddress("y");
-	
+
+	// 変数値
 	x = 3;
 	W = 10;
 	V = 5;
 	b = 1.1;
 	
-	//y = x + b;
-	//y = x*b;
-	//y = x + W*b;
-	//y = W*x + b;
-	//y = W*x + V*b;
-	y = W*x + W*b;
-	
-	gt.DispStack();
-	gt.DispTempObjStack();
+	// 複合式の自動微分テスト
+	//y = x + b;	// 左辺値 + 左辺値
+	//y = W*x;		// 左辺値*左辺値
+	//y = b + W*x;	// 左辺値 + 右辺値(左辺値*左辺値)
+	y = W*x + b;	// 右辺値(左辺値*左辺値) + 左辺値
+	//y = W*x + V*b;// 右辺値(左辺値*左辺値) + 右辺値(左辺値*左辺値)
+	//y = W*x + W*b;// 右辺値(重複左辺値*左辺値) + 右辺値(重複左辺値*左辺値)
+	//y = W*(x + b);// 左辺値*( 右辺値(左辺値 + 左辺値) )
+	//y = (W + V)*x;// 右辺値(左辺値 + 左辺値)*左辺値 
+	//y = (W + V)*(x + b);		// 右辺値(左辺値 + 左辺値)*右辺値(左辺値 + 左辺値)
+	//y = W*x + W*b + V*x + V*b;	// 上記を展開した場合
+	//y = x + b + x;	// 分岐される場合
+	//y = W*x + x;	// スキップがある場合
+
+	// 自動微分スタックの表示
+	gt.DispStack();			// 演算履歴の表示
+	gt.DispTempObjStack();	// 永続化された一時オブジェクトエッジ変数の表示
 	//*
 	gt.ClearGradient();
 	y.SetGradient(7);
