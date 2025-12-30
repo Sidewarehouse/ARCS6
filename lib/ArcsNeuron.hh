@@ -29,6 +29,8 @@
 	#define EventLogVar(a)
 #endif
 
+#include "ArcsMatrix.hh"
+
 namespace ARCS {	// ARCS名前空間
 
 template <typename T> class ArcsNeu;	// 前方宣言
@@ -56,7 +58,7 @@ namespace ArcsNeuron {
 	template <typename T = double>
 	struct AutoDiffData {
 		AutoDiffOperator ForwardOperator;	//!< 順方向演算の種類
-		std::function<void(const ArcsNeu<T>&, ArcsNeu<T>&, ArcsNeu<T>&)> BackOperator;	//!< 逆方向用演算への関数オブジェクト
+		std::function<void(const ArcsNeu<T>*, ArcsNeu<T>*, ArcsNeu<T>*)> BackOperator;	//!< 逆方向用演算への関数オブジェクト
 		ArcsNeu<T>* u1;	//!< 入力ノード1への生ポインタ
 		ArcsNeu<T>* u2;	//!< 入力ノード2への生ポインタ
 		ArcsNeu<T>* y;	//!< 出力ノードへの生ポインタ
@@ -115,20 +117,36 @@ class ArcsNeuStack {
 			return &(Stack.at(StackCounter - 1).y);
 		}
 
-		//! @brief 一時オブジェクトスタックに永続化オブジェクトを積む関数
+		//! @brief 一時オブジェクトスタックに永続化したオブジェクトを積む関数
 		//!	@param[in]	tempobj	一時オブジェクト
 		//! @return	一時オブジェクトスタック内のノードへの生ポインタのアドレス
-		constexpr ArcsNeu<T>* Push(ArcsNeu<T> tempobj){
+		constexpr ArcsNeu<T>* Persistent(ArcsNeu<T> tempobj){
 			TempObjStack.at(TempObjStackCounter) = tempobj;	// コピーして一時オブジェクトを永続化
 			TempObjStackCounter++;
 			return &(TempObjStack.at(TempObjStackCounter - 1));
+		}
+
+		//! @brief 自動微分スタックに積まれた演算履歴を逆に辿って勾配を計算する関数
+		constexpr void UpdateGradient(void){
+			for(ssize_t i = StackCounter - 1; 0 <= i; --i){
+				Stack.at(i).BackOperator(Stack.at(i).y, Stack.at(i).u1, Stack.at(i).u2);
+			}
+		}
+
+		//! @brief 自動微分スタックに積まれた変数の勾配をクリアする関数
+		constexpr void ClearGradient(void){
+			for(ssize_t i = StackCounter - 1; 0 <= i; --i){
+				Stack.at(i).y->ClearGradient();
+				Stack.at(i).u1->ClearGradient();
+				Stack.at(i).u2->ClearGradient();
+			}
 		}
 
 		//! @brief 自動微分スタックに積まれた演算履歴を表示する関数
 		void DispStack(void) const{
 			printf("<ADSM - Auto Differential Stack Memory>\n");
 			for(size_t i = 0; i < StackCounter; ++i){
-				printf("%5zu: %p %s %p = [%p] %p\n", i, Stack.at(i).u1, GetOperatorName(i).c_str(), Stack.at(i).u2, &(Stack.at(i).y), Stack.at(i).y);
+				printf("%5zu: %p %s %p -> [%p] %p\n", i, Stack.at(i).u1, GetOperatorName(i).c_str(), Stack.at(i).u2, &(Stack.at(i).y), Stack.at(i).y);
 			}
 		}
 
@@ -141,7 +159,16 @@ class ArcsNeuStack {
 			}
 		}
 
-		//! @brief 演算名の文字列を得る関数
+		//! @brief 逆方向計算の過程を表示する関数
+		constexpr void DispBackwardCalc(void){
+			printf("<Backward Calculation>\n");
+			for(ssize_t i = StackCounter - 1; 0 <= i; --i){
+				printf("%5zu: %p -(%s)-> %p, %p \n", i, Stack.at(i).y, GetOperatorName(i).c_str(), Stack.at(i).u1, Stack.at(i).u2);
+			}
+		}
+
+		//! @brief 演算の文字列での名前を得る関数
+		//! @return	演算名
 		std::string GetOperatorName(const size_t Index) const{
 			switch(Stack.at(Index).ForwardOperator){
 			case ArcsNeuron::AutoDiffOperator::ANE_NONE:
@@ -180,14 +207,14 @@ class ArcsNeu {
 		constexpr ArcsNeu(void) noexcept
 			: AutoDiffStack(nullptr), YaddrInStack(nullptr), value(0), grad(0)
 		{
-			//printf("空コンストラクタ\n");
+			// 初期化以外の処理は無し
 		}
 
 		//! @brief コンストラクタ
 		constexpr ArcsNeu(ArcsNeuStack<T>* AutoDiff) noexcept
 			: AutoDiffStack(AutoDiff), YaddrInStack(nullptr), value(0), grad(0)
 		{
-			//printf("コンストラクタ\n");
+			// 初期化以外の処理は無し
 		}
 
 		//! @brief コピーコンストラクタ
@@ -208,7 +235,7 @@ class ArcsNeu {
 
 		//! @brief デストラクタ
 		~ArcsNeu() noexcept {
-			
+			// 特に処理は無し
 		}
 		
 		//! @brief ムーブ代入演算子(左辺値＝右辺値が入力された場合)
@@ -222,8 +249,7 @@ class ArcsNeu {
 			*(right.YaddrInStack) = this;	// 出力ノードのアドレスが確定したので、自動微分スタックに格納
 			//printf("YaddrInStack = [%p]\n", right.YaddrInStack);
 
-			printf("左辺値 = 右辺値\n");
-
+			//printf("ムーブ代入演算子\n");
 			return (*this);
 		}
 		
@@ -235,7 +261,7 @@ class ArcsNeu {
 			value = right.value;
 			grad  = right.grad;
 			
-			printf("左辺値 = 左辺値 or 右辺値 = 右辺値\n");
+			//printf("左辺値 = 左辺値 or 右辺値 = 右辺値\n");
 
 			return (*this);
 		}
@@ -246,11 +272,12 @@ class ArcsNeu {
 		constexpr ArcsNeu<T>& operator=(const T& right) noexcept {	
 			// メンバに定数値を取り込む
 			value = right;
+			grad  = 0;
 			return (*this);
 		}
 		
 		//! @brief 加算演算子(左辺値＋左辺値が入力された場合)
-		//! @param[in]	right	演算子の右側
+		//! @param[in]	right	演算子の右側(左辺値)
 		//! @return 結果
 		constexpr ArcsNeu<T> operator+(ArcsNeu<T>& right) & {
 			ArcsNeu<T> ret(AutoDiffStack);
@@ -268,8 +295,6 @@ class ArcsNeu {
 			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
 			//printf("Yaddr = %p\n", ret.YaddrInStack);
 
-			printf("左辺値 + 左辺値\n");
-
 			return ret;
 		}
 
@@ -281,7 +306,7 @@ class ArcsNeu {
 			ret.value = value + right.value;
 			
 			// 一時オブジェクトの永続化
-			*(right.YaddrInStack) = AutoDiffStack->Push(right);	// 出力ノードのアドレスが確定したので、自動微分スタックに格納
+			*(right.YaddrInStack) = AutoDiffStack->Persistent(right);	// 前の出力ノードのアドレスが確定したので、自動微分スタックに格納
 			//printf("YaddrInStack = [%p]\n", right.YaddrInStack);
 
 			// 自動微分スタック
@@ -296,18 +321,31 @@ class ArcsNeu {
 			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
 			//printf("Yaddr = %p\n", ret.YaddrInStack);
 			
-			printf("左辺値 + 右辺値\n");
-
 			return ret;
 		}
 		
 		//! @brief 加算演算子(右辺値＋左辺値が入力された場合)
-		//! @param[in]	right	演算子の右側
+		//! @param[in]	right	演算子の右側(左辺値)
 		//! @return 結果
 		constexpr ArcsNeu<T> operator+(ArcsNeu<T>& right) && {
 			ArcsNeu<T> ret(AutoDiffStack);
+			ret.value = value + right.value;
+
+			// 一時オブジェクトの永続化
+			*(YaddrInStack) = AutoDiffStack->Persistent(*this);	// 前の出力ノードのアドレスが確定したので、自動微分スタックに格納
+			//printf("YaddrInStack = [%p]\n", YaddrInStack);
 			
-			printf("右辺値 + 左辺値\n");
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
+				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = *(YaddrInStack),			// 永続化後の演算子の左側ノードのアドレスを格納
+				.u2 = &right					// 演算子の右側ノードのアドレスを格納
+			};
+			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
+			// ↑ 演算出力が一時オブジェクトとなり、出力ノードへの生ポインタが未確定なので、
+			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
+			//printf("Yaddr = %p\n", ret.YaddrInStack);
 
 			return ret;
 		}
@@ -317,14 +355,31 @@ class ArcsNeu {
 		//! @return 結果
 		constexpr ArcsNeu<T> operator+(ArcsNeu<T>&& right) && {
 			ArcsNeu<T> ret(AutoDiffStack);
+			ret.value = value + right.value;
 
-			printf("右辺値 + 右辺値\n");
+			// 一時オブジェクトの永続化
+			*(YaddrInStack) = AutoDiffStack->Persistent(*this);			// 前の左出力ノードのアドレスが確定したので、自動微分スタックに格納
+			*(right.YaddrInStack) = AutoDiffStack->Persistent(right);	// 前の右出力ノードのアドレスが確定したので、自動微分スタックに格納
+			//printf("L YaddrInStack = [%p]\n", YaddrInStack);
+			//printf("R YaddrInStack = [%p]\n", right.YaddrInStack);
+			
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
+				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = *(YaddrInStack),			// 永続化後の演算子の左側ノードのアドレスを格納
+				.u2 = *(right.YaddrInStack)		// 永続化後の演算子の右側ノードのアドレスを格納
+			};
+			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
+			// ↑ 演算出力が一時オブジェクトとなり、出力ノードへの生ポインタが未確定なので、
+			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
+			//printf("Yaddr = %p\n", ret.YaddrInStack);
 
 			return ret;
 		}
-
+		
 		//! @brief 乗算演算子(左辺値＊左辺値が入力された場合)
-		//! @param[in]	right	演算子の右側
+		//! @param[in]	right	演算子の右側(左辺値)
 		//! @return 結果
 		constexpr ArcsNeu<T> operator*(ArcsNeu<T>& right) & {
 			ArcsNeu<T> ret(AutoDiffStack);
@@ -333,7 +388,7 @@ class ArcsNeu {
 			// 自動微分スタック
 			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
-				.BackOperator = nullptr,// 逆方向用演算子への関数オブジェクトを指定
+				.BackOperator = backward_mult,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = this,				// 演算子の左側ノードのアドレスを格納
 				.u2 = &right			// 演算子の右側ノードのアドレスを格納
 			};
@@ -341,15 +396,24 @@ class ArcsNeu {
 			// ↑ 演算出力が一時オブジェクトとなり、出力ノードへの生ポインタが未確定なので、
 			// 　自動微分スタック内の出力ノードへの生ポインタのアドレスを一時的に格納
 			//printf("Yaddr = %p\n", ret.YaddrInStack);
-
-			printf("左辺値*左辺値\n");
-
+						
 			return ret;
 		}
 		
 		//! @brief 自動微分スタック(勾配テープ)への生ポインタを設定する関数
 		constexpr void SetAutoDiffStack(ArcsNeuStack<T>* const ADStack){
 			AutoDiffStack = ADStack;
+		}
+
+		//! @brief 勾配値を設定する関数
+		//! @param[in]	GradVal	勾配値
+		constexpr void SetGradient(const T& GradVal){
+			grad = GradVal;
+		}
+
+		//! @brief 勾配値をクリアする関数
+		constexpr void ClearGradient(void){
+			grad = static_cast<T>(0);
 		}
 
 		//! @brief ノード値を表示する関数
@@ -364,7 +428,7 @@ class ArcsNeu {
 		//! @brief ノードのメモリアドレスを表示する関数
 		//! @param[in]	VarName	変数名(省略可)
 		constexpr void DispAddress(const std::string& VarName = "") const{
-			printf("[%p]%s\n", this, VarName.c_str());		
+			printf("[%p] %s\n", this, VarName.c_str());		
 		}
 		
 	private:
@@ -374,15 +438,15 @@ class ArcsNeu {
 		T grad;		//!< ノードの勾配値
 
 		//| @brief 加算演算子の逆
-		static constexpr void backward_add(const ArcsNeu<T>& y, ArcsNeu<T>& u1, ArcsNeu<T>& u2){
-			u1.grad = y.grad;			// 加算の勾配はそのまま流すだけ
-			u2.grad = y.grad;
+		static constexpr void backward_add(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
+			(*u1).grad = (*y).grad;			// 加算の勾配はそのまま流すだけ
+			(*u2).grad = (*y).grad;
 		}
 		
 		//| @brief 乗算演算子の逆
-		static constexpr void backward_mult(const ArcsNeu<T>& y, ArcsNeu<T>& u1, ArcsNeu<T>& u2){
-			u1.grad = y.grad*u2.value;	// 乗算の勾配は入れ替えて流す
-			u2.grad = y.grad*u1.value;
+		static constexpr void backward_mult(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
+			(*u1).grad += (*y).grad * (*u2).value;	// 乗算の勾配は入れ替えて流す
+			(*u2).grad += (*y).grad * (*u1).value;	// W*x + W*b 等への対応のために += で既にセットされた値と加算
 		}
 };
 

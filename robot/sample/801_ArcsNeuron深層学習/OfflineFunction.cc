@@ -33,35 +33,42 @@ int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
 	ArcsNeuStack<double> gt;
-	ArcsNeu<double> x(&gt), W(&gt), b(&gt), y(&gt);
-	
-	x = 3;
-	W = 10;
-	b = 1.1;
-	
-	x.Disp("x");
-	W.Disp("W");
-	b.Disp("b");
-	y.Disp("y");
-	
-	//y = x + b;
-	//y = x*b;
-	y = x + W*b;
-	//y = W*x + b;
-	//y = W*x + W*b;
-
-	x.Disp("x");
-	W.Disp("W");
-	b.Disp("b");
-	y.Disp("y");
+	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);
 	
 	x.DispAddress("x");
 	W.DispAddress("W");
+	V.DispAddress("V");
 	b.DispAddress("b");
 	y.DispAddress("y");
+	
+	x = 3;
+	W = 10;
+	V = 5;
+	b = 1.1;
+	
+	//y = x + b;
+	//y = x*b;
+	//y = x + W*b;
+	//y = W*x + b;
+	//y = W*x + V*b;
+	y = W*x + W*b;
+	
 	gt.DispStack();
 	gt.DispTempObjStack();
-	
+	//*
+	gt.ClearGradient();
+	y.SetGradient(7);
+	gt.UpdateGradient();
+	gt.DispBackwardCalc();
+
+	x.Disp("x");
+	W.Disp("W");
+	V.Disp("V");
+	b.Disp("b");
+	y.Disp("y");
+	gt.DispTempObjStack();
+	//*/
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
