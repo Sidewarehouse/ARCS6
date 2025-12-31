@@ -3,7 +3,7 @@
 //!
 //! 深層学習クラス（試作実装中）
 //!
-//! @date 2025/12/03
+//! @date 2025/12/31
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2025 Yokokura, Yuki
@@ -51,6 +51,7 @@ namespace ArcsNeuron {
 		ANE_NONE,	//!< 無し
 		ANE_ADD,	//!< 加算
 		ANE_MULT,	//!< 乗算
+		ANE_RELU,	//!< ReLU活性化関数
 	};
 	
 	//! @brief 自動微分スタックデータ定義
@@ -138,7 +139,7 @@ class ArcsNeuStack {
 			for(ssize_t i = StackCounter - 1; 0 <= i; --i){
 				Stack.at(i).y->ClearGradient();
 				Stack.at(i).u1->ClearGradient();
-				Stack.at(i).u2->ClearGradient();
+				if(Stack.at(i).u2 != nullptr) Stack.at(i).u2->ClearGradient();	// 活性化関数の場合は nullptr なので回避
 			}
 		}
 
@@ -150,11 +151,19 @@ class ArcsNeuStack {
 			}
 		}
 
-		//! @brief 一時オブジェクトスタックに積まれた永続化オブジェクトエッジ変数を表示する関数
+		//! @brief 一時オブジェクトスタックに積まれた永続化オブジェクト履歴を表示する関数
 		void DispTempObjStack(void) const{
 			printf("<TOSM - Temporary Object Stack Memory>\n");
 			for(size_t i = 0; i < TempObjStackCounter; ++i){
-				printf("%5zu: [%p]", i, &(TempObjStack.at(i)));
+				printf("%5zu: [%p]\n", i, &(TempObjStack.at(i)));
+			}
+		}
+
+		//! @brief 一時オブジェクトスタックに積まれた永続化オブジェクトエッジ変数値を表示する関数
+		void DispTempObjVar(void) const{
+			printf("<TOSM Edge Variables>\n");
+			for(size_t i = 0; i < TempObjStackCounter; ++i){
+				printf("%5zu", i);
 				TempObjStack.at(i).Disp();
 			}
 		}
@@ -179,6 +188,9 @@ class ArcsNeuStack {
 				break;
 			case ArcsNeuron::AutoDiffOperator::ANE_MULT:
 				return "*";		// 乗算
+				break;
+			case ArcsNeuron::AutoDiffOperator::ANE_RELU:
+				return "ReLU";	// ReLU活性化関数
 				break;
 			default:
 				break;
@@ -462,8 +474,8 @@ class ArcsNeu {
 			// 一時オブジェクトの永続化
 			*(YaddrInStack) = AutoDiffStack->Persistent(*this);			// 前の左出力エッジ変数のアドレスが確定したので、自動微分スタックに格納
 			*(right.YaddrInStack) = AutoDiffStack->Persistent(right);	// 前の右出力エッジ変数のアドレスが確定したので、自動微分スタックに格納
-			printf("L YaddrInStack = [%p]\n", YaddrInStack);
-			printf("R YaddrInStack = [%p]\n", right.YaddrInStack);
+			//printf("L YaddrInStack = [%p]\n", YaddrInStack);
+			//printf("R YaddrInStack = [%p]\n", right.YaddrInStack);
 			
 			// 自動微分スタック
 			ArcsNeuron::AutoDiffData<T> ADret = {
@@ -475,11 +487,59 @@ class ArcsNeu {
 			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
 			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
 			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
-			printf("Yaddr = %p\n", ret.YaddrInStack);
-			printf("右辺値*右辺値\n");
+			//printf("Yaddr = %p\n", ret.YaddrInStack);
+
 			return ret;
 		}
 		
+		//! @brief ReLU活性化関数(左辺値が入力された場合)
+		//! @param[in]	input	関数引数(左辺値)
+		//! @return	結果
+		static constexpr ArcsNeu<T> ReLU(ArcsNeu<T>& input){
+			ArcsNeu<T> ret(input.AutoDiffStack);
+			ret.value = std::max(static_cast<T>(0), input.value);
+
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_RELU,	// ReLUを指定
+				.BackOperator = backward_relu,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = &input,					// 活性化関数引数のエッジ変数のアドレスを格納
+				.u2 = nullptr					// 未使用
+			};
+			ret.YaddrInStack = ret.AutoDiffStack->Push(ADret);	// 演算履歴を格納
+			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
+			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
+			//printf("Yaddr = %p\n", ret.YaddrInStack);
+			
+			return ret;
+		}
+
+		//! @brief ReLU活性化関数(右辺値が入力された場合)
+		//! @param[in]	input	関数引数の一時オブジェクト
+		//! @return 結果
+		static constexpr ArcsNeu<T> ReLU(ArcsNeu<T>&& input){
+			ArcsNeu<T> ret(input.AutoDiffStack);
+			ret.value = std::max(static_cast<T>(0), input.value);
+			
+			// 一時オブジェクトの永続化
+			*(input.YaddrInStack) = input.AutoDiffStack->Persistent(input);	// 前の出力エッジ変数のアドレスが確定したので、自動微分スタックに格納
+			//printf("YaddrInStack = [%p]\n", input.YaddrInStack);
+
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData<T> ADret = {
+				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_RELU,	// ReLUを指定
+				.BackOperator = backward_relu,	// 逆方向用演算子への関数オブジェクトを指定
+				.u1 = *(input.YaddrInStack),	// 永続化後の活性化関数引数のエッジ変数のアドレスを格納
+				.u2 = nullptr					// 未使用
+			};
+			ret.YaddrInStack = ret.AutoDiffStack->Push(ADret);	// 演算履歴を格納
+			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
+			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
+			//printf("Yaddr = %p\n", ret.YaddrInStack);
+
+			return ret;
+		}
+
 		//! @brief 自動微分スタック(勾配テープ)への生ポインタを設定する関数
 		constexpr void SetAutoDiffStack(ArcsNeuStack<T>* const ADStack){
 			AutoDiffStack = ADStack;
@@ -520,16 +580,48 @@ class ArcsNeu {
 		//| @brief 加算演算子の逆
 		static constexpr void backward_add(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
 			(*u1).grad += (*y).grad;	// 加算の勾配はそのまま流すだけ
-			(*u2).grad += (*y).grad;	// x + b + x 等への分岐対応のために += で既にセットされた値と加算
+			(*u2).grad += (*y).grad;	// x + b + x 等の分岐対応のために += で既にセットされた値と加算
 		}
 		
 		//| @brief 乗算演算子の逆
 		static constexpr void backward_mult(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
 			(*u1).grad += (*y).grad * (*u2).value;	// 乗算の勾配は入れ替えて流す
-			(*u2).grad += (*y).grad * (*u1).value;	// W*x + W*b 等への分配対応のために += で既にセットされた値と加算
+			(*u2).grad += (*y).grad * (*u1).value;	// W*x + W*b 等の分配対応のために += で既にセットされた値と加算
+		}
+
+		//| @brief ReLU活性化関数の逆
+		static constexpr void backward_relu(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
+			// ReLUの勾配は正のときのみそのまま流す
+			if( 0 <= (*y).grad ){
+				(*u1).grad = (*y).grad;
+			}else{
+				(*u1).grad = 0;
+			}
 		}
 };
 
+// グローバル版関数の定義 (ADL問題を承知で便利さ優先)
+namespace ArcsNeuron {
+
+	//! @brief ReLU活性化関数(左辺値が入力された場合)
+	//! @tparam	T	エッジ変数のデータ型
+	//! @param[in]	input	関数引数(左辺値)
+	//! @return	結果
+	template<typename T = double>
+	constexpr ArcsNeu<T> ReLU(ArcsNeu<T>& input){
+		return ArcsNeu<T>::ReLU(input);
+	}
+
+	//! @brief ReLU活性化関数(右辺値が入力された場合)
+	//! @tparam	T	エッジ変数のデータ型
+	//! @param[in]	input	関数引数の一時オブジェクト
+	//! @return 結果
+	template<typename T = double>
+	constexpr ArcsNeu<T> ReLU(ArcsNeu<T>&& input){
+		return ArcsNeu<T>::ReLU(std::move(input));	// 左辺値を右辺値にしてから渡す
+	}
+
+}
 
 }
 
