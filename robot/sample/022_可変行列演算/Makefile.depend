@@ -29,6 +29,8 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/ArcsMatrix.hh
 ../../../lib/ArcsNeuron.o: ../../../lib/ArcsNeuron.cc \
  ../../../lib/ArcsNeuron.hh ../../../lib/ArcsMatrix.hh
+../../../lib/ArcsVarMatrix.o: ../../../lib/ArcsVarMatrix.cc \
+ ../../../lib/ArcsVarMatrix.hh
 ../../../lib/ArcTangent.o: ../../../lib/ArcTangent.cc \
  ../../../lib/ArcTangent.hh
 ../../../lib/BatchProcessor.o: ../../../lib/BatchProcessor.cc \
@@ -463,6 +465,4 @@ ControlFunctions.o: ControlFunctions.cc ../../../sys/ARCSprint.hh \
  ../../../lib/FrameGraphics.hh ../../../lib/RingBuffer.hh \
  ../../../lib/Matrix.hh ../equip/EquipParams.hh \
  ../../../lib/ArcsMatrix.hh ../../../lib/Matrix.hh
-OfflineFunction.o: OfflineFunction.cc ../../../lib/ArcsMatrix.hh \
- ../../../lib/ArcsNeuron.hh ../../../lib/ArcsMatrix.hh \
- ../../../lib/CsvManipulator.hh ../../../lib/Matrix.hh
+OfflineFunction.o: OfflineFunction.cc ../../../lib/ArcsVarMatrix.hh

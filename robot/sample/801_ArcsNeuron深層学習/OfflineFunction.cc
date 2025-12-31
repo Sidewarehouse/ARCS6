@@ -26,10 +26,12 @@
 #include "CsvManipulator.hh"
 
 using namespace ARCS;
+using namespace ArcsMatrix;
 using namespace ArcsNeuron;
 
 // プロトタイプ宣言
 void AutoDiffTestCode1(void);	//!< 自動微分テストコード1
+void AutoDiffTestCode2(void);	//!< 自動微分テストコード2
 
 //! @brief エントリポイント
 //! @return 終了ステータス
@@ -37,13 +39,13 @@ int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
 	AutoDiffTestCode1();	// 自動微分テストコード1
+	AutoDiffTestCode2();	// 自動微分テストコード2
 	
 	return EXIT_SUCCESS;	// 正常終了
 }
 
 //! @brief 自動微分テストコード1
 void AutoDiffTestCode1(void){
-	// 定義
 	ArcsNeuStack<double> gt;	// 自動微分スタック(勾配テープ)
 	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);	// エッジ変数
 
@@ -82,10 +84,10 @@ void AutoDiffTestCode1(void){
 	gt.DispStack();			// 演算履歴の表示
 	gt.DispTempObjStack();	// 永続化された一時オブジェクト履歴の表示
 	///*
-	gt.ClearGradient();
-	y.SetGradient(7);
-	gt.UpdateGradient();
-	gt.DispBackwardCalc();
+	gt.ClearGradient();		// 勾配をゼロ初期化
+	y.SetGradient(7);		// 最終出力の勾配を設定(Loss)
+	gt.UpdateGradient();	// 勾配を更新
+	gt.DispBackwardCalc();	// 逆方向計算の表示
 
 	x.Disp("x");
 	W.Disp("W");
@@ -96,3 +98,7 @@ void AutoDiffTestCode1(void){
 	//*/
 }
 
+//! @brief 自動微分テストコード2
+void AutoDiffTestCode2(void){
+	
+}
