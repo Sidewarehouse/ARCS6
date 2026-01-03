@@ -638,10 +638,17 @@ class ArcsMat {
 		
 		//! @brief 行列の要素を表示
 		//! @tparam	M, N, T	行列の高さ, 幅, 要素の型
-		//! @param[in] format	表示形式 (%1.3e とか %5.3f とか printfと同じ)
-		constexpr void Disp(const std::string& format) const{
+		//! @param[in]	format	表示形式 (デフォルト値 "% g", "% 6.3e" とか "% 6.3f" などprintfの引数と同一)
+		//! @param[in]	name	変数名 (デフォルト値 "")
+		constexpr void Disp(const std::string& format = "% g", const std::string& name = "") const{
 			if(__builtin_constant_p(Data) == true) return;	// コンパイル時には処理を行わない
 
+			// 変数名の表示
+			if(name != ""){
+				printf("%s = \n", name.c_str());
+			}
+
+			// 各要素の表示
 			for(size_t j = 0; j < M; ++j){
 				printf("[ ");
 				for(size_t i = 0; i < N; ++i){
@@ -668,12 +675,7 @@ class ArcsMat {
 			}
 			printf("\n");
 		}
-		
-		//! @brief 行列の要素を表示(表示形式自動版)
-		constexpr void Disp(void) const{
-			Disp("%g");
-		}
-		
+
 		//! @brief 行列のサイズを表示
 		constexpr void DispSize(void) const{
 			if(__builtin_constant_p(Data) == true) return;	// コンパイル時には処理を行わない

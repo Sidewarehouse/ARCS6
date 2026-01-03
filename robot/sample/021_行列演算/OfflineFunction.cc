@@ -19,6 +19,8 @@
 #include <cmath>
 #include <complex>
 #include <array>
+#include <variant>
+#include <any>
 
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"
@@ -38,7 +40,8 @@ int main(void){
 	
 	// ここにオフライン計算のコードを記述
 	ArcsMatTest();		// 固定サイズ行列演算のテスト
-	ArcsVarMatTest();	// 可変サイズ行列演算のテスト
+	//ArcsVarMatTest();	// 可変サイズ行列演算のテスト
+
 
 	return EXIT_SUCCESS;	// 正常終了
 }
@@ -1681,6 +1684,44 @@ void ArcsMatTest(void){
 	MatFile1.Save("Yexp2x", Yexp2x);	// MATファイルに行列データを書き出し
 	dispf(Acmpx2, "% 8.4f");
 	MatFile1.Save("Acmpx2", Acmpx2);	// MATファイルに行列データを書き出し
+
+	// std::variantを使った例1
+	printf("\n★★★★★★★ std::variantを使った例1\n");
+	std::variant<ArcsMat<3,3>, ArcsMat<3,1>> Avrt1, xvrt1, yvrt1;	// 3x3と3x1の両方を保持できる行列型の変数
+	Avrt1 = ArcsMat<3,3>::zeros();	// 3x3に確定
+	xvrt1 = ArcsMat<3,1>::zeros();	// 3x1に確定
+	yvrt1 = ArcsMat<3,1>::zeros();	// 3x1に確定
+	std::get<ArcsMat<3,3>>(Avrt1).Set(
+		1,  1,  1,
+		1, -1,  0,
+		0,  1, -1
+	);
+	std::get<ArcsMat<3,1>>(xvrt1).Set(
+		2, 3, 4
+	);
+	yvrt1 = std::get<ArcsMat<3,3>>(Avrt1)*std::get<ArcsMat<3,1>>(xvrt1);	// y = A*x の計算実行
+	std::get<ArcsMat<3,3>>(Avrt1).Disp("% g", "Avrt1");
+	std::get<ArcsMat<3,1>>(xvrt1).Disp("% g", "xvrt1");
+	std::get<ArcsMat<3,1>>(yvrt1).Disp("% g", "yvrt1");
+
+	// std::variantを使った例2 (擬似的な可変サイズ行列)
+	printf("\n★★★★★★★ std::variantを使った例2\n");
+	ArcsMat<2,2> Avrt(3.14);
+	ArcsMat<3,3> Bvrt(2.71);
+	ArcsMat<4,4> Cvrt(1.68);
+	std::variant<decltype(Avrt), decltype(Bvrt), decltype(Cvrt)> Vvrt;	// 2x2と3x3と4x4の何れも保持できる行列型の変数
+	Vvrt = Avrt;
+	std::get<decltype(Avrt)>(Vvrt).Disp("% g", "Vvrt");
+	Vvrt = Bvrt;
+	std::get<decltype(Bvrt)>(Vvrt).Disp("% g", "Vvrt");
+	Vvrt = Cvrt;
+	std::get<decltype(Cvrt)>(Vvrt).Disp("% g", "Vvrt");
+
+	// std::anyを使った例1
+	printf("\n★★★★★★★ std::anyを使った例1\n");
+	std::any Vany;	// どんな型も保持できる変数
+	Vany = Avrt;
+	std::any_cast<decltype(Avrt)>(Vany).Disp("% g", "Vany");
 }
 
 //! @brief ArcsVarMatクラスのテストコード
