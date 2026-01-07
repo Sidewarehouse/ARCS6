@@ -57,19 +57,13 @@ namespace ArcsNeuron {
 	
 	//! @brief 自動微分スタックデータ定義
 	//! @tparam	T	深層学習データ型
-	//template <typename T = double>
+	template <typename T = double>
 	struct AutoDiffData {
 		AutoDiffOperator ForwardOperator;	//!< 順方向演算の種類
-		/*
 		std::function<void(const ArcsNeu<T>*, ArcsNeu<T>*, ArcsNeu<T>*)> BackOperator;	//!< 逆方向用演算への関数オブジェクト
 		ArcsNeu<T>* u1;	//!< 入力エッジ変数1への生ポインタ
 		ArcsNeu<T>* u2;	//!< 入力エッジ変数2への生ポインタ
 		ArcsNeu<T>* y;	//!< 出力エッジ変数への生ポインタ
-		*/
-		std::function<void(const std::any*, std::any*, std::any*)> BackOperator;	//!< 逆方向用演算への関数オブジェクト
-		std::any* u1;	//!< 入力エッジ変数1への生ポインタ
-		std::any* u2;	//!< 入力エッジ変数2への生ポインタ
-		std::any* y;	//!< 出力エッジ変数への生ポインタ
 	};
 }
 
@@ -93,7 +87,7 @@ class ArcsNeuStack {
 
 			// 一時オブジェクトスタックの初期化
 			for(size_t i = 0; i < MAX_TEMPOBJ; ++i){
-				//TempObjStack.at(i).SetAutoDiffStack(this);
+				TempObjStack.at(i).SetAutoDiffStack(this);
 			}
 		}
 
@@ -119,7 +113,7 @@ class ArcsNeuStack {
 		//! @brief 自動微分スタックに演算履歴データを積む関数
 		//!	@param[in]	ad	自動微分データ
 		//! @return	自動微分スタック内の出力エッジ変数への生ポインタのアドレス
-		constexpr std::any** Push(const ArcsNeuron::AutoDiffData& ad){
+		constexpr ArcsNeu<T>** Push(const ArcsNeuron::AutoDiffData<T>& ad){
 			Stack.at(StackCounter) = ad;
 			StackCounter++;
 			return &(Stack.at(StackCounter - 1).y);
@@ -128,7 +122,7 @@ class ArcsNeuStack {
 		//! @brief 一時オブジェクトスタックに永続化したオブジェクトエッジ変数を積む関数
 		//!	@param[in]	tempobj	一時オブジェクト
 		//! @return	一時オブジェクトスタック内のエッジ変数への生ポインタのアドレス
-		constexpr std::any* Persistent(ArcsNeu<T> tempobj){
+		constexpr ArcsNeu<T>* Persistent(ArcsNeu<T> tempobj){
 			TempObjStack.at(TempObjStackCounter) = tempobj;	// コピーして一時オブジェクトエッジ変数を永続化
 			TempObjStackCounter++;
 			return &(TempObjStack.at(TempObjStackCounter - 1));
@@ -144,9 +138,9 @@ class ArcsNeuStack {
 		//! @brief 自動微分スタックに積まれたエッジ変数の勾配をクリアする関数
 		constexpr void ClearGradient(void){
 			for(ssize_t i = StackCounter - 1; 0 <= i; --i){
-				//Stack.at(i).y->ClearGradient();
-				//Stack.at(i).u1->ClearGradient();
-				//if(Stack.at(i).u2 != nullptr) Stack.at(i).u2->ClearGradient();	// 活性化関数の場合は nullptr なので回避
+				Stack.at(i).y->ClearGradient();
+				Stack.at(i).u1->ClearGradient();
+				if(Stack.at(i).u2 != nullptr) Stack.at(i).u2->ClearGradient();	// 活性化関数の場合は nullptr なので回避
 			}
 		}
 
@@ -171,7 +165,7 @@ class ArcsNeuStack {
 			printf("<TOSM Edge Variables>\n");
 			for(size_t i = 0; i < TempObjStackCounter; ++i){
 				printf("%5zu", i);
-				//TempObjStack.at(i).Disp();
+				TempObjStack.at(i).Disp();
 			}
 		}
 
@@ -210,9 +204,9 @@ class ArcsNeuStack {
 		const ArcsNeuStack& operator=(const ArcsNeuStack&) = delete;	//!< コピー代入演算子使用禁止
 		static constexpr size_t MAX_OPERATION = 1024;					//!< 実行する演算子の最大数
 		static constexpr size_t MAX_TEMPOBJ = 1024;						//!< 生成される出力エッジ変数用一時オブジェクトの最大数
-		std::array<ArcsNeuron::AutoDiffData, MAX_OPERATION> Stack;	//!< 自動微分スタックメモリ(ADSM)
+		std::array<ArcsNeuron::AutoDiffData<T>, MAX_OPERATION> Stack;	//!< 自動微分スタックメモリ(ADSM)
 		size_t StackCounter;		//!< 自動微分スタックカウンタ
-		std::array<std::any, MAX_TEMPOBJ> TempObjStack;				//!< 一時オブジェクトスタックメモリ(TOSM)
+		std::array<ArcsNeu<T>, MAX_TEMPOBJ> TempObjStack;				//!< 一時オブジェクトスタックメモリ(TOSM)
 		size_t TempObjStackCounter;	//!< 一時オブジェクトスタックカウンタ
 };
 
@@ -303,13 +297,13 @@ class ArcsNeu {
 			ret.value = value + right.value;
 			
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
 				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
-				//.u1 = this,						// 演算子の左側エッジ変数のアドレスを格納
-				//.u2 = &right					// 演算子の右側エッジ変数のアドレスを格納
+				.u1 = this,						// 演算子の左側エッジ変数のアドレスを格納
+				.u2 = &right					// 演算子の右側エッジ変数のアドレスを格納
 			};
-			ret.YaddrInStack = std::any_cast<ArcsNeu<T>**>( AutoDiffStack->Push(ADret) );	// 演算履歴を格納
+			ret.YaddrInStack = AutoDiffStack->Push(ADret);	// 演算履歴を格納
 			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
 			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
 			//printf("Yaddr = %p\n", ret.YaddrInStack);
@@ -329,7 +323,7 @@ class ArcsNeu {
 			//printf("YaddrInStack = [%p]\n", right.YaddrInStack);
 
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
 				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = this,						// 演算子の左側エッジ変数のアドレスを格納
@@ -355,7 +349,7 @@ class ArcsNeu {
 			//printf("YaddrInStack = [%p]\n", YaddrInStack);
 			
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
 				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = *(YaddrInStack),			// 永続化後の演算子の左側エッジ変数のアドレスを格納
@@ -383,7 +377,7 @@ class ArcsNeu {
 			//printf("R YaddrInStack = [%p]\n", right.YaddrInStack);
 			
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
 				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = *(YaddrInStack),			// 永続化後の演算子の左側エッジ変数のアドレスを格納
@@ -405,7 +399,7 @@ class ArcsNeu {
 			ret.value = value*right.value;
 			
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
 				.BackOperator = backward_mult,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = this,				// 演算子の左側エッジ変数のアドレスを格納
@@ -431,7 +425,7 @@ class ArcsNeu {
 			//printf("YaddrInStack = [%p]\n", right.YaddrInStack);
 
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
 				.BackOperator = backward_mult,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = this,						// 演算子の左側エッジ変数のアドレスを格納
@@ -457,7 +451,7 @@ class ArcsNeu {
 			//printf("YaddrInStack = [%p]\n", YaddrInStack);
 			
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
 				.BackOperator = backward_mult,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = *(YaddrInStack),			// 永続化後の演算子の左側エッジ変数のアドレスを格納
@@ -485,7 +479,7 @@ class ArcsNeu {
 			//printf("R YaddrInStack = [%p]\n", right.YaddrInStack);
 			
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
 				.BackOperator = backward_mult,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = *(YaddrInStack),			// 永続化後の演算子の左側エッジ変数のアドレスを格納
@@ -507,7 +501,7 @@ class ArcsNeu {
 			ret.value = std::max(static_cast<T>(0), input.value);
 
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_RELU,	// ReLUを指定
 				.BackOperator = backward_relu,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = &input,					// 活性化関数引数のエッジ変数のアドレスを格納
@@ -533,7 +527,7 @@ class ArcsNeu {
 			//printf("YaddrInStack = [%p]\n", input.YaddrInStack);
 
 			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
+			ArcsNeuron::AutoDiffData<T> ADret = {
 				.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_RELU,	// ReLUを指定
 				.BackOperator = backward_relu,	// 逆方向用演算子への関数オブジェクトを指定
 				.u1 = *(input.YaddrInStack),	// 永続化後の活性化関数引数のエッジ変数のアドレスを格納
@@ -585,11 +579,9 @@ class ArcsNeu {
 		T grad;		//!< エッジ変数の勾配値
 
 		//| @brief 加算演算子の逆
-		static constexpr void backward_add(const std::any* y, std::any* u1, std::any* u2){
-			//(*u1).grad += (*y).grad;	// 加算の勾配はそのまま流すだけ
-			//(*u2).grad += (*y).grad;	// x + b + x 等の分岐対応のために += で既にセットされた値と加算
-			(*std::any_cast<ArcsNeu<T>>(u1)).grad += (*std::any_cast<ArcsNeu<T>>(y)).grad;	// 加算の勾配はそのまま流すだけ
-			(*std::any_cast<ArcsNeu<T>>(u2)).grad += (*std::any_cast<ArcsNeu<T>>(y)).grad;	// x + b + x 等の分岐対応のために += で既にセットされた値と加算
+		static constexpr void backward_add(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
+			(*u1).grad += (*y).grad;	// 加算の勾配はそのまま流すだけ
+			(*u2).grad += (*y).grad;	// x + b + x 等の分岐対応のために += で既にセットされた値と加算
 		}
 		
 		//| @brief 乗算演算子の逆

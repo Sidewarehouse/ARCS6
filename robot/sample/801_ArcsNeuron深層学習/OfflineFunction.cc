@@ -19,6 +19,7 @@
 #include <cmath>
 #include <complex>
 #include <array>
+#include <any>
 
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"
@@ -38,7 +39,7 @@ void AutoDiffTestCode2(void);	//!< 自動微分テストコード2
 int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
-	AutoDiffTestCode1();	// 自動微分テストコード1
+	//AutoDiffTestCode1();	// 自動微分テストコード1
 	AutoDiffTestCode2();	// 自動微分テストコード2
 	
 	return EXIT_SUCCESS;	// 正常終了
@@ -48,7 +49,7 @@ int main(void){
 void AutoDiffTestCode1(void){
 	ArcsNeuStack<double> gt;	// 自動微分スタック(勾配テープ)
 	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);	// エッジ変数
-
+	
 	// エッジ変数のメモリアドレス
 	x.DispAddress("x");
 	W.DispAddress("W");
@@ -63,7 +64,7 @@ void AutoDiffTestCode1(void){
 	b = 1.1;
 	
 	// 複合式の自動微分テスト
-	//y = x + b;	// 左辺値 + 左辺値
+	y = x + b;	// 左辺値 + 左辺値
 	//y = W*x;		// 左辺値*左辺値
 	//y = b + W*x;	// 左辺値 + 右辺値(左辺値*左辺値)
 	//y = W*x + b;	// 右辺値(左辺値*左辺値) + 左辺値
@@ -78,7 +79,7 @@ void AutoDiffTestCode1(void){
 	//y = ReLU(x);			// ReLU(左辺値)
 	//y = ReLU(W*x + b);	// ReLU(右辺値)
 	//y = V*ReLU(W*x + b);	// 左辺値*右辺値( ReLU(右辺値) )
-	y = ReLU(W*x + b) + x;	// スキップ接続がある場合
+	//y = ReLU(W*x + b) + x;	// スキップ接続がある場合
 	
 	// 自動微分スタックの表示
 	gt.DispStack();			// 演算履歴の表示
@@ -100,5 +101,23 @@ void AutoDiffTestCode1(void){
 
 //! @brief 自動微分テストコード2
 void AutoDiffTestCode2(void){
+	//ArcsNeuStack<std::any> gt;
+	//ArcsNeu<int> x(&gt);
+	/*
+	std::any a;
+	std::array<double, 3> b, y;
+	b.fill(3.14);
+	a = b;
+	y = std::any_cast< std::array<double, 3> >(a);
+	for(size_t i = 0; i < 3; ++i) printf("% f ", y[i]);
+	*/
 	
+	// std::anyとポインタの組み合わせテスト
+	double b = 3.14;
+	double* c;
+	c = &b;
+	printf("*c = %f\n", *c);
+	std::any a;
+	a = c;
+	printf("_a = %f\n", *std::any_cast<double*>(a));
 }
