@@ -39,15 +39,15 @@ void AutoDiffTestCode2(void);	//!< 自動微分テストコード2
 int main(void){
 	printf("ARCS OFFLINE CALCULATION MODE\n");
 	
-	//AutoDiffTestCode1();	// 自動微分テストコード1
-	AutoDiffTestCode2();	// 自動微分テストコード2
+	AutoDiffTestCode1();	// 自動微分テストコード1
+	//AutoDiffTestCode2();	// 自動微分テストコード2
 	
 	return EXIT_SUCCESS;	// 正常終了
 }
 
 //! @brief 自動微分テストコード1
 void AutoDiffTestCode1(void){
-	ArcsNeuStack<double> gt;	// 自動微分スタック(勾配テープ)
+	ArcsNeuStack gt;	// 自動微分スタック(勾配テープ)
 	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);	// エッジ変数
 	
 	// エッジ変数のメモリアドレス
@@ -83,8 +83,8 @@ void AutoDiffTestCode1(void){
 	
 	// 自動微分スタックの表示
 	gt.DispStack();			// 演算履歴の表示
+	/*
 	gt.DispTempObjStack();	// 永続化された一時オブジェクト履歴の表示
-	///*
 	gt.ClearGradient();		// 勾配をゼロ初期化
 	y.SetGradient(7);		// 最終出力の勾配を設定(Loss)
 	gt.UpdateGradient();	// 勾配を更新
@@ -120,4 +120,12 @@ void AutoDiffTestCode2(void){
 	std::any a;
 	a = c;
 	printf("_a = %f\n", *std::any_cast<double*>(a));
+
+	// std::anyとArcsMatポインタの組み合わせ
+	ArcsMat<3,3> B(3.14);	// 行列の実体
+	ArcsMat<3,3>* C;		// 行列のポインタ
+	C = &B;					// ポインタにアドレスをリンク
+	std::any A;				// どんな型でも入る変数A
+	A = C;					// 行列のポインタ型をセット
+	(*std::any_cast<ArcsMat<3,3>*>(A)).Disp();	// 行列のポインタ型として呼び出し
 }
