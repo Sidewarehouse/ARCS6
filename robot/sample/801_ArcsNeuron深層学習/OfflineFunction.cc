@@ -48,20 +48,28 @@ int main(void){
 //! @brief 自動微分テストコード1
 void AutoDiffTestCode1(void){
 	ArcsNeuStack gt;	// 自動微分スタック(勾配テープ)
-	ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);	// エッジ変数
-	
+	//ArcsNeu<double> x(&gt), W(&gt), V(&gt), b(&gt), y(&gt);	// エッジ変数
+	ArcsNeu<double> x(&gt), y(&gt);
+	ArcsNeu<float> b(&gt);
+
+	// 異なる型同士での演算例
+	double xx = 3.14, yy = 0;
+	float  bb = 2.71;
+	yy = xx + bb;
+	printf("yy = xx + bb = %f + %f = %f\n", xx, bb, yy);
+
 	// エッジ変数のメモリアドレス
 	x.DispAddress("x");
-	W.DispAddress("W");
-	V.DispAddress("V");
+	//W.DispAddress("W");
+	//V.DispAddress("V");
 	b.DispAddress("b");
 	y.DispAddress("y");
 
 	// エッジ変数に値をセット
-	x = 3;
-	W = 10;
-	V = 5;
-	b = 1.1;
+	x = 3.14;
+	//W = 10;
+	//V = 5;
+	b = 2.71;
 	
 	// 複合式の自動微分テスト
 	y = x + b;	// 左辺値 + 左辺値
@@ -83,20 +91,18 @@ void AutoDiffTestCode1(void){
 	
 	// 自動微分スタックの表示
 	gt.DispStack();			// 演算履歴の表示
-	/*
-	gt.DispTempObjStack();	// 永続化された一時オブジェクト履歴の表示
-	gt.ClearGradient();		// 勾配をゼロ初期化
-	y.SetGradient(7);		// 最終出力の勾配を設定(Loss)
+	//gt.DispTempObjStack();	// 永続化された一時オブジェクト履歴の表示
+	//gt.ClearGradient();		// 勾配をゼロ初期化
+	y.SetGradient(1.23);		// 最終出力の勾配を設定(Loss)
 	gt.UpdateGradient();	// 勾配を更新
-	gt.DispBackwardCalc();	// 逆方向計算の表示
+	//gt.DispBackwardCalc();	// 逆方向計算の表示
 
 	x.Disp("x");
-	W.Disp("W");
-	V.Disp("V");
+	//W.Disp("W");
+	//V.Disp("V");
 	b.Disp("b");
 	y.Disp("y");
-	gt.DispTempObjVar();	// 永続化された一時オブジェクトエッジ変数値の表示
-	//*/
+	//gt.DispTempObjVar();	// 永続化された一時オブジェクトエッジ変数値の表示
 }
 
 //! @brief 自動微分テストコード2
