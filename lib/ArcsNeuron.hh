@@ -252,7 +252,7 @@ class ArcsNeu {
 		//! @brief コンストラクタ
 		//! @param[in]	VarName	変数名(省略可)
 		constexpr ArcsNeu(ArcsAutoDiff& AutoDiff, const std::string VarName = "")
-			: name(VarName), value(0), grad(0), AutoDiffStack(AutoDiff), YaddrInStack(nullptr), YaddrInStack2(nullptr), YaddrvalInStack(0)
+			: name(VarName), value(0), grad(0), AutoDiffStack(AutoDiff), YaddrInStack(nullptr), YaddrInStack2(nullptr), YaddrvalInStack(nullptr)
 		{
 			// 初期化以外の処理は無し
 		}
@@ -260,7 +260,7 @@ class ArcsNeu {
 		//! @brief コピーコンストラクタ
 		//! @param[in]	right	演算子の右側
 		constexpr ArcsNeu(const ArcsNeu<T>& right) noexcept
-			: name(right.name), value(right.value), grad(right.grad), AutoDiffStack(right.AutoDiffStack), YaddrInStack(right.YaddrInStack), YaddrInStack2(right.YaddrInStack2), YaddrvalInStack(right.YaddrvalInStack)	
+			: name(right.name), value(right.value), grad(right.grad), AutoDiffStack(right.AutoDiffStack), YaddrInStack(right.YaddrInStack), YaddrInStack2(right.YaddrInStack2), YaddrvalInStack(right.YaddrvalInStack)
 		{
 			// メンバを取り込む以外の処理は無し
 		}
@@ -271,6 +271,8 @@ class ArcsNeu {
 			: name(right.name), value(right.value), grad(right.grad), AutoDiffStack(right.AutoDiffStack), YaddrInStack(right.YaddrInStack), YaddrInStack2(right.YaddrInStack2), YaddrvalInStack(right.YaddrvalInStack)
 		{
 			// メンバを取り込む以外の処理は無し
+			YaddrInStack2 = nullptr;
+			YaddrvalInStack = nullptr;
 		}
 
 		//! @brief デストラクタ
@@ -284,11 +286,11 @@ class ArcsNeu {
 		template<typename R>
 		constexpr ArcsNeu<T>& operator=(ArcsNeu<R>&& right) noexcept {
 			//printf("左辺値＝右辺値\n");
-			static_assert(std::is_same_v<T, R>, "ArcsNeu: Type Error.");
+			//static_assert(std::is_same_v<T, R>, "ArcsNeu: Type Error.");
 
 			// メンバを取り込む
-			value = right.value;
-			grad  = right.grad;
+			value = static_cast<T>(right.value);
+			grad  = static_cast<T>(right.grad);
 			
 			// 出力エッジ変数は左辺値なので一時オブジェクトの永続化は不要
 			*(right.YaddrInStack2) = this;	// 出力エッジ変数のアドレスが確定したので、自動微分スタックに格納
@@ -299,26 +301,29 @@ class ArcsNeu {
 			return (*this);
 		}
 		
-		//! @brief 代入演算子(左/右辺値＝左/右辺値が入力された場合)
+		//! @brief コピー代入演算子(左/右辺値＝左/右辺値が入力された場合)
 		//! @param[in]	right	演算子の右側
 		//! @return 結果
-		constexpr ArcsNeu<T>& operator=(ArcsNeu<T>& right) noexcept {	
+		constexpr ArcsNeu<T>& operator=(const ArcsNeu<T>& right) noexcept {
 			// メンバを取り込む
 			value = right.value;
 			grad  = right.grad;
+			YaddrInStack2 = right.YaddrInStack2;
+			YaddrvalInStack = right.YaddrvalInStack;
 			
 			//printf("左辺値 = 左辺値 or 右辺値 = 右辺値\n");
-
 			return (*this);
 		}
 		
 		//! @brief 代入演算子(定数値の場合)
+		//! @tparam		R		演算子の右側のデータ型	
 		//! @param[in]	right	演算子の右側
 		//! @return 結果
-		constexpr ArcsNeu<T>& operator=(const T& right) noexcept {	
+		template<typename R>
+		constexpr ArcsNeu<T>& operator=(const R& right) noexcept {	
 			// メンバに定数値を取り込む
-			value = right;
-			grad  = 0;
+			value = static_cast<T>(right);
+			grad  = static_cast<T>(0);
 			return (*this);
 		}
 		
@@ -439,23 +444,37 @@ class ArcsNeu {
 		}
 		
 		//! @brief 乗算演算子(左辺値＊左辺値が入力された場合)
+		//! @tparam		R		演算子の右側のデータ型	
 		//! @param[in]	right	演算子の右側(左辺値)
 		//! @return 結果
-		constexpr ArcsNeu<T> operator*(ArcsNeu<T>& right) & {
-			ArcsNeu<T> ret(AutoDiffStack);
-			ret.value = value*right.value;
+		template<typename R>
+		constexpr auto operator*(ArcsNeu<R>& right) & {
+			//printf("左辺値＊左辺値\n");
+
+			// 出力の計算
+			auto outval = value*right.value;				// 出力のデータ型を確定させる（計算結果自体は破棄）
+			ArcsNeu<decltype(outval)> ret(AutoDiffStack);	// 出力エッジ変数オブジェクト
 			
 			// 自動微分スタック
 			ArcsNeuron::AutoDiffData ADret = {
-				//.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
-				.BackOperator = backward_mult,	// 逆方向用演算子への関数オブジェクトを指定
-				.u1 = this,				// 演算子の左側エッジ変数のアドレスを格納
-				.u2 = &right			// 演算子の右側エッジ変数のアドレスを格納
+				.OperatorType    = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
+				.ForwardOperator = forward_mult<R, decltype(outval)>,		// 順方向演算の関数オブジェクトを指定
+				.BackOperator    = backward_mult<R, decltype(outval)>,		// 逆方向演算の関数オブジェクトを指定
+				.u1addr = reinterpret_cast<uintptr_t>(this),	// 演算子の左側エッジ変数のアドレス値を格納
+				.u2addr = reinterpret_cast<uintptr_t>(&right),	// 演算子の左側エッジ変数のアドレス値を格納
+				.yaddr  = 0,									// 演算子の出力エッジ変数のアドレス値は未確定
+				.u1 = this,								// 演算子の左側エッジ変数へのポインタを格納
+				.u2 = &right,							// 演算子の右側エッジ変数へのポインタを格納
+				.y  = static_cast<ArcsNeu<T>*>(nullptr) // 一時的にArcsNeu型ポインタのヌルポを入れて、std::anyの型を確定させておく
 			};
-			ret.YaddrInStack = AutoDiffStack.Push(ADret);	// 演算履歴を格納
+			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+
+			// 一時オブジェクトへの対応
+			std::tie(ret.YaddrInStack2, ret.YaddrvalInStack) = AutoDiffStack.GetYaddress();
 			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
 			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
-			//printf("Yaddr = %p\n", ret.YaddrInStack);
+			//printf("Yaddr    = %p\n", ret.YaddrInStack2);
+			//printf("Yaddrval = %p\n", ret.YaddrvalInStack);
 
 			return ret;
 		}
@@ -628,29 +647,38 @@ class ArcsNeu {
 			return static_cast<void*>( std::any_cast<ArcsNeu<T>*>(x) );
 		}
 
-		//! @brief 加算演算子
+		//! @brief 加算を計算する関数
 		template<typename R, typename S>
 		static constexpr void forward_add(const std::any u1, const std::any u2, std::any y){
 			(*std::any_cast<ArcsNeu<S>*>(y)).value =
 				(*std::any_cast<ArcsNeu<T>*>(u1)).value + (*std::any_cast<ArcsNeu<R>*>(u2)).value;
-			//printf("! %f !\n", (*std::any_cast<ArcsNeu<T>*>(u1)).value);
-			//printf("! %f !\n", (*std::any_cast<ArcsNeu<R>*>(u2)).value);
-			//printf("! %f !\n", (*std::any_cast<ArcsNeu<S>*>(y)).value);
 		}
 
-		//! @brief 加算演算子の逆
+		//! @brief 加算の逆を計算する関数
 		template<typename R, typename S>
 		static constexpr void backward_add(const std::any y, std::any u1, std::any u2){
-			//(*u1).grad += (*y).grad;	// 加算の勾配はそのまま流すだけ
-			//(*u2).grad += (*y).grad;	// x + b + x 等の分岐対応のために += で既にセットされた値と加算
 			(*std::any_cast<ArcsNeu<T>*>(u1)).grad += (*std::any_cast<ArcsNeu<S>*>(y)).grad;	// 加算の勾配はそのまま流すだけ
 			(*std::any_cast<ArcsNeu<R>*>(u2)).grad += (*std::any_cast<ArcsNeu<S>*>(y)).grad;	// x + b + x 等の分岐対応のために += で既にセットされた値と加算
 		}
 		
-		//! @brief 乗算演算子の逆
-		static constexpr void backward_mult(const ArcsNeu<T>* y, ArcsNeu<T>* u1, ArcsNeu<T>* u2){
-			(*u1).grad += (*y).grad * (*u2).value;	// 乗算の勾配は入れ替えて流す
-			(*u2).grad += (*y).grad * (*u1).value;	// W*x + W*b 等の分配対応のために += で既にセットされた値と加算
+		//! @brief 乗算を計算する関数
+		template<typename R, typename S>
+		static constexpr void forward_mult(const std::any u1, const std::any u2, std::any y){
+			(*std::any_cast<ArcsNeu<S>*>(y)).value =
+				(*std::any_cast<ArcsNeu<T>*>(u1)).value * (*std::any_cast<ArcsNeu<R>*>(u2)).value;
+		}
+
+		//! @brief 乗算の逆を計算する関数
+		template<typename R, typename S>
+		static constexpr void backward_mult(const std::any y, std::any u1, std::any u2){
+			//(*u1).grad += (*y).grad * (*u2).value;	// 乗算の勾配は入れ替えて流す
+			//(*u2).grad += (*y).grad * (*u1).value;	// W*x + W*b 等の分配対応のために += で既にセットされた値と加算
+			// 乗算の勾配は入力を入れ替えて流す
+			// W*x + W*b 等の分配対応のために += で既にセットされた値と加算
+			(*std::any_cast<ArcsNeu<T>*>(u1)).grad +=
+				(*std::any_cast<ArcsNeu<S>*>(y)).grad * (*std::any_cast<ArcsNeu<R>*>(u2)).value;
+			(*std::any_cast<ArcsNeu<R>*>(u2)).grad +=
+				(*std::any_cast<ArcsNeu<S>*>(y)).grad * (*std::any_cast<ArcsNeu<T>*>(u1)).value;
 		}
 
 		//! @brief ReLU活性化関数の逆

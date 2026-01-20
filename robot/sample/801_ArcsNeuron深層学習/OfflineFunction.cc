@@ -34,6 +34,12 @@ using namespace ArcsNeuron;
 void AutoDiffTestCode1(void);	//!< 自動微分テストコード1
 void AutoDiffTestCode2(void);	//!< 自動微分テストコード2
 
+// グローバルな new をオーバーロードして、動的メモリ確保が行われたら警告（デバッグ用）
+void* operator new(std::size_t size) {
+	printf("WARN: Dynamic Memory Allocating %zu bytes\n", size);
+    return std::malloc(size);
+}
+
 //! @brief エントリポイント
 //! @return 終了ステータス
 int main(void){
@@ -41,15 +47,15 @@ int main(void){
 	
 	AutoDiffTestCode1();	// 自動微分テストコード1
 	//AutoDiffTestCode2();	// 自動微分テストコード2
-	
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
 //! @brief 自動微分テストコード1
 void AutoDiffTestCode1(void){
-	ArcsAutoDiff gt;	// Arcs自動微分
-	ArcsNeu<double> x(gt, "x"), y(gt, "y");
-	ArcsNeu<float> b(gt, "b");
+	ArcsAutoDiff gt;	// Arcs自動微分クラス
+	ArcsNeu<double> x(gt, "x"), y(gt, "y");				// エッジ変数
+	ArcsNeu<float> W(gt, "W"), b(gt, "b"), V(gt, "V");	// 重み係数
 	
 	// 異なる型同士での演算例
 	/*
@@ -61,20 +67,20 @@ void AutoDiffTestCode1(void){
 	
 	// エッジ変数のメモリアドレス
 	x.DispAddress();
-	//W.DispAddress("W");
-	//V.DispAddress("V");
+	W.DispAddress();
+	V.DispAddress();
 	b.DispAddress();
 	y.DispAddress();
 
 	// エッジ変数に値をセット
 	x = 3.14;
-	//W = 10;
-	//V = 5;
-	b = 2.71;
+	W = 2.71;
+	V = 1.23;
+	b = 6.02;
 	
 	// 複合式の自動微分テスト
-	y = x + b;	// 左辺値 + 左辺値
-	//y = W*x;		// 左辺値*左辺値
+	//y = x + b;	// 左辺値 + 左辺値
+	y = W*x;		// 左辺値*左辺値
 	//y = b + W*x;	// 左辺値 + 右辺値(左辺値*左辺値)
 	//y = W*x + b;	// 右辺値(左辺値*左辺値) + 左辺値
 	//y = W*x + V*b;// 右辺値(左辺値*左辺値) + 右辺値(左辺値*左辺値)
@@ -101,8 +107,8 @@ void AutoDiffTestCode1(void){
 	gt.DispBackward();		// 逆方向計算の表示
 
 	x.Disp();
-	//W.Disp("W");
-	//V.Disp("V");
+	W.Disp();
+	V.Disp();
 	b.Disp();
 	y.Disp();
 	//gt.DispTempObjVar();	// 永続化された一時オブジェクトエッジ変数値の表示
