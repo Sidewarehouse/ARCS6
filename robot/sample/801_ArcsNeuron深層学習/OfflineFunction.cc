@@ -55,7 +55,7 @@ int main(void){
 void AutoDiffTestCode1(void){
 	ArcsAutoDiff gt;	// Arcs自動微分クラス
 	ArcsNeu<double> x(gt, "x"), y(gt, "y");				// エッジ変数
-	ArcsNeu<float> W(gt, "W"), b(gt, "b"), V(gt, "V");	// 重み係数
+	ArcsNeu<double> W(gt, "W"), b(gt, "b"), V(gt, "V");	// 重み係数
 	
 	// 異なる型同士での演算例
 	/*
@@ -80,8 +80,8 @@ void AutoDiffTestCode1(void){
 	
 	// 複合式の自動微分テスト
 	//y = x + b;	// 左辺値 + 左辺値
-	y = W*x;		// 左辺値*左辺値
-	//y = b + W*x;	// 左辺値 + 右辺値(左辺値*左辺値)
+	//y = W*x;		// 左辺値*左辺値
+	y = b + W*x;	// 左辺値 + 右辺値(左辺値*左辺値)
 	//y = W*x + b;	// 右辺値(左辺値*左辺値) + 左辺値
 	//y = W*x + V*b;// 右辺値(左辺値*左辺値) + 右辺値(左辺値*左辺値)
 	//y = W*x + W*b;// 右辺値(重複左辺値*左辺値) + 右辺値(重複左辺値*左辺値)
@@ -98,13 +98,13 @@ void AutoDiffTestCode1(void){
 	
 	// 自動微分スタックの表示
 	gt.DispStack();			// 演算履歴の表示
-	//gt.DispTempObjStack();	// 永続化された一時オブジェクト履歴の表示
+	gt.DispTempObjStack();	// 永続化された一時オブジェクト履歴の表示
 
 	//gt.ClearGradient();		// 勾配をゼロ初期化
-	gt.UpdateForward();		// 順方向計算により値を更新
-	y.SetGradient(1.23);	// 最終出力の勾配を設定(Loss)
-	gt.UpdateBackward();	// 逆方向計算により勾配を更新
-	gt.DispBackward();		// 逆方向計算の表示
+	//gt.UpdateForward();		// 順方向計算により値を更新
+	//y.SetGradient(1.23);	// 最終出力の勾配を設定(Loss)
+	//gt.UpdateBackward();	// 逆方向計算により勾配を更新
+	//gt.DispBackward();		// 逆方向計算の表示
 
 	x.Disp();
 	W.Disp();

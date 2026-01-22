@@ -128,10 +128,12 @@ class ArcsAutoDiff {
 			return { &( Stack.at(StackCounter - 1).y ), &( Stack.at(StackCounter - 1).yaddr )};
 		}
 
-		//! @brief 一時オブジェクトスタックに永続化したオブジェクトエッジ変数を積む関数
-		//!	@param[in]	tempobj	一時オブジェクト
-		//! @return	一時オブジェクトスタック内のエッジ変数への生ポインタのアドレス
-		std::any* Persistent(std::any tempobj){
+		//! @brief 一時オブジェクトスタックに永続化したオブジェクト変数を積む関数
+		//!	@param[in]	tempobj	一時オブジェクトの実体
+		//! @return	一時オブジェクトスタック内の変数への生ポインタのアドレス
+		//std::any* Persistent(const std::any tempobj){
+		template <typename T>
+		std::any* Persistent(const T tempobj){
 			TempObjStack.at(TempObjStackCounter) = tempobj;	// コピーして一時オブジェクトエッジ変数を永続化
 			TempObjStackCounter++;
 			return &(TempObjStack.at(TempObjStackCounter - 1));
@@ -333,58 +335,78 @@ class ArcsNeu {
 		//! @return 結果
 		template<typename R>
 		constexpr auto operator+(ArcsNeu<R>& right) & {
-			//printf("左辺値＋左辺値\n");
-
 			// 出力の計算
 			auto outval = value + right.value;				// 出力のデータ型を確定させる（計算結果自体は破棄）
-			ArcsNeu<decltype(outval)> ret(AutoDiffStack);	// 出力エッジ変数オブジェクト
+			ArcsNeu<decltype(outval)> ret(AutoDiffStack);	// 出力変数オブジェクト
 			
 			// 自動微分スタック
 			ArcsNeuron::AutoDiffData ADret = {
 				.OperatorType    = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
 				.ForwardOperator = forward_add<R, decltype(outval)>,		// 順方向演算の関数オブジェクトを指定
 				.BackOperator    = backward_add<R, decltype(outval)>,		// 逆方向演算の関数オブジェクトを指定
-				.u1addr = reinterpret_cast<uintptr_t>(this),	// 演算子の左側エッジ変数のアドレス値を格納
-				.u2addr = reinterpret_cast<uintptr_t>(&right),	// 演算子の左側エッジ変数のアドレス値を格納
-				.yaddr  = 0,									// 演算子の出力エッジ変数のアドレス値は未確定
-				.u1 = this,								// 演算子の左側エッジ変数へのポインタを格納
-				.u2 = &right,							// 演算子の右側エッジ変数へのポインタを格納
+				.u1addr = reinterpret_cast<uintptr_t>(this),	// 演算子の左側変数のアドレス値を格納
+				.u2addr = reinterpret_cast<uintptr_t>(&right),	// 演算子の右側変数のアドレス値を格納
+				.yaddr  = 0,									// 演算子の出力変数のアドレス値は未確定
+				.u1 = this,								// 演算子の左側変数へのポインタを格納
+				.u2 = &right,							// 演算子の右側変数へのポインタを格納
+				.y  = static_cast<ArcsNeu<T>*>(nullptr) // 一時的にArcsNeu型ポインタのヌルポを入れて、std::anyの型を確定させておく
+				//                        ↑ decltype(outval)？
+			};
+			AutoDiffStack.Push(ADret);	// 演算履歴を格納
+
+			// 一時オブジェクトへの対応
+			std::tie(ret.YaddrInStack2, ret.YaddrvalInStack) = AutoDiffStack.GetYaddress();
+			// ↑ 演算出力が一時オブジェクトとなり、出力変数への生ポインタが未確定なので、
+			// 　自動微分スタック内の出力変数への生ポインタのアドレスを一時的に格納
+			printf("(lvalue)+(lvalue): Yaddr = %p, Yaddrval = %p\n", ret.YaddrInStack2, ret.YaddrvalInStack);
+
+			return ret;
+		}
+
+		//! @brief 加算演算子(左辺値＋右辺値が入力された場合)
+		//! @tparam		R		演算子の右側のデータ型	
+		//! @param[in]	right	演算子の右側の一時オブジェクト
+		//! @return 結果
+		template <typename R>
+		constexpr auto operator+(ArcsNeu<R>&& right) & {
+			printf("左辺値＋右辺値\n");
+			// 出力の計算
+			auto outval = value + right.value;				// 出力のデータ型を確定させる（計算結果自体は破棄）
+			ArcsNeu<decltype(outval)> ret(AutoDiffStack);	// 出力変数オブジェクト
+			
+			// 一時オブジェクトの永続化処理
+			//*(right.YaddrInStack2)
+			std::any* b = AutoDiffStack.Persistent(right);	// 右側変数が永続化してアドレスが確定したので、自動微分スタックに格納
+			//uintptr_t a = reinterpret_cast<uintptr_t>( std::any_cast<ArcsNeu<R>>(*b) );	// ArcsNeuポインタじゃない！！！
+			uintptr_t a = reinterpret_cast<uintptr_t>( b );
+			printf("a = %lx\n", a);
+			
+			//*(right.YaddrvalInStack) = reinterpret_cast<uintptr_t>(
+				//ArcsNeu<R> a = std::any_cast<ArcsNeu<R>>(*(right.YaddrInStack2));
+			//);
+			printf("YaddrInStack = [%p]\n", right.YaddrInStack2);
+
+			// 自動微分スタック
+			ArcsNeuron::AutoDiffData ADret = {
+				.OperatorType    = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
+				.ForwardOperator = forward_add<R, decltype(outval)>,		// 順方向演算の関数オブジェクトを指定
+				.BackOperator    = backward_add<R, decltype(outval)>,		// 逆方向演算の関数オブジェクトを指定
+				.u1addr = reinterpret_cast<uintptr_t>(this),	// 演算子の左側変数のアドレス値を格納
+				.u2addr = reinterpret_cast<uintptr_t>(&right),	// 演算子の右側変数のアドレス値を格納
+				//.u2addr = reinterpret_cast<uintptr_t>(*(right.YaddrInStack2)),	// 演算子の右側変数のアドレス値を格納
+				.yaddr  = 0,									// 演算子の出力変数のアドレス値は未確定
+				.u1 = this,								// 演算子の左側変数へのポインタを格納
+				.u2 = &right,							// 演算子の右側変数へのポインタを格納
+				//.u2 = std::any_cast<ArcsNeu<R>*>( *(right.YaddrInStack2) ),			// 演算子の右側変数へのポインタを格納
 				.y  = static_cast<ArcsNeu<T>*>(nullptr) // 一時的にArcsNeu型ポインタのヌルポを入れて、std::anyの型を確定させておく
 			};
 			AutoDiffStack.Push(ADret);	// 演算履歴を格納
 
 			// 一時オブジェクトへの対応
 			std::tie(ret.YaddrInStack2, ret.YaddrvalInStack) = AutoDiffStack.GetYaddress();
-			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
-			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
-			//printf("Yaddr    = %p\n", ret.YaddrInStack2);
-			//printf("Yaddrval = %p\n", ret.YaddrvalInStack);
-
-			return ret;
-		}
-
-		//! @brief 加算演算子(左辺値＋右辺値が入力された場合)
-		//! @param[in]	right	演算子の右側の一時オブジェクト
-		//! @return 結果
-		constexpr ArcsNeu<T> operator+(ArcsNeu<T>&& right) & {
-			ArcsNeu<T> ret(AutoDiffStack);
-			ret.value = value + right.value;
-			
-			// 一時オブジェクトの永続化
-			*(right.YaddrInStack) = AutoDiffStack.Persistent(right);	// 前の出力エッジ変数のアドレスが確定したので、自動微分スタックに格納
-			//printf("YaddrInStack = [%p]\n", right.YaddrInStack);
-
-			// 自動微分スタック
-			ArcsNeuron::AutoDiffData ADret = {
-				//.ForwardOperator = ArcsNeuron::AutoDiffOperator::ANE_ADD,	// 加算を指定
-				.BackOperator = backward_add,	// 逆方向用演算子への関数オブジェクトを指定
-				.u1 = this,						// 演算子の左側エッジ変数のアドレスを格納
-				.u2 = *(right.YaddrInStack)		// 永続化後の演算子の右側エッジ変数のアドレスを格納
-			};
-			ret.YaddrInStack = AutoDiffStack.Push(ADret);	// 演算履歴を格納
-			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
-			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
-			//printf("Yaddr = %p\n", ret.YaddrInStack);
+			// ↑ 演算出力が一時オブジェクトとなり、出力変数への生ポインタが未確定なので、
+			// 　自動微分スタック内の出力変数への生ポインタのアドレスを一時的に格納
+			printf("(lvalue)+(rvalue): Yaddr = %p, Yaddrval = %p\n", ret.YaddrInStack2, ret.YaddrvalInStack);
 			
 			return ret;
 		}
@@ -449,32 +471,29 @@ class ArcsNeu {
 		//! @return 結果
 		template<typename R>
 		constexpr auto operator*(ArcsNeu<R>& right) & {
-			//printf("左辺値＊左辺値\n");
-
 			// 出力の計算
 			auto outval = value*right.value;				// 出力のデータ型を確定させる（計算結果自体は破棄）
-			ArcsNeu<decltype(outval)> ret(AutoDiffStack);	// 出力エッジ変数オブジェクト
+			ArcsNeu<decltype(outval)> ret(AutoDiffStack);	// 出力変数オブジェクト
 			
 			// 自動微分スタック
 			ArcsNeuron::AutoDiffData ADret = {
 				.OperatorType    = ArcsNeuron::AutoDiffOperator::ANE_MULT,	// 乗算を指定
 				.ForwardOperator = forward_mult<R, decltype(outval)>,		// 順方向演算の関数オブジェクトを指定
 				.BackOperator    = backward_mult<R, decltype(outval)>,		// 逆方向演算の関数オブジェクトを指定
-				.u1addr = reinterpret_cast<uintptr_t>(this),	// 演算子の左側エッジ変数のアドレス値を格納
-				.u2addr = reinterpret_cast<uintptr_t>(&right),	// 演算子の左側エッジ変数のアドレス値を格納
-				.yaddr  = 0,									// 演算子の出力エッジ変数のアドレス値は未確定
-				.u1 = this,								// 演算子の左側エッジ変数へのポインタを格納
-				.u2 = &right,							// 演算子の右側エッジ変数へのポインタを格納
+				.u1addr = reinterpret_cast<uintptr_t>(this),	// 演算子の左側変数のアドレス値を格納
+				.u2addr = reinterpret_cast<uintptr_t>(&right),	// 演算子の右側変数のアドレス値を格納
+				.yaddr  = 0,									// 演算子の出力変数のアドレス値は未確定
+				.u1 = this,								// 演算子の左側変数へのポインタを格納
+				.u2 = &right,							// 演算子の右側変数へのポインタを格納
 				.y  = static_cast<ArcsNeu<T>*>(nullptr) // 一時的にArcsNeu型ポインタのヌルポを入れて、std::anyの型を確定させておく
 			};
 			AutoDiffStack.Push(ADret);	// 演算履歴を格納
 
 			// 一時オブジェクトへの対応
 			std::tie(ret.YaddrInStack2, ret.YaddrvalInStack) = AutoDiffStack.GetYaddress();
-			// ↑ 演算出力が一時オブジェクトとなり、出力エッジ変数への生ポインタが未確定なので、
-			// 　自動微分スタック内の出力エッジ変数への生ポインタのアドレスを一時的に格納
-			//printf("Yaddr    = %p\n", ret.YaddrInStack2);
-			//printf("Yaddrval = %p\n", ret.YaddrvalInStack);
+			// ↑ 演算出力が一時オブジェクトとなり、出力変数への生ポインタが未確定なので、
+			// 　自動微分スタック内の出力変数への生ポインタのアドレスを一時的に格納
+			printf("(lvalue)*(lvalue): Yaddr = %p, Yaddrval = %p\n", ret.YaddrInStack2, ret.YaddrvalInStack);
 
 			return ret;
 		}
