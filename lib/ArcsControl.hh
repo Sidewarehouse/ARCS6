@@ -629,11 +629,10 @@ namespace ArcsControl {
 			// 特性方程式の多項式係数を求める
 			const ArcsMat<M,1,std::complex<T>> q = eig(A);	// 極を計算
 			ArcsMat<M+1,1,T> a = polycoeff(q);				// 特性方程式の係数を計算
+			a.FlipVertical();								// 逆順にする
 
 			// 可観測正準形式に変換
-			a.FlipVertical();
-			ArcsMat<M,1,T> c;	// 逆順版の特性方程式の係数
-			a.GetVerticalVec(c, 2, 1);
+			const ArcsMat<M,1,T> c = getvvector<M>(a, 2, 1);// 逆順且つ最上位係数を除いた版の特性方程式の係数
 			const ArcsMat<M,N,T> H = hankel(c);			// ハンケル行列
 			const ArcsMat<M,N,T> Uo = ObsvMat(A, C);	// 可観測性行列
 			P = H*Uo;					// 変換行列
@@ -642,9 +641,9 @@ namespace ArcsControl {
 			Ct = linsolveXAB(P, C);		// Ct = C*inv(C) と等価だが、XA = Bの形の線形方程式に帰着
 			
 			// ほぼゼロの値の箇所は完全にゼロに置き換え
-			At.Zeroing();
-			Bt.Zeroing();
-			Ct.Zeroing();
+			At.Zeroing(Tol);
+			Bt.Zeroing(Tol);
+			Ct.Zeroing(Tol);
 		}else{
 			// 他の形式は未実装
 			arcs_assert(false);
@@ -722,7 +721,7 @@ namespace ArcsControl {
 	>
 	static constexpr void ObserverPlace(
 		const ArcsMat<M,N,T>& Ap, const ArcsMat<MB,NB,TB>& Bp, const ArcsMat<MC,NC,TC>& Cp,
-		const ArcsMat<MP,NP,TP>& p, ArcsMat<MK,NK,TK> k
+		const ArcsMat<MP,NP,TP>& p, ArcsMat<MK,NK,TK>& k, const T Tol = 1e-1
 	){
 		static_assert(M == N,  "ArcsCtrl: Size Error");	// A行列は正方行列
 		static_assert(NC == M, "ArcsCtrl: Size Error");	// サイズチェック
@@ -731,15 +730,63 @@ namespace ArcsControl {
 		static_assert(MK == M, "ArcsCtrl: Size Error");	// サイズチェック
 		static_assert(NK == 1, "ArcsCtrl: Size Error");	// サイズチェック
 
-		// プラントの特性方程式の多項式係数を求める
+		// 1. プラントの特性方程式の多項式係数を求める
 		const ArcsMat<M,1,std::complex<T>> q = eig(Ap);	// 極を計算
-		const ArcsMat<M+1,1,T> a = polycoeff(q);		// 特性方程式の係数を計算
+		ArcsMat<M+1,1,T> a = polycoeff(q);		// 現実の特性方程式の係数を計算
+		a.FlipVertical();
+
+		// 2. 目標とする多項式係数を求める
+		ArcsMat<M+1,1,T> d = polycoeff(p);		// 理想の特性方程式の係数を計算
+		d.FlipVertical();
+
+		// 3. 理想の係数と現実の係数との差から可観測正準形式上でのオブザーバゲインを計算
+		const ArcsMat<M,1,T> kt = getvvector<M>(d - a, 1, 1);
+
+		// 4. 可観測正準形式への変換行列を得る
+		const auto [Apt, Bpt, Cpt, P] = Canonical<CanonicalForm::ACL_OBSV>(Ap, Bp, Cp);
+
+		// 5. プラント形式上でのオブザーバゲインに変換
+		k = linsolve(P, kt);	// k = inv(P)*kt ▶ P*k = kt ▶ A*X = B の線形方程式に帰着させて解く
 		
-		// 可観測正準形式に変換
-		auto [Apt, Bpt, Cpt, P] = Canonical<CanonicalForm::ACL_OBSV>(Ap, Bp, Cp);
-		
+		// 6. 検算
+		ArcsMat<M,1,std::complex<T>> pck = eig(Ap - k*Cp);
+		for(size_t i = 1; i <= M; ++i) arcs_assert(std::abs(pck[i] - p[i]) < std::abs(p[i])*Tol);	// 許容値の範囲内かチェック
 	}
 
+	//! @brief 極配置法により状態オブザーバゲインを求める関数 (引数渡し版)
+	//! @param[in]	Ap	プラントA行列
+	//! @param[in]	Cp	プラントC行列
+	//! @param[in]	p	指定極ベクトル (縦ベクトル)
+	//! @param[in]	k	オブザーバゲインベクトル (縦ベクトル)
+	//! @tparam	M	プラントAp行列の高さ
+	//! @tparam	N	プラントAp行列の幅
+	//! @tparam	T	プラントAp行列のデータ型
+	//! @tparam	MB	プラントBp行列の高さ
+	//! @tparam	NB	プラントBp行列の幅
+	//! @tparam	TB	プラントBp行列のデータ型
+	//! @tparam	MC	プラントCp行列の高さ
+	//! @tparam	NC	プラントCp行列の幅
+	//! @tparam	TC	プラントCp行列のデータ型
+	//! @tparam MP	指定極のベクトルの高さ
+	//! @tparam NP	指定極のベクトルの幅
+	//! @tparam TP	指定極のベクトルのデータ型
+	//! @tparam	MK	オブザーバゲインベクトルkの高さ
+	//! @tparam	NK	オブザーバゲインベクトルkの幅
+	//! @tparam	TK	オブザーバゲインベクトルkのデータ型
+	template<
+		size_t M, size_t N, typename T = double,
+		size_t MB, size_t NB, typename TB = double,
+		size_t MC, size_t NC, typename TC = double,
+		size_t MP, size_t NP, typename TP = double
+	>
+	static constexpr ArcsMat<M,1,T> ObserverPlace(
+		const ArcsMat<M,N,T>& Ap, const ArcsMat<MB,NB,TB>& Bp, const ArcsMat<MC,NC,TC>& Cp,
+		const ArcsMat<MP,NP,TP>& p
+	){
+		ArcsMat<M,1,T> k;
+		ObserverPlace(Ap, Bp, Cp, p, k);
+		return k;
+	}
 //--------------------- ここから廃止予定
 
 	//! @brief 連続リアプノフ方程式 A*X + X*A^T + Q = 0 の解Xを求める関数(実数版, 引数で返す版)

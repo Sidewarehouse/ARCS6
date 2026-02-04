@@ -207,31 +207,15 @@ int main(void){
 	ArcsMat<3,3> Acn1t, Pcn1;
 	ArcsMat<3,1> bcn1t;
 	ArcsMat<1,3> ccn1t;
-	// 可観測正準形式(コンパニオン形式)への変換 (引数渡し版)
+	// 可観測正準形式への変換 (引数渡し版)
 	ArcsControl::Canonical<ArcsControl::CanonicalForm::ACL_OBSV>(Acn1, bcn1, ccn1, Acn1t, bcn1t, ccn1t, Pcn1);
-	// 可観測正準形式(コンパニオン形式)への変換 (タプル返し版)
+	// 可観測正準形式への変換 (タプル返し版)
 	std::tie(Acn1t, bcn1t, ccn1t, Pcn1) =
 	 ArcsControl::Canonical<ArcsControl::CanonicalForm::ACL_OBSV>(Acn1, bcn1, ccn1);
 	dispf(Acn1t, "% 8.3f");
 	dispf(bcn1t, "% 8.3f");
 	dispf(ccn1t, "% 8.3f");
 	dispf(Pcn1,  "% 8.3f");
-
-	printf("◆ 極配置法によるオブザーバゲイン設計\n");
-	constexpr ArcsMat<3,3> Ap1 = {
-		-1,  2,  3,
-		 0, -1,  7,
-		-2,  2, -5
-	};
-	constexpr ArcsMat<3,1> bp1 = { 1, 0, 0 };
-	constexpr ArcsMat<1,3> cp1 = { 1, 0, 0 };
-	disp(Ap1);
-	disp(bp1);
-	disp(cp1);
-	const ArcsMat<3,1,std::complex<double>> p1 = { -100.0 + 0.0i, -100.0 + 0.0i, -100.0 + 0.0i };	// [rad/s] オブザーバ推定帯域
-	ArcsMat<3,1> kov1;
-	ArcsControl::ObserverPlace(Ap1, bp1, cp1, p1, kov1);
-	return 0;
 
 	printf("\n◆ 離散系状態空間モデル\n");
 	ArcsMat<2,2> Ad1 = {			// 離散系A行列
@@ -412,7 +396,50 @@ int main(void){
 	}
 	MatFile1.Save("t4", t4);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y4", y4);	// 出力応答ベクトルをMATファイルとして保存
-	
+
+	printf("◆ 極配置法によるオブザーバゲイン設計\n");
+	constexpr ArcsMat<3,3> Ap1 = {	// プラントのシステム行列
+		-1, -2, -9,
+     	 0, -1, -7,
+    	-2,  6, -1 
+	};
+	constexpr ArcsMat<3,1> bp1 = { 1, 0, 0 };
+	constexpr ArcsMat<1,3> cp1 = { 1, 0, 0 };
+	dispf(Ap1, "% 8.3f");
+	dispf(bp1, "% 8.3f");
+	dispf(cp1, "% 8.3f");
+	const ArcsMat<3,1,std::complex<double>> p1 = { -5.0 + 0.0i, -5.0 + 0.0i, -5.0 + 0.0i };	// [rad/s] オブザーバの極(推定帯域)
+	ArcsMat<3,1> kov1;
+	ArcsControl::ObserverPlace(Ap1, bp1, cp1, p1, kov1);	// オブザーバゲインの計算 (引数渡し版)
+	kov1 = ArcsControl::ObserverPlace(Ap1, bp1, cp1, p1); 	// オブザーバゲインの計算 (戻り値返し版)
+	dispf(kov1, "% 8.3f");
+	constexpr ArcsMat<4,4> Ap2 = {	// 2慣性系プラントのシステム行列 (x = [ωl, θs, ωm, τl]^T, u = iq, y = ωm)
+		-Dl/Jl,  Ks/Jl		,  0		, -1.0/Jl,
+		-1    ,	 0			,  1.0/Rg	,  0     ,
+		0	  ,	-Ks/(Jm*Rg)	, -Dm/Jm	,  0     ,
+		0	  ,  0			,  0		,  0	 
+	};
+	constexpr ArcsMat<4,1> bp2 = {
+		0,
+		0,
+		Kt/Jm,
+		0
+	};
+	constexpr ArcsMat<1,4> cp2 = {0, 0, 1, 0};
+	dispf(Ap2, "% 8.3f");
+	dispf(bp2, "% 8.3f");
+	dispf(cp2, "% 8.3f");
+	const double g = 300;	// [rad/s] オブザーバ推定帯域
+	const ArcsMat<4,1,std::complex<double>> p2 = { -g + 0.0i, -g + 0.0i, -g + 0.0i, -g + 0.0i };	// [rad/s] オブザーバの極(推定帯域)
+	ArcsMat<4,1> kov2 = ArcsControl::ObserverPlace(Ap2, bp2, cp2, p2); 	// オブザーバゲインの計算 (戻り値返し版)
+	dispf(kov2, "% 8.3f");
+	// 文字式で解析的に解いた場合との比較
+	const double kov21 = -(Jm*Rg*(Dl - 2.0*Jl*g)*(Dl*Dl - 2.0*Dl*Jl*g + 2.0*Jl*Jl*g*g - 2.0*Ks*Jl))/(Jl*Jl*Jl*Ks);
+	const double kov22 = (- Jm*Dl*Dl*Rg*Rg + 4.0*Jm*Dl*Jl*Rg*Rg*g - 6.0*Jm*Jl*Jl*Rg*Rg*g*g + Ks*Jl*Jl + Jm*Ks*Jl*Rg*Rg)/(Jl*Jl*Ks*Rg);
+	const double kov23 = -(Dl*Jm + Dm*Jl - 4.0*Jl*Jm*g)/(Jl*Jm);
+	const double kov24 = -(Jl*Jm*Rg*g*g*g*g)/Ks;
+	printf("k1 = % 8.3f, k2 = % 8.3f, k3 = % 8.3f, k4 = % 8.3f\n", kov21, kov22, kov23, kov24);
+
 	return EXIT_SUCCESS;	// 正常終了
 }
 
