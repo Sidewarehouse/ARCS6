@@ -38,16 +38,16 @@ namespace ARCS {
 // ArcsControl名前空間
 namespace ArcsControl {
 
-	//! @brief 正準形式の定義
-	enum class CanonicalForm {
-		ACL_CTRB	//!< 可制御正準形式 
-	};
-
 	//! @brief システムの表現タイプの定義
 	enum class SystemType {
 		ACL_NONE,	//!< 未設定
 		ACL_CONT,	//!< 連続系
 		ACL_DISC 	//!< 離散系
+	};
+	
+	//! @brief 正準形式の定義
+	enum class CanonicalForm {
+		ACL_OBSV	//!< 可観測正準形式（≠可観測コンパニオン形式） 
 	};
 
 	//! @brief 状態空間モデル構造体
@@ -57,7 +57,7 @@ namespace ArcsControl {
 		size_t MC, size_t NC, typename TC,
 		size_t MD, size_t ND, typename TD
 	>
-	struct StateSpaceModel {
+	struct StateSpaceSys {
 		SystemType SysType = SystemType::ACL_NONE;	// システムの表現タイプ
 		ArcsMat<M,N,T>		A;	// A行列
 		ArcsMat<MB,NB,TB>	B;	// B行列
@@ -66,7 +66,6 @@ namespace ArcsControl {
 		T Ts = 0;	// [s] 制御周期
 	};
 	
-
 	//! @brief 連続リアプノフ方程式 AX + XA' + Q = 0 の解Xを求める関数 (引数渡し版)
 	//! @tparam		M,MQ,MX	行列の高さ
 	//! @tparam		N,NQ,NX	行列の幅
@@ -584,6 +583,7 @@ namespace ArcsControl {
 	//! @param[in]	Bt	変換後のB行列
 	//! @param[in]	Ct	変換後のC行列
 	//! @param[in]	P	変換行列
+	//! @param[in]	Tol	許容誤差(デフォルト値 1e-10)
 	//! @tparam	CF	正準形式のタイプ
 	//! @tparam	M	A行列の高さ
 	//! @tparam	N	A行列の幅
@@ -609,8 +609,9 @@ namespace ArcsControl {
 	>
 	static constexpr void Canonical(
 		const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, const ArcsMat<MC,NC,TC>& C,
-		const ArcsMat<MT,NT,TT>& At, const ArcsMat<MBT,NBT,TBT>& Bt, const ArcsMat<MCT,NCT,TCT>& Ct,
-		ArcsMat<MP,NP,TP>& P
+		ArcsMat<MT,NT,TT>& At, ArcsMat<MBT,NBT,TBT>& Bt, ArcsMat<MCT,NCT,TCT>& Ct,
+		ArcsMat<MP,NP,TP>& P,
+		const T Tol = 1e-10
 	){
 		static_assert(M == N,  "ArcsCtrl: Size Error");		// A行列は正方行列
 		static_assert(MB == M, "ArcsCtrl: Size Error");		// サイズチェック
@@ -621,28 +622,75 @@ namespace ArcsControl {
 		static_assert(NCT == MT, "ArcsCtrl: Size Error");	// サイズチェック
 		static_assert(MP == M, "ArcsCtrl: Size Error");		// サイズチェック
 		static_assert(NP == N, "ArcsCtrl: Size Error");		// サイズチェック
-		constexpr T Tol = 1e-10;	// 許容誤差 
 
 		// 正準形式の設定に従って計算を変える
-		/*
-		if constexpr(CF == CanonicalForm::ACL_CTRB){
-			// 可制御正準形式の場合
+		if constexpr(CF == CanonicalForm::ACL_OBSV){
+			// 可観測正準形式(≠可観測コンパニオン形式)の場合
 			// 特性方程式の多項式係数を求める
-			const ArcsMat<M,1,std::complex<T>> q = eig(A);		// 極を計算
-			ArcsMat<M+1,1,std::complex<T>> ax = polycoeff(q);	// 特性方程式の係数を計算
-			disp(q);
-			disp(a);
+			const ArcsMat<M,1,std::complex<T>> q = eig(A);	// 極を計算
+			ArcsMat<M+1,1,T> a = polycoeff(q);				// 特性方程式の係数を計算
 
-			// 可制御正準形式に変換
-			ArcsMat<M,1,T> aa;// = a.template GetVerticalVec<M>(2, M+1);
-			a.GetVerticalVec(aa, 2, 1);
-			disp(aa);
-			hankel(aa, P);
-			disp(P);
+			// 可観測正準形式に変換
+			a.FlipVertical();
+			ArcsMat<M,1,T> c;	// 逆順版の特性方程式の係数
+			a.GetVerticalVec(c, 2, 1);
+			const ArcsMat<M,N,T> H = hankel(c);			// ハンケル行列
+			const ArcsMat<M,N,T> Uo = ObsvMat(A, C);	// 可観測性行列
+			P = H*Uo;					// 変換行列
+			At = linsolveXAB(P, P*A);	// At = P*A*inv(P) と等価だが、XA = Bの形の線形方程式に帰着
+			Bt = P*B;
+			Ct = linsolveXAB(P, C);		// Ct = C*inv(C) と等価だが、XA = Bの形の線形方程式に帰着
+			
+			// ほぼゼロの値の箇所は完全にゼロに置き換え
+			At.Zeroing();
+			Bt.Zeroing();
+			Ct.Zeroing();
 		}else{
 			// 他の形式は未実装
+			arcs_assert(false);
 		}
-		*/
+	}
+
+	//! @brief 指定した正準形式に変換する関数 (タプル返し版)
+	//! @param[in]	A	A行列
+	//! @param[in]	B	B行列
+	//! @param[in]	C	C行列
+	//! @param[in]	At	変換後のA行列
+	//! @param[in]	Bt	変換後のB行列
+	//! @param[in]	Ct	変換後のC行列
+	//! @param[in]	P	変換行列
+	//! @param[in]	Tol	許容誤差(デフォルト値 1e-10)
+	//! @tparam	CF	正準形式のタイプ
+	//! @tparam	M	A行列の高さ
+	//! @tparam	N	A行列の幅
+	//! @tparam	T	A行列のデータ型
+	//! @tparam	MB	B行列の高さ
+	//! @tparam	NB	B行列の幅
+	//! @tparam	TB	B行列のデータ型
+	//! @tparam	MC	C行列の高さ
+	//! @tparam	NC	C行列の幅
+	//! @tparam	TC	C行列のデータ型
+	//! @tparam	MP	変換行列の高さ
+	//! @tparam	NP	変換行列の幅
+	//! @tparam	TP	変換行列のデータ型
+	template<
+		ArcsControl::CanonicalForm CF,
+		size_t M,  size_t N,  typename T  = double,
+		size_t MB, size_t NB, typename TB = double,
+		size_t MC, size_t NC, typename TC = double
+	>
+	static constexpr std::tuple<
+		ArcsMat<M,N,T>, ArcsMat<MB,NB,TB>, ArcsMat<MC,NC,TC>, ArcsMat<M,N,T>
+	> Canonical(
+		const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, const ArcsMat<MC,NC,TC>& C,
+		const T Tol = 1e-10
+	){
+		ArcsMat<M,N,T> At;
+		ArcsMat<MB,NB,TB> Bt;
+		ArcsMat<MC,NC,TC> Ct;
+		ArcsMat<M,N,T> P;
+		Canonical<CF>(A, B, C, At, Bt, Ct, P, Tol);
+		return {At, Bt, Ct, P};
 	}
 
 	//! @brief 極配置法により状態オブザーバゲインを求める関数 (引数渡し版)
@@ -653,6 +701,9 @@ namespace ArcsControl {
 	//! @tparam	M	プラントAp行列の高さ
 	//! @tparam	N	プラントAp行列の幅
 	//! @tparam	T	プラントAp行列のデータ型
+	//! @tparam	MB	プラントBp行列の高さ
+	//! @tparam	NB	プラントBp行列の幅
+	//! @tparam	TB	プラントBp行列のデータ型
 	//! @tparam	MC	プラントCp行列の高さ
 	//! @tparam	NC	プラントCp行列の幅
 	//! @tparam	TC	プラントCp行列のデータ型
@@ -663,12 +714,15 @@ namespace ArcsControl {
 	//! @tparam	NK	オブザーバゲインベクトルkの幅
 	//! @tparam	TK	オブザーバゲインベクトルkのデータ型
 	template<
-		size_t M, size_t N, typename T = double, size_t MC, size_t NC, typename TC = double,
-		size_t MP, size_t NP, typename TP = double, size_t MK, size_t NK, typename TK = double
+		size_t M, size_t N, typename T = double,
+		size_t MB, size_t NB, typename TB = double,
+		size_t MC, size_t NC, typename TC = double,
+		size_t MP, size_t NP, typename TP = double,
+		size_t MK, size_t NK, typename TK = double
 	>
 	static constexpr void ObserverPlace(
-		const ArcsMat<M,N,T>& Ap, const ArcsMat<MC,NC,TC>& Cp, const ArcsMat<MP,NP,TP>& p,
-		ArcsMat<MK,NK,TK> k
+		const ArcsMat<M,N,T>& Ap, const ArcsMat<MB,NB,TB>& Bp, const ArcsMat<MC,NC,TC>& Cp,
+		const ArcsMat<MP,NP,TP>& p, ArcsMat<MK,NK,TK> k
 	){
 		static_assert(M == N,  "ArcsCtrl: Size Error");	// A行列は正方行列
 		static_assert(NC == M, "ArcsCtrl: Size Error");	// サイズチェック
@@ -677,6 +731,13 @@ namespace ArcsControl {
 		static_assert(MK == M, "ArcsCtrl: Size Error");	// サイズチェック
 		static_assert(NK == 1, "ArcsCtrl: Size Error");	// サイズチェック
 
+		// プラントの特性方程式の多項式係数を求める
+		const ArcsMat<M,1,std::complex<T>> q = eig(Ap);	// 極を計算
+		const ArcsMat<M+1,1,T> a = polycoeff(q);		// 特性方程式の係数を計算
+		
+		// 可観測正準形式に変換
+		auto [Apt, Bpt, Cpt, P] = Canonical<CanonicalForm::ACL_OBSV>(Ap, Bp, Cp);
+		
 	}
 
 //--------------------- ここから廃止予定

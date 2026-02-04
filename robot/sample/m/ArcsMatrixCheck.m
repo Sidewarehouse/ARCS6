@@ -490,7 +490,17 @@ Bslv4 = [
 Xslv4 = linsolve(Aslv3, Bslv4)
 xslv5 = linsolve(Aslv3', bslv1)		% 縦長の場合、ArcsMatrixとは異なる解が得られる
 Xslv6 = linsolve(Aslv3', Bslv4')	% 縦長の場合、ArcsMatrixとは異なる解が得られる
-
+Aslv7 = [
+	3, 1 ;
+	4, 1,
+	5, 9
+]
+Bslv7 = [
+	2, 7,
+	1, 8
+]
+Xslv7 = linsolve(Aslv7', Bslv7')'
+return;
 fprintf('\n');
 disp '★ 逆行列関連の関数'
 Ainv1 = [1 0 2; -1 5 0; 0 3 -9]

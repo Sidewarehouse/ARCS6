@@ -5,6 +5,18 @@ clear;
 format short;
 %format longE;
 
+% 可観測正準形式への変換テスト
+Ap = [ -1,  2,  3;
+	    0, -1,  7;
+	   -2,  2, -5 ]
+bp = [1 ; 0 ; 0]
+cp = [1, 0, 0]
+dp = [0]
+%sys = ss(Ap, bp, cp ,dp);
+%[syst, P] = canon(sys, 'companion')
+[Pnum, Pden] = ss2tf(Ap, bp, cp, dp)
+return;
+
 % プラント状態空間モデル(適当)
 Ap = [-1, -2, -9 ;
       0, -1, -7 ;

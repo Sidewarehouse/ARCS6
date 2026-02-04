@@ -1293,6 +1293,24 @@ void ArcsMatTest(void){
 	Xslv6 = linsolve(~Aslv3, ~Bslv4);	// AX = Bの形の線形方程式をXについて解く関数(引数渡し版)
 	dispf(Xslv6, "% 8.3f");				// Aが非正方横長行列で、Bが行列で、Xも行列の場合
 	dispf(~Aslv3*Xslv6, "% 8.4f");		// この関数はMATLABとは異なる解を出力するが、ただしもちろん Ax = b は成立
+	printf("||AX - B|| = % 8.4f\n", norm(~Aslv3*Xslv6 - ~Bslv4));
+	constexpr ArcsMat<3,2> Aslv7 = {
+		3, 1,
+		4, 1,
+		5, 9
+	};
+	constexpr ArcsMat<2,2> Bslv7 = {
+		2, 7,
+		1, 8
+	};
+	ArcsMat<2,3> Xslv7;
+	linsolveXAB(Aslv7, Bslv7, Xslv7);	// XA = Bの形の線形方程式をXについて解く関数(引数渡し版)
+	Xslv7 = linsolveXAB(Aslv7, Bslv7);	// XA = Bの形の線形方程式をXについて解く関数(戻り値渡し版)
+	dispf(Aslv7, "% 8.4f");
+	dispf(Bslv7, "% 8.4f");
+	dispf(Xslv7, "% 8.4f");
+	printf("||XA - B|| = % 8.4f\n", norm(Xslv7*Aslv7 - Bslv7));
+	return;
 
 	// 線形最小二乗法関連の関数(linsolveの応用)
 	printf("\n★★★★★★★ 線形最小二乗法関連の関数(linsolveの応用)\n");

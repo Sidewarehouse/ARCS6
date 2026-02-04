@@ -3035,8 +3035,8 @@ class ArcsMat {
 			// のように表せて、x'Q = d と置き換えると、
 			// 　dR = b'
 			// と書けるので、dについて解く。Rは縦長上三角行列なので、下記の前進代入法で求まる。
-			const auto [Q, R] = ArcsMat<N,M>::QR(~A);
-			ArcsMat<1,4> d;
+			const auto [Q, R] = ArcsMat<N,M,T>::QR(~A);
+			ArcsMat<1,MX,T> d;
 			T buff = 0;				// 行方向加算用のバッファ
 			d(1,1) = b[1]/R(1,1);	// 1列目は1列目の対角項で割るだけ
 			for(size_t i = 2; i <= M; ++i){
@@ -3118,6 +3118,34 @@ class ArcsMat {
 		static constexpr ArcsMat<N,NB,T> linsolve(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
 			ArcsMat<N,NB,T> X;
 			ArcsMat<M,N,T>::linsolve(A, B, X);
+			return X;
+		}
+
+		//! @brief XA = Bの形の線形方程式をXについて解く関数(引数渡し版)
+		//! @tparam	MB, NB, TB, MX, NX, TX	BとXの高さ, 幅, 要素の型
+		//! @param[in]	A	係数行列(正方行列・非正方行列)
+		//! @param[in]	B	係数ベクトル・行列
+		//! @param[out]	X	解ベクトル・行列
+		template<size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+		static constexpr void linsolveXAB(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MX,NX,TX>& X){
+			// 下記のように転置で変形
+			//    XA = B
+			// (XA)' = B'
+			//  A'X' = B'
+			ArcsMat<NX,MX,TX> Xt;					// X'
+			ArcsMat<N,M,T>::linsolve(~A, ~B, Xt);	// A'X' = B' を解いて、
+			X = ~Xt;	// (X')' として元に戻す
+		}
+		
+		//! @brief XA = Bの形の線形方程式をXについて解く関数(戻り値返し版)
+		//! @tparam	MB, NB, TB	B行列の高さ, 幅, 要素の型
+		//! @param[in]	A	係数行列(正方行列・非正方行列)
+		//! @param[in]	B	係数ベクトル・行列
+		//! @return	解ベクトル・行列
+		template<size_t MB, size_t NB, typename TB = double>
+		static constexpr ArcsMat<MB,M,T> linsolveXAB(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
+			ArcsMat<MB,M,T> X;
+			ArcsMat<M,N,T>::linsolveXAB(A, B, X);
 			return X;
 		}
 
@@ -3906,11 +3934,11 @@ class ArcsMat {
 		//!  polycoeff(z, c)
 		//!  計算結果： c = {1.0000 + 0.0000i, -5.0000 - 3.0000i, 4.0000 + 7.0000i}
 		//! @tparam	MY, NY, TY 出力行列の高さ, 幅, 要素の型
-		//!	@param	u	根(極)の値が羅列された入力縦ベクトル
-		//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
-		//! @param	Tol	許容誤差(デフォルト値 1e-10)
-		template<size_t MY, size_t NY, typename TY = double>
-		static constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y, T Tol = 1e-10){
+		//!	@param[in]	u	根(極)の値が羅列された入力縦ベクトル
+		//! @param[out]	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
+		//! @param[in]	Tol	許容誤差(デフォルト値 1e-10)
+		template<size_t MY, size_t NY, typename TY = double, typename R = double>
+		static constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y, const R Tol = 1e-10){
 			static_assert(M == MY - 1, "ArcsMat: Size Error");	// 行列のサイズチェック
 			static_assert(N == 1, "ArcsMat: Size Error");		// 行列のサイズチェック
 			static_assert(NY == 1, "ArcsMat: Size Error");		// 行列のサイズチェック
@@ -3955,10 +3983,10 @@ class ArcsMat {
 		
 		//! @brief 根(極)から多項式の係数を計算する関数 (戻り値返し版)
 		//! MATLABでいうところのpoly関数
-		//!	@param	u	根(極)の値が羅列された入力縦ベクトル
-		//! @param	Tol	許容誤差(デフォルト値 1e-10)
+		//!	@param[in]	u	根(極)の値が羅列された入力縦ベクトル
+		//! @param[in]	Tol	許容誤差(デフォルト値 1e-10)
 		//! @return	多項式(M次方程式)の係数が羅列された出力縦ベクトル
-		static constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u, T Tol = 1e-10){
+		static constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u, const T Tol = 1e-10){
 			ArcsMat<M+1,1,T> y;
 			ArcsMat<M,N,T>::polycoeff(u, y, Tol);
 			return y;
@@ -5308,6 +5336,26 @@ namespace ArcsMatrix {
 		return ArcsMat<M,N,T>::linsolve(A, B);
 	}
 
+	//! @brief XA = Bの形の線形方程式をXについて解く関数(引数渡し版)
+	//! @tparam	M, N, T, MB, NB, TB, MX, NX, TX	A、BとXの高さ, 幅, 要素の型
+	//! @param[in]	A	係数行列(正方行列・非正方行列)
+	//! @param[in]	B	係数ベクトル・行列
+	//! @param[out]	X	解ベクトル・行列
+	template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double, size_t MX, size_t NX, typename TX = double>
+	constexpr void linsolveXAB(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B, ArcsMat<MX,NX,TX>& X){
+		ArcsMat<M,N,T>::linsolveXAB(A, B, X);
+	}
+	
+	//! @brief AX = Bの形の線形方程式をXについて解く関数(戻り値返し版)
+	//! @tparam	M, N, T, MB, NB, TB	A、Bの高さ, 幅, 要素の型
+	//! @param[in]	A	係数行列(正方行列・非正方行列)
+	//! @param[in]	B	係数ベクトル・行列
+	//! @return	X	解ベクトル・行列
+	template<size_t M, size_t N, typename T = double, size_t MB, size_t NB, typename TB = double>
+	constexpr ArcsMat<MB,M,T> linsolveXAB(const ArcsMat<M,N,T>& A, const ArcsMat<MB,NB,TB>& B){
+		return ArcsMat<M,N,T>::linsolveXAB(A, B);
+	}
+
 	//! @brief 逆行列を返す関数(引数渡し版)
 	//! @tparam	M, N, T, P, Q, R	入出力行列の高さ, 幅, 要素の型
 	//! @param[in]	A	入力行列
@@ -5753,7 +5801,7 @@ namespace ArcsMatrix {
 	//! @param	y	多項式(M次方程式)の係数が羅列された出力縦ベクトル
 	//! @param	Tol	許容誤差(デフォルト値 1e-10)
 	template<size_t M, size_t N, typename T = double, size_t MY, size_t NY, typename TY = double>
-	constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y, T Tol = 1e-10){
+	constexpr void polycoeff(const ArcsMat<M,N,T>& u, ArcsMat<MY,NY,TY>& y, const T Tol = 1e-10){
 		ArcsMat<M,N,T>::template polycoeff<MY,NY,TY>(u, y, Tol);
 	}
 
@@ -5763,9 +5811,11 @@ namespace ArcsMatrix {
 	//!	@param	u	根(極)の値が羅列された入力縦ベクトル
 	//! @param	Tol	許容誤差(デフォルト値 1e-10)
 	//! @return	多項式(M次方程式)の係数が羅列された出力縦ベクトル
-	template<size_t M, size_t N, typename T = double>
-	constexpr ArcsMat<M+1,1,T> polycoeff(const ArcsMat<M,N,T>& u, T Tol = 1e-10){
-		return ArcsMat<M,N,T>::polycoeff(u, Tol);
+	template<typename TY = double, size_t M, size_t N, typename T = double>
+	constexpr ArcsMat<M+1,1,TY> polycoeff(const ArcsMat<M,N,T>& u, const T Tol = 1e-10){
+		ArcsMat<M+1,1,TY> y;
+		ArcsMat<M,N,T>::template polycoeff<M+1,1,TY>(u, y, Tol);
+		return y;
 	}
 
 }
