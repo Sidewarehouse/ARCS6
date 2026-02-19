@@ -397,7 +397,7 @@ int main(void){
 	MatFile1.Save("t4", t4);	// 時刻ベクトルをMATファイルとして保存
 	MatFile1.Save("y4", y4);	// 出力応答ベクトルをMATファイルとして保存
 
-	printf("◆ 極配置法によるオブザーバゲイン設計\n");
+	printf("◆ 極配置法による状態オブザーバゲイン設計\n");
 	constexpr ArcsMat<3,3> Ap1 = {	// プラントのシステム行列
 		-1, -2, -9,
      	 0, -1, -7,
@@ -438,7 +438,18 @@ int main(void){
 	const double kov22 = (- Jm*Dl*Dl*Rg*Rg + 4.0*Jm*Dl*Jl*Rg*Rg*g - 6.0*Jm*Jl*Jl*Rg*Rg*g*g + Ks*Jl*Jl + Jm*Ks*Jl*Rg*Rg)/(Jl*Jl*Ks*Rg);
 	const double kov23 = -(Dl*Jm + Dm*Jl - 4.0*Jl*Jm*g)/(Jl*Jm);
 	const double kov24 = -(Jl*Jm*Rg*g*g*g*g)/Ks;
-	printf("k1 = % 8.3f, k2 = % 8.3f, k3 = % 8.3f, k4 = % 8.3f\n", kov21, kov22, kov23, kov24);
+	printf("k1 = % 8.3f, k2 = % 8.3f, k3 = % 8.3f, k4 = % 8.3f\n\n", kov21, kov22, kov23, kov24);
+
+	printf("◆ 状態オブザーバの状態方程式係数の自動計算\n");
+	const double gov1 = 5;	// [rad/s] オブザーバ推定帯域
+	const ArcsMat<3,1,std::complex<double>> pov1 = { -gov1 + 0.0i, -gov1 + 0.0i, -gov1 + 0.0i };	// [rad/s] オブザーバの極
+	ArcsMat<3,3> Ao1, Co1;
+	ArcsMat<3,2> Bo1;
+	ArcsControl::StateObserver(Ap1, bp1, cp1, pov1, Ao1, Bo1, Co1);				// オブザーバ状態方程式係数の計算 (引数渡し版)
+	std::tie(Ao1, Bo1, Co1) = ArcsControl::StateObserver(Ap1, bp1, cp1, pov1);	// オブザーバ状態方程式係数の計算 (戻り値渡し版)
+	dispf(Ao1, "% 8.4f");
+	dispf(Bo1, "% 8.4f");
+	dispf(Co1, "% 8.4f");
 
 	return EXIT_SUCCESS;	// 正常終了
 }
