@@ -19,8 +19,7 @@
 
 // 追加のARCSライブラリをここに記述
 #include "ArcsMatrix.hh"
-#include "ArcsControl.hh"
-#include "SquareWave.hh"
+#include "MovingDifferentiator.hh"
 
 using namespace ARCS;
 
@@ -39,25 +38,12 @@ namespace {
 bool ControlFunctions::ControlFunction1(const double t, const double Tact, const double Tcmp){
 	// 制御用定数設定
 	[[maybe_unused]] constexpr double Ts = ConstParams::SAMPLING_TIME[0]*1e-9;	// [s]	制御周期
-	constexpr ArcsMat<2,2> A = {
-		 0,  1,
-		-5, -2
-	};
-	constexpr ArcsMat<2,1> b = {
-		0,
-		3,
-	};
-	constexpr ArcsMat<1,2> C = {
-		1, 0
-	};
-	constexpr ArcsMat<1,1> D = {
-		1
-	};
 	
 	// 制御用変数宣言
-	static double u = 0, y1 = 0, y2 = 0;							// 状態空間モデルの入力信号と出力信号
-	static ArcsControl::StateSpace<2,1,1> System1(A, b, C, Ts);		// 状態空間モデル1
-	static ArcsControl::StateSpace<2,1,1> System2(A, b, C, D, Ts);	// 状態空間モデル2
+	static double u1 = 0, u2 = 0, y1 = 0;
+	static ArcsMat<3,2> U1, Y1;
+	static MovingDifferentiator<10> Diff1;				// 時間微分器
+	static MovingDifferentiator<10, ArcsMat<3,2>> Diff2;// 行列の時間微分器
 	
 	if(CmdFlag == CTRL_INIT){
 		// 初期化モード (ここは制御開始時/再開時に1度だけ呼び出される(非リアルタイム空間なので重い処理もOK))
@@ -73,23 +59,28 @@ bool ControlFunctions::ControlFunction1(const double t, const double Tact, const
 		Screen.GetOnlineSetVar();		// オンライン設定変数の読み込み
 		
 		// ここに制御アルゴリズムを記述する
-		u = SquareWave(0.5, M_PI, t, 1);// 方形波入力生成
-		System1.SetInput1(u);			// 状態空間モデル1の入力1に方形波入力
-		System2.SetInput1(u);			// 状態空間モデル2の入力1に方形波入力
-		System1.Update();				// 状態空間モデル1の状態ベクトルを更新
-		System2.Update();				// 状態空間モデル1の状態ベクトルを更新
-		y1 = System1.GetOutput1();		// 状態空間モデル1の出力1を取得
-		y2 = System2.GetOutput1();		// 状態空間モデル2の出力1を取得
+		// 単純な時間微分の例
+		u1 = sin(2.0*M_PI*1.0*t);
+		y1 = Diff1.GetSignal(u1, t);
+		
+		// 行列の時間微分の例
+		u2 = cos(2.0*M_PI*1.0*t);
+		U1.Set(
+			1.0*u1, 1.0*u2,
+			2.0*u1, 2.0*u2,
+			3.0*u1, 3.0*u2
+		);
+		Y1 = Diff2.GetSignal(U1, t);
 		
 		Interface.SetCurrent(iqref);	// [A] 電流指令ベクトルの出力
-		Screen.SetVarIndicator(u, y1, 0, 0, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
+		Screen.SetVarIndicator(y1, Y1(1,1), 0, 0, 0, 0, 0, 0, 0, 0);	// 任意変数インジケータ(変数0, ..., 変数9)
 		Graph.SetTime(Tact, t);									// [s] グラフ描画用の周期と時刻のセット
-		Graph.SetVars(0, u, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット0 (グラフ番号, 変数0, ..., 変数7)
-		Graph.SetVars(1, y1, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
+		Graph.SetVars(0, u1, y1, 0, 0, 0, 0, 0, 0);	// グラフプロット0 (グラフ番号, 変数0, ..., 変数7)
+		Graph.SetVars(1, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット1 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(2, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット2 (グラフ番号, 変数0, ..., 変数7)
 		Graph.SetVars(3, 0, 0, 0, 0, 0, 0, 0, 0);	// グラフプロット3 (グラフ番号, 変数0, ..., 変数7)
 		UsrGraph.SetVars(0, 0);						// ユーザカスタムプロット（例）
-		Memory.SetData(Tact, t, u, y2, 0, 0, 0, 0, 0, 0, 0);	// CSVデータ保存変数 (周期, A列, B列, ..., J列)
+		Memory.SetData(Tact, t, u2, Y1(1,1), Y1(2,1), Y1(3,1), Y1(1,2), Y1(2,2), Y1(3,2), 0, 0);		// CSVデータ保存変数 (周期, A列, B列, ..., J列)
 		// リアルタイム制御ここまで
 	}
 	if(CmdFlag == CTRL_EXIT){
