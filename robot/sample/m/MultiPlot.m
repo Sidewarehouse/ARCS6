@@ -1,5 +1,5 @@
 % MultiPlot マルチ(マルタイ)プロットクラス
-% 2024/04/03 Yokokura, Yuki
+% 2026/05/09 Yokokura, Yuki
 %
 % 本プロットの特徴
 % ・余白を完全に制御下に置ける多段プロット
@@ -66,6 +66,8 @@ properties(SetAccess = protected)
 	ColorRed   = [225/255,   0/255,   0/255];	% プロット線の色(赤系)
 	ColorGreen = [  0/255, 255/255, 127/255];	% プロット線の色(緑系)
 	ColorBlue  = [  0/255, 127/255, 255/255];	% プロット線の色(青系)
+	ColorGemBlue = [0,0.447,0.741];				% プロット線の色(MATLAB青系)
+	ColorGemRed  = [0.85,0.325,0.098];			% プロット線の色(MATLAB赤系)
 	WidthNarrow = 1.2;		% プロット線の太さ(細)
 	WidthNormal = 2.0;		% プロット線の太さ(普通)
 	WidthWide   = 2.8;		% プロット線の太さ(太)
@@ -116,8 +118,8 @@ methods
 		set(this.FigHandle, 'Color',this.BackColor);
 		
 		% プロット線色の初期化
-		ColorDefs = {this.ColorBlack, this.ColorGray, this.ColorRed, this.ColorGreen, this.ColorBlue};
-		ColorNames = ["Black", "Gray", "Red", "Green", "Blue"];
+		ColorDefs = {this.ColorBlack, this.ColorGray, this.ColorRed, this.ColorGreen, this.ColorBlue, this.ColorGemBlue, this.ColorGemRed};
+		ColorNames = ["Black", "Gray", "Red", "Green", "Blue", "GemBlue", "GemRed"];
 		this.LineColors = dictionary(ColorNames, ColorDefs);	% ←連想配列(R2022b以降が必要)
 		
 		% プロット線幅の初期化

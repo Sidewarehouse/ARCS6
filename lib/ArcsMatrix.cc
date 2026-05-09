@@ -3,13 +3,11 @@
 //!
 //! 行列に関係する様々な演算を実行するクラス
 //!
-//! @date 2022/07/27
+//! @date 2026/02/22
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2022 Yokokura, Yuki
-// This program is free software;
-// you can redistribute it and/or modify it under the terms of the BSD License.
-// For details, see the License.txt file.
+// Copyright (C) 2011-2026 Yokokura, Yuki
+// MIT License. For details, see the LICENSE file.
 
 #include "ArcsMatrix.hh"
 
