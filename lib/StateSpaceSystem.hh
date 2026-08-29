@@ -99,9 +99,9 @@ class StateSpaceSystem {
 				Cd = Ch;			// C行列はそのまま
 			}else{
 				// 次数が1次より高いときは平衡化してから離散化
-				auto [Ah, Bh, Ch] = ArcsControl::BalanceReal(A, B, C);	// 平衡化
-				std::tie(Ad, Bd) = ArcsControl::Discretize(Ah, Bh, Ts);	// 離散化
-				Cd = Ch;			// C行列は平衡化後そのまま
+				// auto [Ah, Bh, Ch] = ArcsControl::BalanceReal(A, B, C);	// 平衡化
+				std::tie(Ad, Bd) = ArcsControl::Discretize(A, B, Ts);	// 離散化
+				Cd = C;			// C行列は平衡化後そのまま
 			}
 			DirectTerm = false;		// 直達項は無し
 		}
