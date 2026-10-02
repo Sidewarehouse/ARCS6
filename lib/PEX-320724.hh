@@ -44,14 +44,13 @@ class PEX320724 {
 
 			// サンプリング条件の取得
 			AdBmGetSamplingConfig( 1, &AdSmplConfig );		// デフォルト設定を読み込み
-			printf("fSmplFreq = %f Hz\n", AdSmplConfig.fSmplFreq);	// [Hz] デフォルトサンプリング周波数を表示
 			AdSmplConfig.ulChCount = 1;						// チャンネル数
 			AdSmplConfig.SmplChReq[0].ulChNo = 1;			// チャンネル番号1の設定
 			AdSmplConfig.SmplChReq[0].ulRange = AD_5V;		// 入力電圧の範囲
 			//AdSmplConfig.SmplChReq[1].ulChNo = 2;			// チャンネル番号2の設定
 			//AdSmplConfig.SmplChReq[1].ulRange = AD_5V;		// 入力電圧の範囲
 			AdSmplConfig.ulSingleDiff = AD_INPUT_SINGLE;	// シングルエンド入力に設定
-			AdSmplConfig.ulSmplNum = 1024;					// [-] サンプリングするデータ数
+			AdSmplConfig.ulSmplNum = Nsmpl;					// [-] サンプリングするデータ数
 			AdSmplConfig.ulSmplEventNum = 0;				// [-] 通知サンプリング件数
 			AdSmplConfig.ulSmplRepeat = 1;					// [-] サンプリング繰り返し回数
 			AdSmplConfig.ulBufferMode = AD_OVERWRITE;		// サンプリングデータ保存方法を上書き保存モードに設定
@@ -79,7 +78,7 @@ class PEX320724 {
 			arcs_assert(ret == AD_ERROR_SUCCESS);
 			
 			// 変換前準備
-			AdSetFilter(1, AD_DF_8);		// オーバサンプリンレート
+			AdSetFilter(1, AD_DF_8);		// オーバサンプリングレート
 			AdClearSamplingData(1);			// サンプリングバッファクリア
 		}
 		
@@ -93,7 +92,7 @@ class PEX320724 {
 		void Test(void){
 			// 変換開始＆ブロッキング動作＆データ取得
 			AdStartSampling(1, FLAG_SYNC);
-			unsigned long ulSmplNum = 1024;
+			unsigned long ulSmplNum = Nsmpl;
 			AdGetSamplingData(1, &SmplData[0], &ulSmplNum);	// データの取得
 
 			// サンプリング動作状態の取得
@@ -104,7 +103,7 @@ class PEX320724 {
 			printf("Status: 0x%08lx, N = %ld\n", ulAdSmplStatus, ulAdSmplCount);
 
 			// 変換データの表示
-			for(size_t i = 0; i < 1024; ++i) printf("%5ld: %8x, %8.5f V\n", i, SmplData[i], static_cast<double>(SmplData[i])*10.0/16777216.0 - 5.0);			
+			for(size_t i = 0; i < Nsmpl; ++i) printf("%5ld: %8x, %8.5f V\n", i, SmplData[i], static_cast<double>(SmplData[i])*10.0/16777216.0 - 5.0);			
 		}
 		
 		//! @brief 電圧を取得する関数
@@ -112,7 +111,7 @@ class PEX320724 {
 		void GetVoltage(double& V1){
 			// 変換開始＆ブロッキング動作＆データ取得
 			AdStartSampling(1, FLAG_SYNC);
-			unsigned long ulSmplNum = 1024;
+			unsigned long ulSmplNum = Nsmpl;
 			AdGetSamplingData(1, &SmplData[0], &ulSmplNum);	// データの取得
 
 			// 1制御周期中の平均値を計算（オーバサンプリングと同等の動作）
