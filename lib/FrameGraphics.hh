@@ -13,10 +13,10 @@
 //! 画面バッファをPNG画像ファイルとして保存することも可能。
 //! WSL上などフレームバッファが存在しないときはダミーのバッファを作成してやり過ごし，PNGファイルで出力する。
 //!
-//! @date 2024/10/12
+//! @date 2026/10/02
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2026 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #ifndef FRAMEGRAPHICS
@@ -60,6 +60,7 @@ namespace ARCS {	// ARCS名前空間
 enum class FGreso {
 	RESO_1024x600,	//!< WSVGA
 	RESO_1024x768,	//!< XGA
+	RESO_1280x800,	//!< WXGA
 	RESO_1280x1024,	//!< SXGA
 	RESO_1920x1080,	//!< Full HD
 	RESO_CUSTOM		//!< それ以外の場合

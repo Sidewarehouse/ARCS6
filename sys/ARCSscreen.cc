@@ -1,10 +1,10 @@
 //! @file ARCSscreen.cc
 //! @brief ARCS画面描画クラス
 //!        ARCS用画面の描画を行います。
-//! @date 2024/10/11
+//! @date 2026/10/02
 //! @author Yokokura, Yuki
 //
-// Copyright (C) 2011-2024 Yokokura, Yuki
+// Copyright (C) 2011-2026 Yokokura, Yuki
 // MIT License. For details, see the LICENSE file.
 
 #include <unistd.h>
@@ -55,6 +55,9 @@ ARCSscreen::ARCSscreen(ARCSeventlog& EvLog, ARCSassert& Asrt, ARCSprint& Prnt, A
 	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1024x768){
 		VERTICAL_MAX   =  47;	// [文字] 画面の最大高さ文字数
 		HORIZONTAL_MAX = 127;	// [文字] 画面の最大幅文字数
+	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1280x800){
+		VERTICAL_MAX   =  49;	// [文字] 画面の最大高さ文字数
+		HORIZONTAL_MAX = 159;	// [文字] 画面の最大幅文字数
 	}else if constexpr(EquipParams::SCR_RESO == FGreso::RESO_1280x1024){
 		VERTICAL_MAX   =  63;	// [文字] 画面の最大高さ文字数
 		HORIZONTAL_MAX = 159;	// [文字] 画面の最大幅文字数
