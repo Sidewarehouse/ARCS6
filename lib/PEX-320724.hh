@@ -3,7 +3,7 @@
 //!
 //! Interface社製入出力クラスのための入出力機能を提供します。(暫定短納期実装)
 //!
-//! @date 2026/10/01
+//! @date 2026/10/28
 //! @author Yokokura, Yuki
 //
 // Copyright (C) 2011-2026 Yokokura, Yuki
@@ -13,7 +13,6 @@
 #define PEX_320724
 
 #include <cassert>
-#include "fbiad.h"
 
 // ARCS組込み用マクロ
 #ifdef ARCS_IN
@@ -27,6 +26,10 @@
 	#define EventLog(a)
 	#define EventLogVar(a)
 #endif
+
+// Interface社製ドライバを使用する場合のみこのヘッダは有効
+#ifdef IF_FBIAD
+	#include "fbiad.h"
 
 namespace ARCS {	// ARCS名前空間
 //! @brief PEX-320724入出力クラス
@@ -132,6 +135,8 @@ class PEX320724 {
 		uint32_t SmplData[1024];		// 連続サンプリングデータ
 };
 }
+
+#endif
 
 #endif
 
